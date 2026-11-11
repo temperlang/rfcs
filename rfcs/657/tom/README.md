@@ -20,9 +20,11 @@ might repeat things I've heard from other people on the team:
   - temper-regex-engine
   - temper-regex-parser
   - wherewith
-  - ... additional private libraries
+  - ... additional private libraries ...
   - Some of these might suggest new tests required in tempest before becoming
     temper.
 - Review all open temperlang/temper issues and PRs for which should remain open.
   - Some bugs may have been fixed already in tempest.
   - PRs as they stand would be innapropriate for the new code base.
+  - So we should ensure that we either close all PRs or have an issue for each.
+  - If we have a good issue open for anything relevant, we can close the PR.
