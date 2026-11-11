@@ -28,6 +28,9 @@ might repeat things I've heard from other people on the team:
   - I'm already prioritizing tempest for temper library dev, but I've also been
     checking against kotlin temper. After full transition, the latter is no
     longer necessary.
+  - Maybe not required that we verify libraries are publishable? Should that be
+    a future round or before 657 is ready? (Bullet added after I first looked at
+    a longer claude document but before I got its own summaries.)
 - Review all open temperlang/temper issues and PRs for which should remain open.
   - Some bugs may have been fixed already in tempest.
   - PRs as they stand would be innapropriate for the new code base.
