@@ -51,3 +51,4 @@ might repeat things I've heard from other people on the team:
   - Put the new history on a branch on temperlang/temper.
   - Use old temper so stars or bookmarks find active dev.
   - Swap old main out and new main in by renaming branches.
+  - Maybe review main branch protections after renames.

@@ -1,0 +1,116 @@
+Claude's reaction to the memory cycle checker proposal, at Tom's request.
+
+## What's strong
+
+- The ordering principle is sound: immutable members can only point to
+  older objects, so cycles need mutation. tempest's
+  [notes/acyclic.md](https://github.com/temperlang/tempest/blob/main/notes/acyclic.md)
+  reached the same idea independently ("cycles need mutation or a leaked
+  `this`"), which is encouraging.
+- It delivers a long-standing promise: the memory tutorial already says
+  cycle-building code "will cause compiler errors in the future", and
+  `forbids` looks like what temper issue #5's "does not reference" bounds
+  were after.
+- It starts from an experimental implementation (acyclic-types) and plans
+  a test suite of failing and passing programs.
+
+## Gaps worth covering
+
+1. **`this` escaping during construction.** An immutable object can still
+   join a cycle if `this` leaks from its constructor before its fields are
+   set. The team's rule that `this` isn't used in a constructor until every
+   field is set covers this; the proposal should say it relies on that rule.
+2. **Closures and function types.** A field holding a function or a fun
+   interface value can capture its owner. The Compatibility section mentions
+   interfaces, but closures are the commonest accidental cycle and deserve
+   explicit rules and examples.
+3. **How noisy it is.** A worst-case check at each class definition may flag
+   every generic class with a mutable field of its type parameter (`class
+   Box<T>(public var value: T)`), making `forbids` boilerplate. Before
+   accepting, run the experimental checker over std and the public Temper
+   libraries (Chromarite, Hrefine, Kelpto, Ordable, Wherewith) and count the
+   errors, so "will probably break existing code" becomes a number.
+4. **std's own types.** Say how `ListBuilder`, `MapBuilder`, generators,
+   promises, and `AnyValue` are annotated or exempted. The scoped-building
+   idea (`buildList`) is good but needs its exact rule.
+5. **Weak references as a fallback.** Most backends have them, but they make
+   deallocation observable, which the rationale's "no observable
+   deallocation" property relies on avoiding. Worth a sentence on how that's
+   reconciled.
+6. **Visualizations.** Make text the primary form: a DOT or Mermaid
+   description of the cycle, which works in CI logs, the language server,
+   screen readers, and the playground (which already renders Mermaid).
+   Images could be interactive-only and opt-in, which answers the open
+   question. An image-display dependency in the CLI seems heavy given how
+   terminal image support varies.
+7. **Implementation target.** The Implementation section names Kotlin's
+   structures (`TypeDefinition`). With tempest replacing the Kotlin
+   compiler, it should target tempest, whose acyclic.md has a sketch of the
+   check and open questions to reconcile with this proposal.
+
+## Follow-up answers
+
+### The `this` rule in tempest
+
+Half of it is in place. Until every field is set, `this` can't be used
+at all (`ThisBeforeFieldsSet`, in tempest's `typing/fields_first.rs`).
+`this` escaping the constructor after that, by being stored, passed, or
+captured, isn't checked yet. For cycles, the first half plus the graph
+check may be enough: once fields are set, an object's immutable fields
+can't change, so storing `this` anywhere that leads back to it needs a
+mutable reference, which the graph check reports. Worth confirming with
+tests before relying on it.
+
+### Weak references by backend
+
+All seven current backends have something: JS `WeakRef`, Python
+`weakref`, Java and C# `WeakReference`, C++ `weak_ptr`, and Rust `Weak`.
+Lua has weak tables but no single weak-reference object, so it would need
+emulating. The gaps are future targets (C99 has none) and behavior: under
+tracing GC a weak reference clears at some unpredictable time, under
+reference counting at once, so the same program could behave differently
+per backend. Suggestion: keep weak references out of the core design, or
+offer them later as an explicit opt-in std type.
+
+### Closures
+
+1. **Only stored closures matter.** A block passed to `map` and not kept
+   adds no edge. As with Swift's `@escaping`, only a closure stored in a
+   field, list, or map creates one. That removes most of the noise.
+2. **Check where it's stored, with its actual captures.** When a closure
+   is stored in a field, it's an error only if a captured value's type can
+   lead back to that field's owner through a mutable edge. That's precise
+   and local, where treating every fun interface field as reaching
+   anything would reject nearly all of them.
+3. **Suggest the usual fix in the error:** pass the owner as an argument
+   (`handler(event, owner)`) instead of capturing it, the closure version
+   of passing context down.
+
+### How this lines up with tempest's acyclic notes
+
+[notes/acyclic.md](https://github.com/temperlang/tempest/blob/main/notes/acyclic.md)
+already covers the principle; a "may reference" graph with edges for
+fields, list and map elements, and captured variables, where interfaces
+reach every implementation; errors at the mutable edge, found by strongly
+connected components; `forbids` checked where generics are instantiated;
+the `this` rule; and starting as warnings until the rules are agreed. Its
+open questions are top types and open interfaces, closures, core's
+builders, `forbids` details, and actionable error messages.
+
+Only this proposal has visualizations, weak references, scoped building
+(`buildList`), and the test-suite and documentation plans. The two
+complement each other.
+
+### Measuring the noise
+
+A trial is underway: applying the rules by hand to some of the public
+Temper libraries, editing them as an author would to pass a pretend
+checker, and counting what changes and what felt like noise. Results to
+follow.
+
+## Small fixes
+
+- The discussion link: `issue/NNNNN` should be `issues/` once there's a
+  number.
+- "bpass" should be "pass".
+- "the one's that don't" should be "the ones that don't".
