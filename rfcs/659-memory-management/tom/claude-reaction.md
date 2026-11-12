@@ -174,9 +174,75 @@ Suggestions from the trials:
     exported, unsealed subinterface is open; whether `@imu` interfaces
     count as closed; and where `forbids` goes relative to `extends` in a
     bound (`T extends Event forbids X`).
-11. **Still unmeasured:** std and core (builders, generators, promises) are
+11. **Show the capability pattern as the recommended shape for host
+    services:** open interfaces the host supplies once (a clock, a
+    randomness source, a session store), held in fields set by the
+    constructor, with immutable records and stores holding copies. In a
+    rerun of the generic library with 41 more types (web sessions,
+    throttling, another SQL dialect), it passed with no annotations, and
+    the new dialect needed no new `forbids`; only the public-setter cost
+    in suggestion 9 grew, by one more accumulator.
+12. **Still unmeasured:** std and core (builders, generators, promises) are
     the real stress test, then Hrefine, whose implementation of Kelpto's
     open `UrlCheck` would be the first open interface crossing libraries.
+
+## Closure conversion
+
+On Mike's section "Implicit cycles via closure conversion can be a
+problem".
+
+### Already how tempest generates code
+
+Building the `isEven`/`isOdd` example with tempest, its Rust and C++
+output put the captured state in one shared group value (`IsEvenGroup`,
+the closure record), with the two functions as methods that call each
+other directly (`self.is_odd(…)`), so the record holds no function
+values. Each function value is made from the group where it's needed
+(Rust's `Arc::new(move |a0| group.is_even(a0))`, a C++ `std::function`
+lambda over the group). The object graph has no cycle, as in the second
+diagram. So the key claim is implemented, not only sketched: since
+Temper code can't compare functions' identity, making function values on
+demand is free, and mutually recursive local functions, the commonest
+case, never need flagging.
+
+### What's strong
+
+- **One checker:** modeling closure records and bound functions as
+  ad-hoc classes lets the same cycle check reason about closures, with
+  nothing closure-specific, and gives "check the actual captures where
+  the closure is stored" for free.
+- **Errors land in the right place:** in the `Box` example the problem
+  is the closure plus the assignment, not `Box`'s definition.
+- **It fits nominal fun interfaces:** a bound function is a class
+  implementing the function's interface.
+
+### Suggestions
+
+1. **Only variables changed after capture.** As written, the rule flags
+   capturing any local whose type is the function's type or a supertype
+   (`AnyValue?`), which is type-based and noisy. Cycles need mutation: a
+   captured local set before the closure exists and never reassigned
+   can't point back to it, as immutable fields only point to older
+   objects. So only `var`s, and `let`s assigned after the capture (as
+   `box` is), reassigned after the closure is created, need checking.
+2. **Only stored closures matter.** A closure passed to `map` and dropped
+   adds no lasting edge. With ad-hoc classes, that holds if a bound
+   function is an edge only where it's stored: in a field, a captured
+   variable, or a collection. Worth saying explicitly.
+3. **Keep the virtual types out of messages.** Report in source terms,
+   never `ClosureRecord#123`: "`f` captures `box`, and `box.t` holds `f`
+   (assigned at line N), a cycle under reference counting", with the
+   usual fix: pass `box` as an argument instead of capturing it.
+4. **The cost of making functions on demand.** Each use of a local
+   function as a value allocates one; direct calls within the group
+   don't (tempest makes them plain method calls). Worth a sentence.
+5. **Which targets need it.** The risk is real for reference-counted
+   targets: C++ (`shared_ptr`), Rust (`Arc`), and later Swift or C. JS,
+   Java, C#, Python (with its cycle collector), and Lua collect cycles.
+   The check still belongs in the frontend for every target, as a
+   language rule, but the motivation can name these.
+6. **The example:** `let box: Box<fn: Void>();` reads like a typo for a
+   declaration that `box = new Box(f)` assigns later.
 
 ## Small fixes
 
