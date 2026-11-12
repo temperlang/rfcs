@@ -225,7 +225,8 @@ matter to the semantics.  Function binding is side-effect free, so when and how
 often it happens does not matter.
 
 ```patch
- // Naive rewrite.
+-// Naive rewrite.
++// Rewrite that allows coreferential named functions.
  function outer(wantEven, i) {
    // Original functions renamed and with references to closed-over
    // state rewritten to point to an extra closureRecord input.
