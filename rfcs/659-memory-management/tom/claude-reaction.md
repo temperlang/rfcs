@@ -20,29 +20,41 @@ Claude's reaction to the memory cycle checker proposal, at Tom's request.
    join a cycle if `this` leaks from its constructor before its fields are
    set. The team's rule that `this` isn't used in a constructor until every
    field is set covers this; the proposal should say it relies on that rule.
-2. **Closures and function types.** A field holding a function or a fun
+2. ~~**Closures and function types.** A field holding a function or a fun
    interface value can capture its owner. The Compatibility section mentions
    interfaces, but closures are the commonest accidental cycle and deserve
-   explicit rules and examples.
+   explicit rules and examples.~~
+   > [!NOTE]
+   > Addressed in section titled "Implicit cycles via closure conversion can be a problem"
 3. **How noisy it is.** A worst-case check at each class definition may flag
    every generic class with a mutable field of its type parameter (`class
    Box<T>(public var value: T)`), making `forbids` boilerplate. Before
    accepting, run the experimental checker over std and the public Temper
    libraries (Chromarite, Hrefine, Kelpto, Ordable, Wherewith) and count the
    errors, so "will probably break existing code" becomes a number.
-4. **std's own types.** Say how `ListBuilder`, `MapBuilder`, generators,
+4. ~~**std's own types.** Say how `ListBuilder`, `MapBuilder`, generators,
    promises, and `AnyValue` are annotated or exempted. The scoped-building
-   idea (`buildList`) is good but needs its exact rule.
+   idea (`buildList`) is good but needs its exact rule.~~
+   > [!NOTE]
+   > Addressed in section titled "Scope bounded exceptions to the rule"
 5. **Weak references as a fallback.** Most backends have them, but they make
    deallocation observable, which the rationale's "no observable
    deallocation" property relies on avoiding. Worth a sentence on how that's
    reconciled.
+   > [!NOTE]
+   > Yes, weak references release is often non-deterministic.  Any fallback
+   > For a long time, Golang did not support weak reference but now has
+   > https://pkg.go.dev/weak
 6. **Visualizations.** Make text the primary form: a DOT or Mermaid
    description of the cycle, which works in CI logs, the language server,
    screen readers, and the playground (which already renders Mermaid).
    Images could be interactive-only and opt-in, which answers the open
    question. An image-display dependency in the CLI seems heavy given how
    terminal image support varies.
+   > [!NOTE]
+   > This seems reasonable.  Will draft something about message templates
+   > specifically that allow for marking some placeholders as textual
+   > content that can be beautified.
 7. **Implementation target.** The Implementation section names Kotlin's
    structures (`TypeDefinition`). With tempest replacing the Kotlin
    compiler, it should target tempest, whose acyclic.md has a sketch of the

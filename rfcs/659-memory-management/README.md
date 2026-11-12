@@ -50,7 +50,7 @@ There are also a variety of fallback strategies if this proves hard to use:
 
 - Scoped building idioms. Some mutable types like *ListBuilder* are mutable but short lived, so idioms like Kotlin `buildList { ... }` where the auto-allocated *ListBuilder* switches to a state where it is guaranteed always empty after control exits the `}`, can be exceptions to the rule.  The output *List* type needs to bpass the `forbids` constraint checker.
 - Libraries for some apparently cyclic use cases like graphs based on adjacency tables.
-- Weak references which can allow for parent pointers in AST representations without breaking use cases where the root pointer is strong and not held by an AST.
+- Weak references can allow for parent pointers in AST representations without breaking use cases where the root pointer is strong and not held by an AST.
 
 ## Compatibility
 
@@ -145,10 +145,10 @@ let outer(wantEven: Boolean, i: Int32): Fn(Int32): Boolean {
   // Two coreferential nested functions that close
   // over the same state.
   let isEven(j: Int32 = i): Boolean {
-    j == 0 || !isOdd(j - j.sign())
+    j == 0 || isOdd(j - j.sign())
   }
   let isOdd(j: Int32 = i): Boolean {
-    j != 0 && !isEven(j - j.sign())
+    j != 0 && isEven(j - j.sign())
   }
 
   // Just a declaration that points to a function.
@@ -172,10 +172,10 @@ function outer(wantEven, i) {
   // Original functions renamed and with references to closed-over
   // state rewritten to point to an extra closureRecord input.
   function isEvenConverted(closureRecord, j = closureRecord.i) {
-    return j === 0 || !closureRecord.isOdd(j - Math.sign(j));
+    return j === 0 || closureRecord.isOdd(j - Math.sign(j));
   }
   function isOddConverted(closureRecord, j = closureRecord.i) {
-    return j !== 0 && !closureRecord.isEven(j - Math.sign(j));
+    return j !== 0 && closureRecord.isEven(j - Math.sign(j));
   }
 
   // Declare the original names, and a closure record.
@@ -231,10 +231,10 @@ often it happens does not matter.
    // Original functions renamed and with references to closed-over
    // state rewritten to point to an extra closureRecord input.
    function isEvenConverted(closureRecord, j = closureRecord.i) {
-     return j === 0 || !closureRecord.isOdd(j - Math.sign(j));
+     return j === 0 || closureRecord.isOdd(j - Math.sign(j));
    }
    function isOddConverted(closureRecord, j = closureRecord.i) {
-     return j !== 0 && !closureRecord.isEven(j - Math.sign(j));
+     return j !== 0 && closureRecord.isEven(j - Math.sign(j));
    }
 
    // Declare the original names, and a closure record.
@@ -325,6 +325,83 @@ should conclude that the responsibility for the problem is in the combination
 of the closure record and the bound function, not in the definition of `Box`.
 
 [closure conversion]: https://matt.might.net/articles/closure-conversion/
+
+## Scope bounded exceptions to the rule
+
+```ts
+let combine<T forbids List<T>>(a: List<T>, b: List<T>): List<T> {
+  buildList { (b) =>
+    b.addAll(a);
+    b.addAll(b);
+  }
+}
+```
+
+Here, the type formal `<T>` forbids `List<T>` but not `ListBuilder`.  The fact that
+it uses a `ListBuilder` internally is an implementation detail that we might not
+want to commit to forbidding, though, in this case, it's not problematic.
+
+Can we use a `ListBuilder` or something equivalent internally?
+
+What if we blessed certain classes as having a life-cycle where, if they progress
+through their life-cycle, they are guaranteed not to participate in memory cycles.
+
+Here's an example of how that might work in practice.
+
+```ts
+// After release, can point to nothing that might point back to it,
+// and enters a zombie state where no new mutations can cause now
+// back pointer paths.
+interface PointsToNothingAfterRelease {
+  release(): Void;
+}
+
+
+class LimitedTimeListBuilder<T> extends PointsToNothingAfterRelease {
+  private released: Boolean = false;
+
+  public add(el: T): Void {
+    if (released) { return }
+    ...
+  }
+  public addAll(els: Listed<T>): Void {
+    if (released) { return }
+    ...
+  }
+
+  public toList(): List<T> { ... }
+
+  public release(): Void {
+    // Flips bit so `add`s become no-ops.
+    released = true;
+    // Clears underlying content
+    ...
+  }
+}
+
+@inlineUnrealizedGoal
+let buildList<T forbide List<T>>(f: Fn(LimitedTimeListBuilder<T>): Void): List<T> {
+  let b = new LimitedTimeListBuilder<T>();
+  let ls: List<T>;
+//try {
+  f(b);
+  ls = b.toList();
+//} finally {
+  b.release();
+//}
+  ls
+}
+```
+
+Note, this *buildList* idiom could be improved by following on an
+initiative to add `this` as inputs to block lambdas.
+
+When a local declaration has a type that is a sub-type of *PointsToNothingOnRelease*,
+and it is const, and all paths downstream of its initializers lead to
+a `.release()` of it (or of a variable that aliases it (possibly via `notNull(...)`))
+then we can forego forbids-checking its type.  This doesn't solve the problem of
+delegating building a list by passing the builder on.
+
 
 ## Documentation
 
