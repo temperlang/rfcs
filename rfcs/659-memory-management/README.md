@@ -294,7 +294,7 @@ or that function type nullable) must be forbidden.
 Similarly, if a function's type is reachable via assignment to a class instance field.
 
 ```ts
-class Box<T>(public t: T) {}
+class Box<T forbids Box<T>>(public t: T) {}
 
 let outer(): Void {
   let box: Box<fn: Void>();
@@ -311,7 +311,7 @@ let outer(): Void {
 
 To check this, the best way is to simulate closure conversion with virtual, ad-hoc types.
 `outer` includes a closure, so generate an ad-hoc class type for its closure record, and
-another for each closure and turn the checker loose on them.
+another for each closure and turn the checkers loose on them.
 
 ```ts
 class ClosureRecord#123(public box: Box<fn: Void>()) {}
@@ -319,7 +319,10 @@ class ClosureRecord#123(public box: Box<fn: Void>()) {}
 class BoundFunction#124(public boundParam0: ClosureRecord#123) extends fn: Void {}
 ```
 
-Now, the reasoning about what closure conversion could do becomes apparent.
+Now, the reasoning about what closure conversion could do becomes apparent,
+and, since `class Box` forbids `<T>` from referring to `Box<T>`, the error analysis
+should conclude that the responsibility for the problem is in the combination
+of the closure record and the bound function, not in the definition of `Box`.
 
 [closure conversion]: https://matt.might.net/articles/closure-conversion/
 
