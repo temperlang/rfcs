@@ -103,10 +103,68 @@ complement each other.
 
 ### Measuring the noise
 
-A trial is underway: applying the rules by hand to some of the public
-Temper libraries, editing them as an author would to pass a pretend
-checker, and counting what changes and what felt like noise. Results to
-follow.
+A trial applied the rules by hand, with the strictest reading wherever
+this proposal and tempest's notes differ, to two public Temper libraries,
+editing them as an author would to pass a pretend checker:
+
+- **Wherewith** (77 types): no reports. It has no generic classes, its
+  exported interfaces are sealed, its trees are immutable, and it stores
+  no closures.
+- **Kelpto** (142 types): two reports.
+  - **One real:** block nodes kept their children in a
+    `ListBuilder<BlockData>` while each child pointed to its parent, a real
+    cycle per block, so today's C++ and Rust translations leak each parse's
+    block tree. Keeping children as ids fixes it, compiles today, and
+    passes Kelpto's tests.
+  - **One noise:** a write-once `var` field reaching an open `@fun`
+    interface, "fixed" with a `forbids` on the interface.
+
+A third library, private and built on heavily generic, abstract code (96
+types, 15 generic with 29 type parameters), had 12 reports and no real
+cycle in its own use. It needed 9 `forbids` and a marker interface, and
+one case the rules can't express: objects of one type that nest strictly
+inward at run time, each holding a fresh inner one. Five reports guard
+cycles that only outside code could build, through public setters.
+Neither relaxation below (write-once fields, inferred `forbids Owner`)
+removes any of them. Six of its seven bounds exist only because of
+builders that are never stored and always end in `toList()`.
+
+Suggestions from the trials:
+
+1. Treat a `var` assigned only before its object escapes as part of
+   construction (issue #7's `late`), so write-once fields count as
+   immutable edges. That was the only source of noise.
+2. Infer or default `forbids Owner` for function-typed fields reached by a
+   mutable edge, so errors land on the user's closure that captures the
+   owner, not on every implementation.
+3. When a builder holds its own type, have the error suggest keeping ids
+   instead; that was the real case here.
+4. Spell out what core declares: `ListBuilder` and `MapBuilder` bounds,
+   `List` and `Map` as immutable edges, `Listed` and `Mapped` as possibly
+   mutable, and whether sealed and unexported interfaces count as closed.
+5. **Scoped builders as a rule** (the proposal's own fallback): a builder
+   never stored or returned, ending in `toList()`, is checked only through
+   the immutable list it makes. In the generic library, that alone removes
+   six of seven bounds.
+6. **Implied bounds:** callers shouldn't restate a callee's `forbids`
+   bound; the generic library wrote one long bound six times.
+7. **Erased targets:** let `forbids SomeGeneric` mean every instantiation,
+   so authors don't need marker interfaces.
+8. **Bounds shouldn't expose private fields:** the bound that type-checked
+   named a private `ListBuilder` field's element type, an implementation
+   detail in a public signature. An owner bound could cover builders the
+   owner never lets out.
+9. **Public setters:** with only private visibility, frameworks must expose
+   setters that let users close loops the library never would. Say so,
+   and document the pattern of stateless strategies with state passed
+   along immutably.
+10. **Open questions to settle:** whether a sealed interface with an
+    exported, unsealed subinterface is open; whether `@imu` interfaces
+    count as closed; and where `forbids` goes relative to `extends` in a
+    bound (`T extends Event forbids X`).
+11. **Still unmeasured:** std and core (builders, generators, promises) are
+    the real stress test, then Hrefine, whose implementation of Kelpto's
+    open `UrlCheck` would be the first open interface crossing libraries.
 
 ## Small fixes
 
