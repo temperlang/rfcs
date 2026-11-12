@@ -162,7 +162,15 @@ Suggestions from the trials:
     exported, unsealed subinterface is open; whether `@imu` interfaces
     count as closed; and where `forbids` goes relative to `extends` in a
     bound (`T extends Event forbids X`).
-11. **Still unmeasured:** std and core (builders, generators, promises) are
+11. **Show the capability pattern as the recommended shape for host
+    services:** open interfaces the host supplies once (a clock, a
+    randomness source, a session store), held in fields set by the
+    constructor, with immutable records and stores holding copies. In a
+    rerun of the generic library with 41 more types (web sessions,
+    throttling, another SQL dialect), it passed with no annotations, and
+    the new dialect needed no new `forbids`; only the public-setter cost
+    in suggestion 9 grew, by one more accumulator.
+12. **Still unmeasured:** std and core (builders, generators, promises) are
     the real stress test, then Hrefine, whose implementation of Kelpto's
     open `UrlCheck` would be the first open interface crossing libraries.
 
