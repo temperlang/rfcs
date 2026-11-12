@@ -78,7 +78,7 @@ Memory cycle checking is exclusively a frontend concern, so stage tests that cap
 
 Testing image output in the REPL is important. Having a mode where visualizations output the text of the DOT visualization (or other), and so check the input content work.  A single end-to-end REPL or `temper build` test that uses a headless shell and screenshots might suffice to give confidence that visualizations make it through to the person behind the keyboard.  For non-sighted users, the DOT visualization should be sparse enough to read.
 
-----
+### Example: Cons list variants
 
 A simple cons-list that does not allow for cycles.
 
@@ -137,6 +137,190 @@ stateDiagram-v2
 ```
 
 TODO: layered classes, nesting sealed interfaces based on exhaustive analysis, etc.
+
+### Implicit cycles via closure conversion can be a problem.
+
+```ts
+let outer(wantEven: Boolean, i: Int32): Fn(Int32): Boolean {
+  // Two coreferential nested functions that close
+  // over the same state.
+  let isEven(j: Int32 = i): Boolean {
+    j == 0 || !isOdd(j - j.sign())
+  }
+  let isOdd(j: Int32 = i): Boolean {
+    j != 0 && !isEven(j - j.sign())
+  }
+
+  // Just a declaration that points to a function.
+  // isEven and isOdd don't close over it, but if they
+  // did, that'd be cyclic.
+  var f = if (wantEven) { isEven } else { isOdd };
+
+  f
+}
+```
+
+JavaScript has a proper cycle-scanning garbage collector, but here's the
+JS equivalent with [closure conversion] done to show which problems can
+be avoided and which cannot.
+
+Here's one way to do closure-conversion in JavaScript.
+
+```ts
+// Naive rewrite.
+function outer(wantEven, i) {
+  // Original functions renamed and with references to closed-over
+  // state rewritten to point to an extra closureRecord input.
+  function isEvenConverted(closureRecord, j = closureRecord.i) {
+    return j === 0 || !closureRecord.isOdd(j - Math.sign(j));
+  }
+  function isOddConverted(closureRecord, j = closureRecord.i) {
+    return j !== 0 && !closureRecord.isEven(j - Math.sign(j));
+  }
+
+  // Declare the original names, and a closure record.
+  // Curry the converted functions with the shared record to
+  // get function values that have the same signature and semantics
+  // as the originals.
+  const sharedClosureRecord =
+    {
+    };
+  const isEven = isEvenConverted.bind(sharedClosureRecord);
+  const isOdd = isOddConverted.bind(sharedClosureRecord);
+  // Initialize the closure record.
+  sharedClosureRecord.isEven = isEven;
+  sharedClosureRecord.isOdd = isOdd;
+  sharedClosureRecord.i = i;
+
+  let f = wantEven ? isEven : isOdd;
+
+  return f;
+}
+```
+
+This rewrite preserves the semantics of the original, and achieves
+the goal of closure conversion
+(function values internally reference only top-levels and inputs),
+but it leads to this object graph:
+
+```mermaid
+stateDiagram-v2
+  isEven --> isEvenConverted : binding
+  isEven --> sharedClosureRecord : curried
+  isOdd --> isOddConverted : binding
+  isOdd --> sharedClosureRecord : curried
+  sharedClosureRecord --> isEven : .isEven
+  sharedClosureRecord --> isOdd : .isOdd
+  sharedClosureRecord --> i : .i
+```
+
+Notice the cycles: `isEven` points to `sharedClosureRecord` points back to `isEven`
+and similarly for `isOdd`.
+
+Here's an alternative, where named function declarations are not pre-computed
+in `sharedClosureRecord`.  This approach is allowable in Temper because Temper
+does not allow testing function reference identity; the fact that `isEven` bound
+locally is not the same function value that `isOdd` calls recursively does not
+matter to the semantics.  Function binding is side-effect free, so when and how
+often it happens does not matter.
+
+```patch
+ // Naive rewrite.
+ function outer(wantEven, i) {
+   // Original functions renamed and with references to closed-over
+   // state rewritten to point to an extra closureRecord input.
+   function isEvenConverted(closureRecord, j = closureRecord.i) {
+     return j === 0 || !closureRecord.isOdd(j - Math.sign(j));
+   }
+   function isOddConverted(closureRecord, j = closureRecord.i) {
+     return j !== 0 && !closureRecord.isEven(j - Math.sign(j));
+   }
+
+   // Declare the original names, and a closure record.
+   // Curry the converted functions with the shared record to
+   // get function values that have the same signature and semantics
+   // as the originals.
+   const sharedClosureRecord =
+     {
++      get isEven() { return isEvenConverted.bind(sharedClosureRecord); };
++      get isOdd() { return isOddConverted.bind(sharedClosureRecord); };
+     };
+   const isEven = isEvenConverted.bind(sharedClosureRecord);
+   const isOdd = isOddConverted.bind(sharedClosureRecord);
+   // Initialize the closure record.
+-  sharedClosureRecord.isEven = isEven;
+-  sharedClosureRecord.isOdd = isOdd;
+   sharedClosureRecord.i = i;
+
+   let f = wantEven ? isEven : isOdd;
+
+   return f;
+ }
+```
+
+Changing binding named function declarations on demand leads to this object graph,
+which lacks cycles.
+
+```mermaid
+stateDiagram-v2
+  isEven --> isEvenConverted : binding
+  isEven --> sharedClosureRecord : curried
+  isOdd --> isOddConverted : binding
+  isOdd --> sharedClosureRecord : curried
+  sharedClosureRecord --> i : .i
+```
+
+But if `var f`, the conditional function pointer,
+was referenced by a converted inner function, then we would be in trouble again.
+In the case where `f` points to `isEven`, we have this diagram.
+
+```mermaid
+stateDiagram-v2
+  isEven --> isEvenConverted : binding
+  isEven --> sharedClosureRecord : curried
+  isOdd --> isOddConverted : binding
+  isOdd --> sharedClosureRecord : curried
+  sharedClosureRecord --> i : .i
+  sharedClosureRecord --> f : .f
+  f --> isEven : assigned
+```
+
+Rule: any function that closes over a local variable whose type is
+either a function type that accepts that function
+(pre-closure-conversion), or a super-type (*AnyValue*, *AnyValue\?*,
+or that function type nullable) must be forbidden.
+
+Similarly, if a function's type is reachable via assignment to a class instance field.
+
+```ts
+class Box<T>(public t: T) {}
+
+let outer(): Void {
+  let box: Box<fn: Void>();
+
+  let f(): Void {
+    box.t();
+  }
+
+  box = new Box(f);
+
+  f();
+}
+```
+
+To check this, the best way is to simulate closure conversion with virtual, ad-hoc types.
+`outer` includes a closure, so generate an ad-hoc class type for its closure record, and
+another for each closure and turn the checker loose on them.
+
+```ts
+class ClosureRecord#123(public box: Box<fn: Void>()) {}
+
+class BoundFunction#124(public boundParam0: ClosureRecord#123) extends fn: Void {}
+```
+
+Now, the reasoning about what closure conversion could do becomes apparent.
+
+[closure conversion]: https://matt.might.net/articles/closure-conversion/
 
 ## Documentation
 
