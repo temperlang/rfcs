@@ -6,7 +6,7 @@ Author(s): [Author Name, Co-Author Name]
 
 Last updated: [Date]
 
-Discussion at https://go.dev/issue/NNNNN.
+Discussion at https://github.com/temperlang/temper/issue/NNNNN.
 
 ## Abstract
 
@@ -29,10 +29,14 @@ Discussion at https://go.dev/issue/NNNNN.
 [A discussion of the change with regard to the
 [compatibility guidelines](https://go.dev/doc/go1compat).]
 
+[TODO Reference our own guidelines.]
+
 ## Implementation
 
 [A description of the steps in the implementation, who will do them, and when.
 This should include a discussion of how the work fits into [Go's release cycle](https://go.dev/wiki/Go-Release-Cycle).]
+
+[TODO Reference our own release cycle.]
 
 ## Testing
 
