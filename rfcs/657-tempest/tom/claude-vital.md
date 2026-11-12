@@ -50,6 +50,20 @@ Already done: package metadata and per-language names in generated
 packages, clean hover docs, the docs site and playground published, and
 the Windows test fixes.
 
+## Tom's decisions on the list
+
+- **Item 3 (stricter rules) needs no sign-off:** they're safe
+  adjustments as long as they stay backward compatible against the
+  libraries, which item 2 checks.
+- **Item 6 (switching libraries' CI) isn't needed for the switch.** It
+  only concerns the libraries Tom manages, and the regex libraries have
+  no CI yet. Library CI is still worth having later as integration tests
+  of the built binaries; meanwhile the new compiler's own nightly and
+  weekly CI already builds five public libraries (Hrefine, Chromarite,
+  Ordable, Kelpto, and Wherewith) with its binary and tests them on every
+  backend.
+- **Item 7 (`watch`) can come after the switch.**
+
 ## Notes on Mike's comments
 
 - **Docs assembled from snippets with ids:** this is how the Kotlin
