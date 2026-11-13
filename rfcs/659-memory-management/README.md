@@ -63,12 +63,12 @@ For an effectively `@imu` type, often specifying that the interface is `@imu` ma
 https://github.com/temperlang/acyclic-types is an experimental implementation of the type definition cycle checker.
 
 The `forbids` operator is already in the operator table.
-`forbids` should be allowed in `interface` and `class` definitions and so needs its own space in *TypeDefinition*.
+`forbids` should be allowed in `interface` and `class` definitions as well as type formal definitions, so the data structures that track type definitions generically should store a list of forbidden types.
 
-The REPL visualizations would benefit from a dependency on a command line image display library like [imgcatr](https://github.com/SilinMeng0510/imgcatr).  Generating a `.dot` file (perhaps a Graphviz out-grammar could help), invoking `dot -Tpng` and then catting the resulting binary could help with showing cycle-participant graphs (also defined in the experiment) in error messages and in the REPL.
+The REPL visualizations would benefit from a dependency on a command line image display library like [imgcatr](https://github.com/SilinMeng0510/imgcatr).  Generating a Graphviz (`.dot`) or Mermaid file (perhaps am out-grammar could help), invoking the shell to convert to an image and then displaying the resulting image could help with showing cycle-participant graphs (also defined in the experiment) in error messages and in the REPL.  (The web playground already supports Mermaid rendering using Mermaid JS library support)
+A MessageTemplate that identifies an output as inlinable image output could allow optional inlining if in interactive mode and the user has not expressed a preference for accessible textual content.
 
 Draft documentation below.
-
 
 ## Testing
 
@@ -325,6 +325,25 @@ should conclude that the responsibility for the problem is in the combination
 of the closure record and the bound function, not in the definition of `Box`.
 
 [closure conversion]: https://matt.might.net/articles/closure-conversion/
+
+### Forbids checking is contextual
+
+```ts
+class C<T>(
+  public strings: List<String>,
+) forbids List<T> {}
+
+// Error: C<String> forbids List<String> but has a backed property that can
+// point to a List<String>
+let f(c: C<String>): Void {}
+
+// Error: C's <T> binds to U but U does not forbid List<U>
+let g<U>(c: C<U>): Void {}
+
+// Ok: C's <T> binds to V which has compatible forbids
+let h<V forbids List<V>>(c: C<V>): Void {}
+```
+
 
 ## Scope bounded exceptions to the rule
 

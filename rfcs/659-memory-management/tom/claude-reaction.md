@@ -37,28 +37,35 @@ Claude's reaction to the memory cycle checker proposal, at Tom's request.
    idea (`buildList`) is good but needs its exact rule.~~
    > [!NOTE]
    > Addressed in section titled "Scope bounded exceptions to the rule"
-5. **Weak references as a fallback.** Most backends have them, but they make
+5. ~~**Weak references as a fallback.** Most backends have them, but they make
    deallocation observable, which the rationale's "no observable
    deallocation" property relies on avoiding. Worth a sentence on how that's
-   reconciled.
+   reconciled.~~
    > [!NOTE]
-   > Yes, weak references release is often non-deterministic.  Any fallback
+   > Yes, weak reference release is often non-deterministic.  Any fallback
    > For a long time, Golang did not support weak reference but now has
-   > https://pkg.go.dev/weak
-6. **Visualizations.** Make text the primary form: a DOT or Mermaid
+   > https://pkg.go.dev/weak .
+   > It's possible to have deterministic weakness if you only provide
+   > weakness via weakly-keyed entries in weak maps that do not allow
+   > enumeration of keys.  Ephemeron tables serve as a design precedent.
+6. ~~**Visualizations.** Make text the primary form: a DOT or Mermaid
    description of the cycle, which works in CI logs, the language server,
    screen readers, and the playground (which already renders Mermaid).
    Images could be interactive-only and opt-in, which answers the open
    question. An image-display dependency in the CLI seems heavy given how
-   terminal image support varies.
+   terminal image support varies.~~
    > [!NOTE]
-   > This seems reasonable.  Will draft something about message templates
-   > specifically that allow for marking some placeholders as textual
-   > content that can be beautified.
-7. **Implementation target.** The Implementation section names Kotlin's
+   > Drafted text about making image inlining optional and based on
+   > MessageTemplate placeholder metadata and noted that unsighted users
+   > would benefit from being able to express a preference for purely
+   > textual content.
+7. ~~**Implementation target.** The Implementation section names Kotlin's
    structures (`TypeDefinition`). With tempest replacing the Kotlin
    compiler, it should target tempest, whose acyclic.md has a sketch of the
-   check and open questions to reconcile with this proposal.
+   check and open questions to reconcile with this proposal.~~
+   > [!NOTE]
+   > Yes, I need to update my understanding to not refer to deprecated
+   > implementation details.
 
 ## Follow-up answers
 
