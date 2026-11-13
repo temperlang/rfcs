@@ -131,3 +131,17 @@ checked from outside the process. Some checks are cheap:
 
 These fit a "closed-box" CI job beside the existing ones, so the
 constraints are enforced, not just spot-checked.
+
+## Behavior constraints for initial use
+
+For initial use as Temper, the documented constraints are the docs and
+the tests, and that's enough. The user docs say what the language and
+each backend do, including what's not supported yet. The functional
+tests and the shared test programs pin the behavior every backend must
+share. Each Kotlin difference is listed with the test that pins it
+(`notes/kotlin-differences.md`), and the release notes say what changed
+for users. For reviewers, a behavior change shows up as a changed
+golden or test expectation in the diff. Where we want a "never does X"
+constraint, it goes in the docs first and becomes a closed-box CI check
+after the switch, as above. `docs/internals/10-tests.md` is the cheat
+sheet for where each kind of test now goes.
