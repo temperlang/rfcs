@@ -6,7 +6,7 @@ Author(s): [Author Name, Co-Author Name]
 
 Last updated: [Date]
 
-Discussion at https://github.com/temperlang/temper/issue/NNNNN.
+Discussion at https://github.com/temperlang/temper/issues/NNNNN.
 
 ## Abstract
 
