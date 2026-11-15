@@ -60,17 +60,137 @@ For an effectively `@imu` type, often specifying that the interface is `@imu` ma
 
 ## Implementation
 
-https://github.com/temperlang/acyclic-types is an experimental implementation of the type definition cycle checker.
+https://github.com/temperlang/acyclic-types is an experimental
+implementation of the type definition cycle checker.
 
-The `forbids` operator is already in the operator table.
-`forbids` should be allowed in `interface` and `class` definitions as well as type formal definitions, so the data structures that track type definitions generically should store a list of forbidden types.
+### Drop-order graphs
 
-The REPL visualizations would benefit from a dependency on a command line image display library like [imgcatr](https://github.com/SilinMeng0510/imgcatr).  Generating a Graphviz (`.dot`) or Mermaid file (perhaps am out-grammar could help), invoking the shell to convert to an image and then displaying the resulting image could help with showing cycle-participant graphs (also defined in the experiment) in error messages and in the REPL.  (The web playground already supports Mermaid rendering using Mermaid JS library support)
-A MessageTemplate that identifies an output as inlinable image output could allow optional inlining if in interactive mode and the user has not expressed a preference for accessible textual content.
+*acyclic-types* defines a kind of graph that herein we call a
+*drop-order graph* (examples below) that is constructed to check
+`class` and `interface` type declaration.  It always starts with the
+type being checked, and for each backed property (properties that
+correspond to memory containing a pointer to a things) we have an edge
+to a node for that properties type.  And those nodes can have outgoing
+nodes based on their type (rules below explain those for *Never*,
+*Result*, nullable, and other builtin kinds of types).  There can be
+multiple nodes in play for the same type definition; for example, a
+`List<List<X>>` can point to a `List<X>` which can point to an `X`.
+Abstract types are exploded out based on worst-case assumptions; type
+parameter references based on analysis of their upper-bounds pruned by
+forbids clauses (assuming *AnyValue* if there are no constraining
+upper bounds), and interfaces based on possible subclasses.
 
-Draft documentation below.
+The goal of a *drop-order graph* is to make it easy to identify the
+potential for object-graph cycles.  There are multiple kinds of edges:
+`is-a`, and two kinds of points to: `<=` points to via an early, const
+property, and `<` points to via a non-early or non-const property.
+If a cycle in the drop-order graph has no `<` edges, then there is
+no contradiction: the born-after property holds among early-initialized
+const property chains, so there's no problem.  If there is a cycle
+involving `<` edges, then there is a problem: there is no guarantee
+that there is a valid order in which values are dropped (deallocated);
+for some value to be dropped, it would have to have been dropped before
+it can be dropped.  That intuition meshes with the idea that a ref-count
+cycle is a problem because you'd have to decrement the ref-count to zero
+before it can reach zero via the rules of ref-counting.
 
-## Testing
+### Outgoing drop-graph edges
+
+A nullable type (postfix `?` type) node has a single outgoing edge to
+the node for its non-nullable as a `<=` edge.  `Foo? -> Foo`.  A
+`Foo?` property can point to a `Foo` or to the special `null` value
+but we don't bother representing that `null` value with a node because
+it points to nothing.
+
+There is no value of a `Never` type that points to anything, so when building a
+drop-order graph, a drop-order graph node for a type like `Never<Foo>` has no
+outbound edges.  It's fine if a backed property with type `Never<Foo>?` just
+points to a `Never<Foo>` node but it's also fine to optimize those out since
+both non-nullable Never nodes and nulls are dead-ends.
+
+`Result<Foo, Bar>` can point to a `Foo` or a `Bar` but as these are only valid
+as return types, and not as property types, they should not show up in drop-order
+graphs for types that do not have other serious problems.  Their outgoing edges
+are `<=` edges.
+
+A functional interface type may have `forbids` clauses that constrain what it
+can close over, so functional interface types are just like other interface types.
+They do not necessarily point to anything related to their input or return types.
+
+We assume non-empty lists are possible (except for `List<Never<...>>`)
+so a `List<Foo>` can point to a `Foo` via the `.0` (element 0) pseudo property.
+Lists can have more than one element, but there's no need for repetitive edges;
+an analysis optimistically assuming all lists are of length 1 is sufficient.
+`List`s references to their elements are `<=` edges.
+
+Likewise `Listed<Foo>` and `ListBuilder<Foo>` have an element 0 pseudo property
+but it is non-const, a `<` edge.
+
+`Mapped` and its subtypes have two outgoing edges to the key type and the value
+type.  For `Map` the edges are `<=` edges.  For `Mapped` and `MapBuilder` they are
+`<` edges.  Using the pseudo property names `.key` and `.val` should make drop-edge
+graphs readable.
+
+`String`, `StringBuilder`, the numeric types, booleans, string index types,
+and the empty type need no outgoing edges.
+They may internally have srotage for bits, and the stringy types might have
+backing arrays, but any content bottoms out on non-pointer bits so is ignorable
+for the purposes of cycle checking.
+
+For a type parameter reference, e.g. a `T` type corresponding to a `<T>` declaration,
+there are two cases: `<T>` is declared `@imu` (deeply immutable) or it is not declared
+`@imu`.  If it is has `@imu` type metadata then it needs `is-a` edges to each type node that
+exists and which fits its upper bounds.
+If it is declared `@imu` then it needs outgoing `is-a` edges in the same way but only
+to hose nodes which are effectively-imu.
+
+Similarly, interface type nodes (including `@fun` interfaces) have outgoing edges to
+each node that is a type assignable to their type, filtered by `@imu`.
+
+Non-sealed interface types (including `@fun` interfaces) have outgoing edges to
+fictional class types (see `*Sub` types in examples below) that have a property
+`x` that points back to the subject type.  That property might be pruned as below,
+but its entered into the graph.  If the interface type has `@imu` then metadata then
+the synthesized is a `<=` edge but is an `<` edge otherwise.
+
+Both type parameter reference nodes and interface type nodes are
+subject to edge pruning based on `forbids` clauses.  (See examples of
+edge pruning below under test and examples.)
+
+### Forbids
+
+The `forbids` operator is already in the operator table.  `forbids`
+should be allowed in `interface` and `class` definitions as well as
+type formal definitions, so the data structures that track type
+definitions generically should store a list of forbidden types.
+
+### Visualization and debugging aid
+
+The REPL visualizations would benefit from a dependency on a command
+line image display library like
+[imgcatr](https://github.com/SilinMeng0510/imgcatr).  Generating a
+Graphviz (`.dot`) or Mermaid file (perhaps am out-grammar could help),
+invoking the shell to convert to an image and then displaying the
+resulting image could help with showing cycle-participant graphs (also
+defined in the experiment) in error messages and in the REPL.  (The
+web playground already supports Mermaid rendering using Mermaid JS
+library support) A MessageTemplate that identifies an output as
+inlinable image output could allow optional inlining if in interactive
+mode and the user has not expressed a preference for accessible
+textual content.
+
+### Checking
+
+Cycle checking is done per `class` declaration because other type
+declarations do not allocate storage.  Forbids checking is done per
+type phrase; every type that appears in a node's AST.  The former
+cannot be cached but type declarations are relatively few; the latter
+can be aggressively cached as long as care is taken not to use cached
+state from before a type declaration is modified by metaprogramming.
+
+TODO
+
+## Testing and examples
 
 Kinds of tests:
 
@@ -135,8 +255,6 @@ Assuming there's some *X* that allows construction of a *Cons&lt;X&gt;*:
 stateDiagram-v2
   Cons&lt;X&gt; --> Cons&lt;X&gt; : a.tail = a
 ```
-
-TODO: layered classes, nesting sealed interfaces based on exhaustive analysis, etc.
 
 ### Implicit cycles via closure conversion can be a problem.
 
@@ -344,6 +462,184 @@ let g<U>(c: C<U>): Void {}
 let h<V forbids List<V>>(c: C<V>): Void {}
 ```
 
+### Sealed interfaces
+
+Interfaces are hard to reason about, but for sealed interfaces we can reason
+about each direct sub-type individually without worrying about separately
+constructed sub-types.
+
+```ts
+interface I {}
+
+class C(
+  public i: I
+) {}
+```
+
+That fails because other code could theoretically construct a subtype
+of I that allows for a cycle.
+
+```ts
+class ISub(public var c: C?) extends I {}
+
+do {
+  let isub = new ISub(null);
+  let c = new C(isub);
+  isub.c = c;
+  // Now there's a cycle from c -> isub -> c
+}
+```
+
+```mermaid
+stateDiagram-v2
+  C --> I : .i #lt;=
+  I --> ISub : possible subtype
+  ISub : ISub extends I
+  ISub --> C : .c #lt;
+```
+
+Here, the contradiction is *C* has to be less than itself because of the
+`var` reference on the possible subtype of *I*.
+
+But with `sealed interface`s, there are no *possible* subtypes that require
+worst-case analysis; only the actual subtypes declared in the same module,
+and their subtypes.
+
+Here's an analogous case, *D* which points to an instance of a sealed interface, *J*.
+
+```ts
+class D(public j: J) {}
+
+sealed interface J {}
+
+class J1(public var s: String) extends J {}
+class J2(public var n: Int64) extends J {}
+class J3(public d: D?) extends J {}
+```
+
+Instead of having possible subtype relationships, we explode out all known variants.
+
+```mermaid
+stateDiagram-v2
+  D --> J : .j #lt;=
+  J --> J1 : is-a
+  J --> J2 : is-a
+  J --> J3 : is-a
+  J1 --> String : .s #lt;
+  J2 --> Int64 : .n #lt;
+  J3 --> D : .d #lt;=
+```
+
+There's no contradiction.  Even though *J3* can point to a *D* and
+vice versa, they are both via early, non-var properties which allows
+for the temporal order property.  The cycle includes only `<=`
+relationships, so there is no contradiction in the destructs-before
+ordering.
+
+### Forbidding interfaces
+
+Sometimes we need `interface`s that aren't sealed and yet which we
+collect over time.
+
+For example, in a plugin module, we might want a universally extensible
+interface.
+
+```ts
+class Messager(public subject; String) {
+  private plugins: ListBuilder<MessagePlugin> = new ListBuilder<MessagePlugin>();
+
+  public register(plugin: MessagePlugin): Void {
+    plugins.add(plugin);
+  }
+
+  public printMessages(): Void {
+    for (let plugin of plugins.toList()) {
+      console.log(plugin.getMessage(subject));
+    }
+  }
+}
+```
+
+But if anyone can construct a *MessagePlugin* subtype that refers back to
+the *Messager* that owns them, then cycles are unavoidable.
+
+```ts
+interface MessagePlugin forbids Messager {
+  getMessage(subject: String): String;
+}
+```
+
+Here, the `forbids` clause on the `MessagePlugin` establishes that
+its author restricts subtypes of it from pointing to a *Messager*:
+*Messager* owns plugins, plugins don't own any *Messager*.
+
+TODO: do we need a lighterweight `forbids var` variant?
+
+If a plugin author tried to do this then that would be a cycle type
+definition checker error.
+
+```ts
+class BadMessagePlugin(var messagers: List<Messager>) extends MessagePlugin {}
+```
+
+Here, the drop-order graph would look like this:
+
+```mermaid
+stateDiagram-v2
+  BadMessagePlugin --> ListMessager : .messagers #lt;
+  ListMessager : List#lt;Messager#gt;
+  ListMessager --> Messager : .0 #lt;=
+  Messager --> ListBuilderMessagePlugin : .plugins #lt;=
+  ListBuilderMessagePlugin : ListBuilder#lt;MessagePlugin#gt;
+  ListBuilderMessagePlugin --> MessagePlugin : .0 #lt;
+  MessagePlugin --> BadMessagePlugin : is-a
+```
+
+But *BadMessagePlugin* inherits a `forbids Messager` clause from its
+supertype, so the edges `.messagers <` and `.0 <=` are illegal.
+
+We're also allowed to use that fact to approve the *Messager* type.
+We initially construct a drop-order graph that looks very similar,
+but starting from *Messager* instead of *BadMessagePlugin*.
+
+```mermaid
+stateDiagram-v2
+  Messager --> ListBuilderMessagePlugin : .plugins #lt;=
+  ListBuilderMessagePlugin : ListBuilder#lt;MessagePlugin#gt;
+  ListBuilderMessagePlugin --> MessagePlugin : .0 #lt;
+  MessagePlugin --> MessagePluginSub : is-a
+  MessagePluginSub --> Messager : .x #lt;
+```
+
+But we know our worst-case constructed *MessagePluginSub* is forbidden from
+pointing (transitively) to *Messager*, so we prune (see ❌ notation)
+any of its outgoing edges that eventually lead to *Messager*.
+
+```mermaid
+stateDiagram-v2
+  Messager --> ListBuilderMessagePlugin : .plugins #lt;=
+  ListBuilderMessagePlugin : ListBuilder#lt;MessagePlugin#gt;
+  ListBuilderMessagePlugin --> MessagePlugin : .0 #lt;
+  MessagePlugin --> MessagePluginSub : is-a
+  MessagePluginSub --> Messager : ❌ .x #lt;
+```
+
+With those edges eliminated, we have this drop-order graph which is what is searched
+for contradictory cycles starting at the subject, *Messager*.  No contradictions are found.
+
+```mermaid
+stateDiagram-v2
+  Messager --> ListBuilderMessagePlugin : .plugins #lt;=
+  ListBuilderMessagePlugin : ListBuilder#lt;MessagePlugin#gt;
+  ListBuilderMessagePlugin --> MessagePlugin : .0 #lt;
+  MessagePlugin --> MessagePluginSub : is-a
+```
+
+We also allow `forbids` clauses on `class`es, but since we know the actual backed
+properties or every `class`, and Temper `class`es cannot have sub-types they are
+less useful, except perhaps to document commitments not to evolve the `class` to
+point to things in future versions.
+
 
 ## Scope bounded exceptions to the rule
 
@@ -424,8 +720,279 @@ delegating building a list by passing the builder on.
 
 ## Documentation
 
-TODO
+### New reference topic: Temper memory model
 
-## Open issues (if applicable)
+Temper needs to work in languages that do not have scanning garbage
+collectors.  It needs to be able to prove that type definitions do not
+lead to pointer reference cycles that prevent reference counting
+pointers from deallocating memory when it's no longer useful to the
+program.
 
-Are images in error messages broadly acceptable, or should those be in interactive mode only?
+TODO: drop image explaining ref-count limitations from background above.
+
+Temper provides two main mechanisms to allow for flexibility in
+defining types while preventing memory leaks:
+
+- A \[memory cycle checker\]\[snippet/memory-cycle-checker\] checks
+  type definitions obey points to rules.
+- Type definitions have \[`forbids` clauses\]\[snippet/forbids-clause\]
+  which allow constraining what abstract types can point to.
+
+\[inline memory-cycle-checker topic here]
+\[inline forbids-clause topic here]
+
+### New reference topic: Memory cycle checker
+
+Temper's *memory cycle checker* checks each `class` declaration to
+ensure that it: cannot point to itself via a chain of property
+lookups.  In Temper, `intereface`s can specify that subtypes need to
+have properties but do not specify memory to hold pointers; only
+`class`es do that.
+
+If you write `class`es like OCaml records, things should just work:
+concrete types that are shallowly immutable records that are
+initialized at construction just work because of the *birth order principle*.
+
+```ts
+export class StringTree(
+  public s: String,
+  public left: StringTree?,
+  public right: StringTree?,
+) {}
+
+export let myStringTree: StringTree = {
+  s: "root",
+  left: {
+    s: "left leaf",
+    left: null,
+    right: null,
+  },
+  right: {
+    s: "right leaf",
+    left: null,
+    right: null,
+  },
+};
+```
+
+That `class` definition refers to itself recursively but it cannot
+have a memory cycle because each node is either `null` (which points
+to nothing) or is older than the node that points to it.
+That means that there is a well-known deallocation order: the root
+will reach a reference count of zero and be eligible for deallocation
+before its left and right, and when it is deallocated, its children's
+reference counts will be decremented.
+
+Sometimes types are naturally cyclic.  A graph consisting of *node*s and
+*edges* might need to present an interface as-if nodes referred to
+edges which could validly point back to that node.  "As-if" reference
+does not require internal use of cyclic references.  Sometimes a managing
+object can own pointers on behalf and use computed properties to present
+a cyclic façade.
+
+```ts
+// Facades point to the owner but because they're
+// created on demand, the owner does not point back.
+// They use computed properties to present the state
+// stores in the owner object as a convenient bundle.
+class Node(
+  private owner: Int32Graph,
+  private nodeIndex: Int32,
+) {
+  public get value(): Int32 {
+    // The facades
+  }
+  public get outgoing(): List<Edge> {
+    owner.getOutgoing(nodeIndex)
+  }
+  public get incoming(): List<Edge> {
+    owner.getIncoming(nodeIndex)
+  }
+}
+
+class Edge(
+  private owner: Int32Graph,
+  private fromIndex: Int32,
+  private toIndex: Int32,
+) {
+  public get fromNode(): Node {
+    owner.getNode(fromIndex);
+  }
+  public get toNode(): Node {
+    owner.getNode(toIndex);
+  }
+}
+
+// An adjacency table is a way of representing
+// a complex a graph using a table where each
+// row captures what is adjacent to one node.
+class AdjEntry(
+  public value: Int32,
+  // These ints correspond to adjacent nodes.
+  public outgoing: ListBuilder<Int32>,
+  public incoming: ListBuilder<Int32>,
+)
+
+
+/** Stores ints at nodes and edges. */
+export class Int32Graph {
+  private adjacencyTable = new ListBuilder<AdjEntry>();
+
+  // Adding nodes and edges would fill in that tables,
+  // and could return facades that allow navigating the
+  // graph.
+
+  public getNode(index: Int32): Node {
+    new Node(this, index)
+  }
+
+  public getIncoming(index: Int32): List<Edge> {
+    adjacencyTable[index].incoming.map { (i): Edge =>
+      new Edge(owner, i, index)
+    }
+  }
+
+  public getOutgoing(index: Int32): List<Edge> {
+    adjacencyTable[index].outgoing.map { (i): Edge =>
+      new Edge(owner, index, i)
+    }
+  }
+}
+```
+
+The points-to relationships among these types are shown in this diagram.
+
+```mermaid
+stateDiagram-v2
+  Edge --> Int32Graph
+  Node --> Int32Graph
+  Int32Graph --> ListBuilder#lt;AdjEntry#gt;
+  ListBuilder#lt;AdjEntry#gt; --> AdjEntry
+```
+
+The façade types are constructed on demand, so they can point to the graph
+object but are never pointed to by it and do not point to each other.
+
+See \[`forbids` clauses\]\[snippet/forbids-clause\] for how this graph
+might be made generic.
+
+
+### New reference topic: `forbids` clauses
+
+Inputs with types like `interface I` and `<T>` can have values of many
+different concrete types assigned to them.  This means abstract types and
+type variables enable many ways to produce reference cycles.  Without
+same way to constrain them, they would be largely unusable in a language
+that allows mutation, and disallows reference cycles.
+
+```ts
+do {
+  let ls = new ListBuilder<AnyValue>();
+  ls.add(ls);  // ls points to itself.
+|
+// FAILS: ListBuilder<T> forbids ListBuilder<AnyValue>
+```
+
+With `interface` types, it is often possible to construct a subclass
+that points back to a class that uses the interface type for a backed property.
+
+```ts
+export interface I {}
+
+// Each C points to I
+export class C(public i: I) {}
+
+// Some other library could define this class that points back.
+export class IPointsBack(var c: C?) extends I {}
+
+do {
+  let myI = new IPointsBack(null);
+  let c = new C(myI);
+  // The birth order principle does not apply because IPointsBack uses `var`.
+  myI.c = c;
+}
+// FAILS
+```
+
+If you can, `sealed interface`s allow the memory cycle checker to avoid
+constructing worst-case implementations of interface types.
+
+But sometimes an `interface` is meant to allow external extensions.
+One strategy for producing code that passes the memory cycle checker
+is to layer types based on ownership and use `forbids` to enforce that.
+
+```ts
+// MessageMaker logs a message, and allows for extension via an interface.
+export class MessageMaker(public greeted: String) {
+  // helpers is mutable; anyone can implement a Helper and add to it.
+  public helpers: ListBuilder<Helper> = new ListBuilder<Helper>();
+
+  public sayMessage(): Void {
+    var message = "Hello, ${greeted}!";
+    for (let helper of helpers.toList()) {
+      message = helper.modify(message);
+    }
+    console.log(message);
+  }
+}
+
+// If a Helper could point back to a MessageMaker
+// then there'd be no-way to compile this library without
+// knowing about subclasses of `interface Helper` in all
+// the libraries that could implement it.
+export interface Helper
+// This forbids clause means that every type assignable to
+// a variable with type Helper must have the property that
+// it does not (transitively) point to a MessageMaker.
+forbids MessageMaker {
+  modify(s: String): String;
+}
+
+do {
+  class ReversingHelper extends Helper { // reversing "helper"
+    public modify(s: String): String {
+      var idx = s.end;
+      let sb = new StringBuilder();
+      while (idx > String.begin) {
+        var before = s.prev(idx);
+        sb.appendBetween(s, before, idx);
+        idx = before;
+      }
+      sb.toString()
+    }
+  }
+  let mm = new MessageMaker("World");
+  mm.helpers.add(new ReversingHelper());
+  mm.sayMessage();
+}
+```
+
+The `forbids MessageMaker` allows `MessageMaker` to pass the memory
+cycle checker by constraining the worst-case types that the cycle
+checker has to construct to prove safety.
+But it contributes extra checks to subtypes of `Helper` subclasses
+which `ReversingHelper` passes because it does not point to a
+`MessageMaker`.
+
+### Added to documentation for `class` declarations
+
+Classes that have generic type parameters, `<T>`, or which have
+`var` backed properties need to take care to avoid
+\[memory cycles]\[snippet/memory-cycle-checker].
+
+Memory cycles prevent deallocation for target languages that do
+not do scanning garbage collection.  If the compiler reports
+memory cycle errors, see that topic for tips and tricks.
+
+### Added to documentation for `interface` declarations
+
+Interfaces provide abstraction, but that abstraction comes at a cost.
+The \[memory cycle checker]\[snippet/memory-cycle-checker] might need
+to make worst-case assumptions.  If the compiler reports
+memory cycle errors, see that topic for tips and tricks.  Often
+\[`forbids` clauses]\[snippet/forbids-clauses] help satisfy the compiler
+that memory won't leak. Where possible, using a
+\[`sealed` interface]\[snippet/sealed] helps the compiler avoid
+worst-case reasoning.
+
+## Open Issues
