@@ -52,6 +52,11 @@ decide.
    release's packages until publishing (listed under After the switch)
    happens. Library authors who publish will notice this first.
 
+   > Tom: We already have a long history of expecting this for unreleased
+   > Temper updates.
+
+   Claude: agreed; no need to mention it, then.
+
 ## Smaller points
 
 8. **"as of the time of writing this comment"** (abstract): "this
@@ -86,3 +91,43 @@ decide.
   matches what the team said, and the PR-versus-issue handling is clear.
 - The commitment to RFCs for breaking or team-level changes closes the
   loop on how the new code base will be governed.
+
+## Second pass, 2026-11-16
+
+After Tom's update. Formatting was made consistent in the README (paragraphs
+and list items wrapped at 79 columns, link text kept on one line,
+"GitHub Pages"), plus two fixes: "no new further development" to "no further
+development", and "faster and less using of RAM" to "faster and uses about an
+order of magnitude less RAM". The two requested links are in:
+
+- **Speed and memory:** tempest's
+  [size and speed notes, "Measured so far"](https://github.com/temperlang/tempest/blob/rfc-657-transition/notes/size-and-speed.md#measured-so-far).
+  They time each compiler stage on all Temper files of the Temper and
+  Chromarite repos (Kotlin warmed up, so without JVM startup), and record
+  peak memory: about 6 to 13 MiB for the Rust compiler's parse, tree, and
+  settle stages against about 180 to 250 MiB for Kotlin's. So "an order of
+  magnitude" is, if anything, modest for memory. End-to-end runs of the CLI
+  aren't in that section; the "Data" and "Charts" sections cover build and
+  test times.
+- **Nightly:**
+  [run 43555770061](https://github.com/temperlang/tempest/actions/runs/43555770061),
+  every job green, the full macOS, Windows x64, and Windows Arm64 platform
+  jobs included, at commit 3d210b5 (2026-11-14). The branch has moved on
+  since (the LuaJIT `Int64` work, among others), so a fresh full run on the
+  commit that's actually switched would be good to link instead, or as well.
+
+Earlier items now resolved by the update: 1 (no final Kotlin release
+anywhere), 2 ("archived" gone), 3 (Documentation now names DNS and GitHub
+Pages instead of decisions below), 4 (the abstract says "the same tests as
+they do on the Kotlin-based compiler"), 5, 6, 7 (Tom's note), 8, 9, 10
+(linked), 11 ("than to drag out the switch"), 12, and 13.
+
+New, small:
+
+- **Regex engine:** the Rationale says the regex parser and engine pass the
+  same tests on both compilers. For the parser that's exact. For the engine,
+  tempest passed more in the same check (11 of 20 on Lua 5.4, against 8 of 20
+  for Kotlin), both being behind current std. "At least the same tests" would
+  be exact for both.
+- **"be-lua":** internal jargon; "the Lua backend" reads more easily for
+  people outside the core team, if the RFC is shared more widely.
