@@ -1,10 +1,10 @@
-(Based on the template for Golang's [design doc TEMPLATE.md](https://github.com/golang/proposal/blob/master/design/TEMPLATE.md), part of [Golang's change proposal process](https://github.com/golang/proposal/blob/master/README.md))
-
 # Proposal: Memory Cycle Checker
 
 Author(s): Mike S.
 
 Last updated: 2026-11-16
+
+Status: Proposed
 
 Discussion at https://github.com/temperlang/temper/issue/659
 
@@ -236,6 +236,7 @@ class CanBeAEdgeKind(
   public toString(): String { "is? ${type}" }
 }
 
+@auto("==")
 class NodeKey(
   public type: Type2,
   /**
@@ -246,25 +247,50 @@ class NodeKey(
    * This ends up affecting the has-a edges synthesized for worst-case interfaces.
    */
   public imuOverride: Boolean,
-) {}
+) forbids DropOrderGraph {}
 
-interface DropOrderNode forbids DropOrderGraph {
-  origin: NodeKey;
-  kind: EdgeKind;
-  dest: NodeKey;
-}
+class DropOrderNode(
+  /**
+   * Auto-assigned when added to the graph.
+   * Serially assigned starting at 0 so suitable for arrays that associate by index.
+   */
+  public serialNo: Int32,
+  public key: NodeKey,
+) forbids DropOrderGraph {}
+
+class DropOrderEdge(
+  public origin: NodeKey,
+  public destination: NodeKey,
+  public kind: EdgeKind,
+) forbids DropOrderGraph {}
 
 class DropOrderGraph {
   // Internal state elided.
 
-  public nodeForType(key: NodeKey): DropOrderNode;
+  public nodeForKey(key: NodeKey): DropOrderNode;
 
   public addEdge(origin: DropOrderNode, kind: EdgeKind, dest: DropOrderNode): Void;
 
+  /** In serialNo order. */
   public allNodes(): List<DropOrderNode>;
+
+  public outgoing(key: NodeKey): List<DropOrderEdge>;
 }
 
-let checkClassTypeForPotentialReferenceCycles(classTypeShape) {
+class ForbidMismatch(
+  public forbidden: Type2,
+  public transitivelyHas: Type2,
+  /** The shortest chain of property hints via which transitivelyHas is reachable. */
+  public viaPath: List<String>,
+) {}
+
+class CycleCheckProblems(
+  public graph: DropOrderGraph,
+  public cycles: List<Cycle>,
+  public forbidMistmatches: List<ForbidMismatch>,
+) {}
+
+let checkClassTypeForPotentialReferenceCycles(classTypeShape): CycleCheckProblems {
   let graph = new DropOrderGraph();
 
   // The type of `this` in one of the `class`'s methods.
@@ -277,7 +303,7 @@ let checkClassTypeForPotentialReferenceCycles(classTypeShape) {
 
   // We need to navigate from there to check for cycles once
   // we've added edges and pruned them.
-  let mainNode = graph.nodeForType(mainTypeKey);
+  let mainNode = graph.nodeForKey(mainTypeKey);
 
   // Build out the graph.
   //
@@ -345,9 +371,9 @@ let checkClassTypeForPotentialReferenceCycles(classTypeShape) {
             needExplodeSupers.add(pTypeInContext);
           }
           let pTypeKey = new DropOrderKey(pTypeInContext, key.imuOverride);
-          let pNode = graph.nodeForType(pTypeKey);
+          let pNode = graph.nodeForKey(pTypeKey);
           let pHint = propertyHintFor(p);
-          let kNode = graph.nodeForType(key);
+          let kNode = graph.nodeForKey(key);
           graph.addEdge(kNode, new HasAEdgeKind(pTypeInContext, isEarly, pHint), pNode);
         }
       }
@@ -386,8 +412,8 @@ let checkClassTypeForPotentialReferenceCycles(classTypeShape) {
               } else {
                 needExplodeSupers.add(subKey);
               }
-              let kNode = graph.nodeForType(key);
-              let subNode = graph.nodeForType(subKey);
+              let kNode = graph.nodeForKey(key);
+              let subNode = graph.nodeForKey(subKey);
               graph.addEdge(kNode, new CanBeAEdgeKind(subType), subNode);
             }
           } else {
@@ -404,8 +430,8 @@ let checkClassTypeForPotentialReferenceCycles(classTypeShape) {
             );
             let fakeKey = new DropOrderKey(fakeClassType, key.imuOverride);
 
-            let kNode = graph.nodeForType(key);
-            let fakeNode = graph.nodeForType(fakeKey);
+            let kNode = graph.nodeForKey(key);
+            let fakeNode = graph.nodeForKey(fakeKey);
             fakes.add(fakeNode);
             graph.addEdge(kNode, new CanBeAEdgeKind(fakeClassType), fakeNode);
             let isEarly = key.imuOverride || isImu(type);
@@ -421,14 +447,17 @@ let checkClassTypeForPotentialReferenceCycles(classTypeShape) {
           } else {
             upperBounds.map { ub => new DropOrderKey(ub, isImuRef) }
           }
-          // TODO: This is like unioning, but the semantics of type formal upper bounds
+          // WARNING: fanning out like this is like unioning,
+          // but the semantics of type formal upper bounds
           // are intersection.
+          // TO DISCUSS: Should nodes store intersections of types instead of one-type?
+          // If so, then `forbids` clauses would be unioned over the types' clauses.
           for (let boundKey of boundKeys) {
-            let kNode = graph.nodeForType(key);
+            let kNode = graph.nodeForKey(key);
             if (!hasAEdgesDone.has(boundKey)) {
               needsHasAEdges.add(boundKey);
             }
-            let boundNode = graph.nodeForType(boundKey);
+            let boundNode = graph.nodeForKey(boundKey);
             graph.addEdge(kNode, new CanBeAKind(boundKey.type), boundNode);
           }
         }
@@ -439,16 +468,53 @@ let checkClassTypeForPotentialReferenceCycles(classTypeShape) {
   // Step III. Now prune out fake class's has-a edges based on `forbids` relationships.
   if (!fakes.isEmpty) {
     // Propagate forbids relationships across graph nodes.
-    // Something is "always forbidden"
-    // if it is forbidden across every incoming edge.
+    // Something is "always forbidden" if it is forbidden across every incoming edge.
     // If mainType is forbidden at a fake class type node,
     // then sever the has-a edge between the fake class type and its fake property.
-    //
-    // For example, TODO
+
+    @auto("==")
+    class ForbidsFreq(
+      public forbids: Type2,
+      public always: DenseBitVector,
+      public sometimes; DenseBitVector,
+    ) {}
+
+    class Propagated(public to: DropOrderKey, public from: DropOrderKey?) {}
+
+    let forbidden = new MapBuilder<Int32, ListBuilder<ForbidsFreq>>();
+    let q = new Deque<Propagated>();
+    q.add(new Propagated(mainTypeKey, null));
+    // TODO: Graph propagation using queue that fans out as long as things are
+    // changing.  ForbidsFreq.always bitset has bits corresponding to node serialNo's
+    // set when that node propagates always for the forbidden type, and the bit set
+    // in sometimes when it propagates sometimes.
+    // For a given forbidden type, a node propoagates always when at least one bit
+    // is set in the always bitset and no bits are set in the sometimes bitset.
+    // It propagates sometimes when a bit is set in the someimes bitset.
+    // When a node changes whether it propagates or what it propagates for any forbidden
+    // type, it needs to enqueue a propagation from it to each of its followers in the
+    // graph.
+
+    // TODO: Once graph propagation is done, we check each fake node, and check whether
+    // its type or a super-type is always forbidden, and if so, mark its outgoing has-a
+    // edge as pruned.
   }
 
   // Step IV.
-  TODO
+  // TODO: Walk the graph from main looking for cycles involving non-pruned edges,
+  // which include at least one `<` edge.
+  // Each such cycle should be put on a list, and if the list is non-empty, the
+  // consumer of the CycleCheckProblems return value can figure out how to turn
+  // that into compiler error messages and visualizations.
+
+  // Step V.
+  // TODO: If the declaration has forbids declarations, and we didn't fail the cycle
+  // check above, walk from the main node and collect all transitive has-a types
+  // reachable via non-pruned edges.
+  // Then check that none of them or their sub-types fall within a forbids declaration.
+  // Make any mismatch available via the return value so that the caller
+  // can give recommendations on what not to forbid, or how to modify types under
+  // the user's control, or where to add forbids clauses.
 }
 ```
 
@@ -724,6 +790,19 @@ let g<U>(c: C<U>): Void {}
 let h<V forbids List<V>>(c: C<V>): Void {}
 ```
 
+This slight variant of it solves the problem in the class declaration.
+Should Step V of the cycle checker algo realize that one of its forbids
+can be parameterized to a super-type of one of its points-to types?
+If so, we can avoid this at class check time and then rely on just checking
+the validity of types like `c: C<String>` and sufficiency of forbids like `<U>`
+mssing a forbid of String when it is used in `C<U>`.
+
+```ts
+class C<T forbids String>(
+  public strings: List<String>,
+) forbids List<T> {}
+```
+
 ### Sealed interfaces
 
 Interfaces are hard to reason about, but for sealed interfaces we can reason
@@ -834,8 +913,6 @@ interface MessagePlugin forbids Messager {
 Here, the `forbids` clause on the `MessagePlugin` establishes that
 its author restricts subtypes of it from pointing to a *Messager*:
 *Messager* owns plugins, plugins don't own any *Messager*.
-
-TODO: do we need a lighterweight `forbids var` variant?
 
 If a plugin author tried to do this then that would be a cycle type
 definition checker error.
@@ -990,7 +1067,10 @@ lead to pointer reference cycles that prevent reference counting
 pointers from deallocating memory when it's no longer useful to the
 program.
 
-TODO: drop image explaining ref-count limitations from background above.
+_Cyclic Reference Counting with Permanent Objects_ by Lins et
+al. explains a limitation of simple reference counting.
+
+![Diagram of three refcounted pointer cycle, rooted with 2 1 1 counts, and after the root is removed making the cycle unreachable with 1 1 1 counts but deallocation only happens on 0 counts](./refcount-cycles.png)
 
 Temper provides two main mechanisms to allow for flexibility in
 defining types while preventing memory leaks:
@@ -1282,3 +1362,47 @@ allowing them to opt-into having increment/decrement instructions
 inserted in TmpL.
 
 ## Open Issues
+
+### `forbids` on properties initializers
+
+Should we allow `forbids` on property metadata too, or more generally
+on inputs and outputs?
+
+```ts
+class OwnerObject(
+  public plugins: List<Plugin> forbids OwnerObject,
+) {}
+
+let makeOwnerObjectBad(p: Plugin): OwnerObject {
+  new OwnerObject([p])  // ERROR: Plugin does not obviously forbid OwnerObject
+}
+
+interface FPlugin extends Plugin forbids OwnerObject {}
+
+let makeOwnerObjectOk1(p: FPlugin): OwnerObject {
+  new OwnerObject([p])  // FINE.  p forbids OwnerObject via FPlugin
+}
+
+let makeOwnerObjectOk2<P extends Plugin forbids OwnerObject>(p: P): OwnerObject {
+  new OwnerObject([p])  // FINE.  p forbids OwnerObject via <P>
+}
+```
+
+This may be a slippery slope towards `forbids` being a general type
+operator which might explode the number of places where we need to
+do forbids checking from type definitions and the set of distinct
+type constructor instantiations to all assignable-to checks.
+
+It might also raise the burden on code that constructs ASTs pre-typed
+to also synthesize valid `forbids` info.
+
+That last one shows a potential alternative way to achieve some of
+those goals: `interface` types as inputs with their own `forbids`
+clause smuggled via a type parameter.  Perhaps type parameters on a constructor
+with forbids clause for early properties could contribute that those forbids
+when propagating across the has-a edge for that property.
+
+### a `forbids var` variant
+
+Should `forbids` clauses be able to separately forbid any pointing-to
+vs. pointing to via non-early reference?
