@@ -36,14 +36,16 @@ link to the RFC once it exists.
 - [#112](https://github.com/temperlang/temper/issues/112) **Comma Expression when used in combination with Lists is confusing** (applies): Question: make comma expressions outside lists and arguments (and doubled commas) syntax errors that point to `do { }`?  MVS: +1
 - [#126](https://github.com/temperlang/temper/issues/126) **Determine when we can promote Temper** (applies): Question: does this stay open as a tracking issue, now that the code is public and the switch is planned?  MVS: Just close it.  Nothing on there worth preserving.
 - [#131](https://github.com/temperlang/temper/issues/131) **Static names can conflict with instance names** (partly): Question: should a static and an instance member sharing a name be a compile error, or stay legal with per-backend renames as tempest does now?  MVS: We now have `@overload`, and have taken a stance that names should be unambiguous.  I think that should be true between Type and instance members.  Dynlangs especially do badly with overlapping namespaces.
-- [#320](https://github.com/temperlang/temper/issues/320) **std/regex: find with an anchored regular expression and a begin offset anchors at wrong place** (applies): Question: should `^` anchor at the begin offset, or is matching JS/Python intended? If intended, document and close.
-- [#516](https://github.com/temperlang/temper/issues/516) **Async blocks run in parallel on py and java, and lose updates to shared state** (fixed): Team call: adopt one-turn-at-a-time as Temper's async model (notes on concurrency), or keep it open for idiomatic parallelism per language; then close.
-- [#519](https://github.com/temperlang/temper/issues/519) **PromiseBuilder.complete runs the waiting async block before it returns on rust, py and java** (fixed): Same team call as #516; close with it.
-- [#524](https://github.com/temperlang/temper/issues/524) **Java's generated main exits after 10 seconds while an async block is still running, with exit code 0** (applies): Team call with #516: should main wait for every pending async block (and say so if it gives up), or keep a cap?
+- [#320](https://github.com/temperlang/temper/issues/320) **std/regex: find with an anchored regular expression and a begin offset anchors at wrong place** (applies): Question: should `^` anchor at the begin offset, or is matching JS/Python intended? If intended, document and close.  MVS: My inclination is principle of least surprise, but failing that, if someone specifies a substring not as part of a continuing match, that region is the whole input as far as the matcher is concerned.
+- [#516](https://github.com/temperlang/temper/issues/516) **Async blocks run in parallel on py and java, and lose updates to shared state** (fixed): Team call: adopt one-turn-at-a-time as Temper's async model (notes on concurrency), or keep it open for idiomatic parallelism per language; then close.  MVS: Keep the tests, but close the associated PR.  We need a consistent way to handle cross-thread mutable captures and maybe #666 and #665 we can build on, but a global interpreter lock for all async blocks is not it.
+- [#519](https://github.com/temperlang/temper/issues/519) **PromiseBuilder.complete runs the waiting async block before it returns on rust, py and java** (fixed): Same team call as #516; close with it. MVS: If it's fixed and the tests are incorporated, close.
+- [#524](https://github.com/temperlang/temper/issues/524) **Java's generated main exits after 10 seconds while an async block is still running, with exit code 0** (applies): Team call with #516: should main wait for every pending async block (and say so if it gives up), or keep a cap? MVS: It has useful tests, so maybe keep and incorporate those.
 
 ## Pull requests
 
 Every PR closes; what's worth carrying over goes into the named issue.
+
+MVS: If they have tests that capture desired behaviour, let's pull those in as ignored tests with comments pointing back to the closed&archived issue/PR.
 
 | # | Title | Area | Status | Resolution | Carry over / action |
 |---|---|---|---|---|---|
@@ -94,7 +96,7 @@ Items that are design questions rather than bugs:
 | [#293](https://github.com/temperlang/temper/issues/293) | Reference cycles with closures | language | applies | Point to a new RFC: preventing reference cycles. |
 | [#297](https://github.com/temperlang/temper/issues/297) | Support struct splatting | language | applies | Point to a new RFC: spread in object literals. |
 | [#373](https://github.com/temperlang/temper/issues/373) | Temper has Float64 division that generates NaN / Infinity in Python backend | language | applies | new RFC: Float64 semantics across backends (division by zero, toString, parsing, rounding); retitle "Float64 division by zero differs by backend". |
-| [#410](https://github.com/temperlang/temper/issues/410) | Explicit tracking of thread shareabilty | language | applies | Fold into the RFC from #666 (top-level static constraints) or #665 (actors and isolation); link both. |
+| [#410](https://github.com/temperlang/temper/issues/410) | Explicit tracking of thread shareabilty | language | applies | Fold into the RFC from #666 (top-level static constraints) or #665 (actors and isolation); link both. MVS: +1 |
 | [#540](https://github.com/temperlang/temper/issues/540) | Top-level assignments to a `var` run before the statements written above them | language | applies | new RFC: top-level statement order (source order vs. do-blocks vs. one assignment); link #666. |
 | [#554](https://github.com/temperlang/temper/issues/554) | `Float64.toString` gives a different string for the same number on each backend, and on lua and the interpreter some strings do not read back as the same number | stdlib | applies | new RFC: Float64 semantics across backends (format); keep the table as test input. |
 | [#555](https://github.com/temperlang/temper/issues/555) | Float64 `floor`, `ceil` and `round` give different answers per backend: py returns Python ints, `round` has three tie rules, java's `round` saturates | stdlib | applies | new RFC: Float64 semantics across backends (rounding). |
@@ -109,6 +111,16 @@ Items that are design questions rather than bugs:
 | [#665](https://github.com/temperlang/temper/issues/665) | Actors and isolation | language | applies | new RFC: actors and isolation; link #507 and #410. |
 | [#666](https://github.com/temperlang/temper/issues/666) | Top-level static constraints | language | applies | new RFC: top-level static constraints; link #540 and #410. |
 | [#667](https://github.com/temperlang/temper/issues/667) | Functional interface types decision needed | language | applies | new RFC: function types vs. functional interfaces; record the new compiler's current behavior as one option. |
+
+MVS: 658 and on are RFC initiators that are after the start of the Tempest experiment.
+
+MVS: Seems like a lot of these could be triaged by going down the list in a meeting:
+
+- Is there someone interested in working up a proposal?
+- Would anyone benefit from this being resolved?
+- Are there testcases that can capture this `@Ignore`d?
+- If none: clos it.
+
 
 ## Keep open
 
@@ -142,8 +154,8 @@ Items that are design questions rather than bugs:
 | [#166](https://github.com/temperlang/temper/issues/166) | Lua regex replace failure | regex | unverified | Lua regex runtime not checked here | Re-run the bulletize case on the new compiler's Lua backend and update the issue. |
 | [#167](https://github.com/temperlang/temper/issues/167) | Inject StringIndex bounds checks | language | applies | No injected StringIndex bounds checks found in tempest | Keep as a design item; settle panic versus bubble for bad indices first, as the comment says. |
 | [#173](https://github.com/temperlang/temper/issues/173) | Consider parking_lot for Rust mutexes | backend/rust | applies | tempest's Rust output still uses std `RwLock` | Keep as a Rust backend performance item. |
-| [#180](https://github.com/temperlang/temper/issues/180) | Add more backends | backend | applies | Placeholder for further backends; tempest has C++, C#, Java, JS, Lua, Python, Rust | Keep as the tracking issue for new backends. |
-| [#188](https://github.com/temperlang/temper/issues/188) | Fix test counts for Lua | tooling | unverified | Lua test counts not checked here | Re-check `test -b lua` counts on a multi-test library with the new compiler, then close or update. |
+| [#180](https://github.com/temperlang/temper/issues/180) | Add more backends | backend | applies | Placeholder for further backends; tempest has C++, C#, Java, JS, Lua, Python, Rust | Keep as the tracking issue for new backends. MVS: I don't know we need this open.  |
+| [#188](https://github.com/temperlang/temper/issues/188) | Fix test counts for Lua | tooling | unverified | Lua test counts not checked here | Re-check `test -b lua` counts on a multi-test library with the new compiler, then close or update. MVS: I think Bobbby might have fixed this.  |
 | [#189](https://github.com/temperlang/temper/issues/189) | Stop supporting arbitrary `or` types | typer | partly | `[1, "two"]` no longer infers an or-type (element type unknown; docs/language/types.md marks unions deprecated), but `let x: Int \| String` is still accepted | Retitle "Reject arbitrary union types in declarations". |
 | [#223](https://github.com/temperlang/temper/issues/223) | be-rust: Closure assigning capture in conditional fails to get wrapped | backend/rust | partly | Captured `j` is now `Arc<RwLock<i32>>`, but the immediately called closure is emitted as `{ ...; Arc::new(move \|k\| ...) }(i);` in statement position, which rustc rejects (E0308, block parsed as a statement) | Retitle "be-rust: immediately invoked closure in statement position doesn't compile"; include the new repro. |
 | [#226](https://github.com/temperlang/temper/issues/226) | Should we have a .gitattributes? | tooling | applies | The new compiler's tree has no .gitattributes | Keep; fold into the switch-over repo setup. |
@@ -256,6 +268,8 @@ Items that are design questions rather than bugs:
 | [#620](https://github.com/temperlang/temper/issues/620) | js: `Mapped.getOr` returns the fallback for a key that is present with a null value | backend/js | fixed | tempest js: getOr on a key mapped to null returns null for MapBuilder and Map (repro) |
 | [#629](https://github.com/temperlang/temper/issues/629) | csharp: an `if` as the arm of a sealed `when` is emitted unbraced, so the `else throw` that closes the `when` binds to the inner `if`, and the arm's common case throws | backend/csharp | fixed | tempest's C# braces each when arm's if (generated BareIf, repro) |
 | [#630](https://github.com/temperlang/temper/issues/630) | js: a std function that a test file imports again is left out of the extracted test file, and the ReferenceError is reported as a bubble | backend/js | fixed | tempest's extracted js test imports parseJson itself (generated test/reimport.js, repro) |
+
+MVS: Big if true.
 
 ## Close: obsolete
 
