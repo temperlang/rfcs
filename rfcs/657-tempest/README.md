@@ -40,7 +40,7 @@ backends. It also uses quite a bit of memory, often in the 100s of MiB
 for common uses at the scale we've used it for so far.
 
 Agentic AI coding provides an opportunity to reimplement Temper to a
-faster, lighter-weight, and more bug free form. It enables the still
+faster, lighter-weight, and more bug-free form. It enables the still
 small team to implement future features sooner and to generate
 additional testing around them. And because of our extensive testing,
 we have increased confidence that an AI reimplementation will meet our
@@ -58,13 +58,13 @@ AI reimplementation.
 ## Proposal
 
 - The Rust compiler is Temper from the switch on. The
-   Kotlin compiler gets a final release from its current `main`, then no
-   new features, and its code stays readable on a branch. (We have also
-   discussed future experiments translating the Rust compiler to Temper
-   itself, and the current proposal doesn't preclude such experiments.
-   But any decision to actually use Temper for some or all of the Temper
-   implementation in the future in an official form would require new
-   official decision making by the team.)
+  Kotlin compiler gets a final release from its current `main`, then no
+  new features, and its code stays readable on a branch. (We have also
+  discussed future experiments translating the Rust compiler to Temper
+  itself, and the current proposal doesn't preclude such experiments.
+  But any decision to actually use Temper for some or all of the Temper
+  implementation in the future in an official form would require new
+  official decision making by the team.)
 - The new Rust implementation isn't a direct translation, although it was made
   with full view to the prior Kotlin source. There was no requirement to use
   the same stages or internal representation, for example. Details of the new
@@ -72,34 +72,33 @@ AI reimplementation.
   that the Rust implementation is maybe 10x faster and uses 10x less RAM, to
   round to approximate orders of magnitude at the moment.
 - Users see Temper and `temper` everywhere: binary, help,
-   errors, docs, editor extension, environment variables (`TEMPER_*`).
-   "tempest" stays only as an internal codename in Rust code, such as stack
-   traces.
+  errors, docs, editor extension, environment variables (`TEMPER_*`).
+  "tempest" stays only as an internal codename in Rust code, such as stack
+  traces.
 - The new history moves to temperlang/temper by
-   branch rename, so stars, bookmarks, and issues stay where they are:
-   - push the new history as a branch on temperlang/temper;
-   - rename the old `main` to `kotlin` and the new branch to `main`;
-   - review branch protections;
-   - archive temperlang/tempest with a pointer.
+  branch rename, so stars, bookmarks, and issues stay where they are:
+  - push the new history as a branch on temperlang/temper;
+  - rename the old `main` to `kotlin` and the new branch to `main`;
+  - review branch protections;
+  - archive temperlang/tempest with a pointer.
 - Review [this issue and PR triage list](tom/claude-issue-pr-triage.md)
-   as a team. The initial list was based on AI review. We *don't* need
-   to act on the list or finalize decisions to complete this RFC, but we
-   do want to be prepared to act in the near future to avoid internal
-   and external confusion. Triage suggests closing all PRs for Kotlin
-   Temper while still keeping some issues open, updated for the new code
-   base.
+  as a team. The initial list was based on AI review. We *don't* need
+  to act on the list or finalize decisions to complete this RFC, but we
+  do want to be prepared to act in the near future to avoid internal
+  and external confusion. Triage suggests closing all PRs for Kotlin
+  Temper while still keeping some issues open, updated for the new code
+  base.
 - First release of the new implementation will be `v0.7.0`, after an `rc` tag
-   proves the release
-   workflow end to end. The plan is in place for this, but such tagging
-   and release would be after the core RFC described here.
+  proves the release workflow end to end. The plan is in place for this, but
+  such tagging and release would be after the core RFC described here.
 
 ## Rationale
 
 - We've proven out the new compiler across existing and recently AI-developed
   Temper code bases. Older libraries include Temper's regex parser and engine,
-  as well as internal libraries. Libraries recently expanded or developer by AI
+  as well as internal libraries. Libraries recently expanded or developed by AI
   for Kotlin Temper include Chromarite, Hrefine, Kelpto, Ordable, and Wherewith.
-  Details of these libaries are beyond the scope of this document, buy they help
+  Details of these libraries are beyond the scope of this document, but they help
   to provide confidence in the translation.
 - As discussed in background, Rust is a good target for the new implementation.
   Another consideration was implementing in Temper itself, but Temper isn't yet
@@ -119,14 +118,14 @@ AI reimplementation.
   part of Temper history.
 - We can also move over to the new implementation before finishing action on
   existing PRs and issues because a faster switch leaves less down time and
-  gives us more momentum. Establishing a line where existing Temper libaries
-  and relevant tests passing is a better threshold for moving forward in a
+  gives us more momentum. Establishing a line where existing Temper libraries
+  and relevant tests pass is a better threshold for moving forward in a
   clean and efficient way as a team.
 
 ## Compatibility
 
 Source compatibility with the Kotlin compiler is a key goal. However, the
-Kotlin compiler isn't always consisten with itself. We also have some partially
+Kotlin compiler isn't always consistent with itself. We also have some partially
 implemented plans that encourage clean handling at this time. There also are a
 handful of features that we can defer until after the switch to the new
 compiler. Some example decisions made during Tempest development follow:
@@ -153,11 +152,11 @@ backend output or need team decisions go through RFCs.
 Before the switch (Tom, with Claude Code):
 
 - A green manual nightly on `rfc-657-transition`, including the full
-   macOS and Windows runs.
-- Team review of this proposal and awareness of [the triage list](claude-issue-pr-triage.md),
-   again with no requirement to act on the triage list before switching.
+  macOS and Windows runs.
+- Team review of this proposal and awareness of [the triage list](tom/claude-issue-pr-triage.md),
+  again with no requirement to act on the triage list before switching.
 - Mike's check of `temper license` and the legal texts (COPYRIGHT,
-   NOTICE, licenses of bundled crates and copied runtimes).
+  NOTICE, licenses of bundled crates and copied runtimes).
 - No "final release" of the Kotlin-based compiler is required.
 
 After the switch:
@@ -199,8 +198,8 @@ a REPL `help("topic")`) can follow later.
 
 ## Open issues (if applicable)
 
-- Claude highlighted these as interesting items for team in the triage list,
-  but I don't think they're required for switch: reserving `enum`, comma
+- Claude highlighted these as interesting items for the team in the triage list,
+  but I don't think they're required for the switch: reserving `enum`, comma
   expressions, static and instance names sharing a name, regex anchors
   with a begin offset, the async model (one turn at a time) and Java's
   exit timeout, and whether the promotion issue stays open.
