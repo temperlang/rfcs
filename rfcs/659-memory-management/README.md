@@ -4,9 +4,9 @@
 
 Author(s): Mike S.
 
-Last updated: 2026-11-10
+Last updated: 2026-11-16
 
-Discussion at https://github.com/temperlang/temper/issue/NNNNN.
+Discussion at https://github.com/temperlang/temper/issue/659
 
 ## Abstract
 
