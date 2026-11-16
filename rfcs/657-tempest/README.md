@@ -14,6 +14,10 @@ history becomes temperlang/temper's `main`, its binary is `temper`, and
 the Kotlin compiler gets no new development and is archived. Users keep
 writing the same Temper. Current Temper libraries pass the same tests.
 
+This document includes both handwritten text and content from [a draft by
+Claude Code](tom/claude-proposal.md). All of it has been reviewed and manually
+selected (or written) by Tom as of the time of writing this comment.
+
 ## Background
 
 Starting from Mike's original design and development, we've been
