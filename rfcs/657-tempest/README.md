@@ -54,12 +54,13 @@ Rust an attractive target for an AI reimplementation.
 
 ## Proposal
 
-- The Rust compiler is Temper from the switch on. The Kotlin compiler gets no
-  further development, and its code stays readable on a branch. (We have also
-  discussed future experiments translating the Rust compiler to Temper itself,
-  and the current proposal doesn't preclude such experiments. But any decision
-  to actually use Temper for some or all of the Temper implementation in the
-  future in an official form would require new official decision making by the
+- The Rust rewrite is Temper's compiler from the switch on. The Kotlin
+  compiler gets no further development, and its code stays readable on
+  a branch. (We have also discussed future experiments translating the
+  Rust rewrite to Temper itself, and the current proposal doesn't
+  preclude such experiments. But any decision to actually use Temper
+  for some or all of the Temper implementation in the future in an
+  official form would require new official decision making by the
   team.)
 - The new Rust implementation isn't a direct translation, although it was made
   with full view to the prior Kotlin source. There was no requirement to use
@@ -69,7 +70,7 @@ Rust an attractive target for an AI reimplementation.
   about an order of magnitude less RAM
   ([measurements](https://github.com/temperlang/tempest/blob/rfc-657-transition/notes/size-and-speed.md#measured-so-far)).
 - Users see Temper and `temper` everywhere: binary, help, errors, docs, editor
-  extension, environment variables (`TEMPER_*`). "tempest" stays only as an
+  extension, environment variables (`TEMPER_*`). "Tempest" stays only as an
   internal codename in Rust code and stack traces.
 - The new history moves to temperlang/temper by branch rename, so stars,
   bookmarks, and issues stay where they are:
