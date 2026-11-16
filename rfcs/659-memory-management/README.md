@@ -16,7 +16,7 @@ This proposal outlines a compile-time memory cycle checker: for each class defin
 
 ## Background
 
-[ASAP](https://www.cl.cam.ac.uk/techreports/UCAM-CL-TR-908.pdf) covers a lot of topics in memory management.
+[ASAP](https://www.cl.cam.ac.uk/techreports/UCAM-CL-TR-908.pdf) covers a lot of topics in memory management.  Below we use its definition of *garbage collection* as automated runtime machinery which frees memory used by values.  Its definition includes mark-and-sweep garbage collectors which readers might think of first when they see "garbage collector," but it also includes reference counting.  Mark-and-sweep and other approaches like Python's reference counting augmented with a scanning cycle collector are collectively grouped under *scanning garbage collectors*.  Reference counting alone, by contrast, is a non-scanning approach to garbage collection; it never "scans" transitive reference relationships; deallocation decisions are based solely on local information: whether the count is zero.
 
 _Cyclic Reference Counting with Permanent Objects_ by Lins et al. explains a limitation of simple reference counting.
 
@@ -34,7 +34,7 @@ This proposal consists of these parts each of which has its own header below:
 1. **`forbids` constraint checker**: compile-time checks on type bindings that they obey `forbids` clauses.
 1. **A cycle test suite**: Including the examples below, a suite of test programs that fail and the error messages that should be produced along with similar programs that pass.
 1. **Visualizations**: additions to the command line tool and in the REPL that aid in visualizing and repairing memory cycles by showing DOT graphs of how a memory cycle can be formed allowing quick identification of property chains and mutability that could change.
-1. **Documentation**: documentation covering the rules in detail, motivation for target languages that don't have scanning GC, examples of what works and doesn't and how to change the one's that don't, and a coverage of topics like ownership, graph representation using façades.
+1. **Documentation**: documentation covering the rules in detail, motivation for target languages that don't have scanning GC, examples of what works and doesn't and how to change the ones that don't, and a coverage of topics like ownership, graph representation using façades.
 
 ## Rationale
 
@@ -44,11 +44,11 @@ Simple reference counting semantics for Temper references is a sweet spot for hi
 
 And there is a style of programming, OCaml mostly immutable records, that is naturally acyclic.  Encouraging this style in Temper should mean that most code doesn't need to worry about memory management.  Those work because there is a natural ordering which allows proving absence of cycles: immutable members of an immutable record are older than the record.
 
-This approach focuses the additional collection at mutable and generic types.  The more concrete the types, the more information the checker has to prove; types that layer well (this contains that but not vice versa) just work.
+This approach focuses the additional collection at mutable and generic types.  The more concrete the types, the more information the checker has to reason about them; types that layer well (this obviously contains that but not vice versa) just work.
 
 There are also a variety of fallback strategies if this proves hard to use:
 
-- Scoped building idioms. Some mutable types like *ListBuilder* are mutable but short lived, so idioms like Kotlin `buildList { ... }` where the auto-allocated *ListBuilder* switches to a state where it is guaranteed always empty after control exits the `}`, can be exceptions to the rule.  The output *List* type needs to bpass the `forbids` constraint checker.
+- Scoped building idioms. Some mutable types like *ListBuilder* are mutable but short lived, so idioms like Kotlin `buildList { ... }` where the auto-allocated *ListBuilder* switches to a state where it is guaranteed always empty after control exits the `}`, can be exceptions to the rule.  The output *List* type needs to pass the `forbids` constraint checker.
 - Libraries for some apparently cyclic use cases like graphs based on adjacency tables.
 - Weak references can allow for parent pointers in AST representations without breaking use cases where the root pointer is strong and not held by an AST.
 
@@ -81,9 +81,13 @@ forbids clauses (assuming *AnyValue* if there are no constraining
 upper bounds), and interfaces based on possible subclasses.
 
 The goal of a *drop-order graph* is to make it easy to identify the
-potential for object-graph cycles.  There are multiple kinds of edges:
-`is-a`, and two kinds of points to: `<=` points to via an early, const
-property, and `<` points to via a non-early or non-const property.
+potential for object-graph cycles.  There are multiple kinds of edges.
+A can-be-a edge (`is?`) expresses that the origin type is assignable to
+the destination type.  A `<=` points-to edge expresses that the origin can
+point-to the destination via a property that is assigned once and in the
+constructor before `this` is used as an rvalue. A simple `<` points-to
+edge denotes any other points-to relationship.
+
 If a cycle in the drop-order graph has no `<` edges, then there is
 no contradiction: the born-after property holds among early-initialized
 const property chains, so there's no problem.  If there is a cycle
@@ -133,16 +137,16 @@ graphs readable.
 
 `String`, `StringBuilder`, the numeric types, booleans, string index types,
 and the empty type need no outgoing edges.
-They may internally have srotage for bits, and the stringy types might have
+They may internally have storage for bits, and the stringy types might have
 backing arrays, but any content bottoms out on non-pointer bits so is ignorable
 for the purposes of cycle checking.
 
 For a type parameter reference, e.g. a `T` type corresponding to a `<T>` declaration,
 there are two cases: `<T>` is declared `@imu` (deeply immutable) or it is not declared
-`@imu`.  If it is has `@imu` type metadata then it needs `is-a` edges to each type node that
-exists and which fits its upper bounds.
-If it is declared `@imu` then it needs outgoing `is-a` edges in the same way but only
-to hose nodes which are effectively-imu.
+`@imu`.  If it does not have `@imu` type metadata then it needs `can-be-a` edges to each
+type node that exists and which fits its upper bounds.
+If it is declared `@imu` then it needs outgoing `can-be-a` edges in the same way but only
+to those nodes which are effectively-imu.
 
 Similarly, interface type nodes (including `@fun` interfaces) have outgoing edges to
 each node that is a type assignable to their type, filtered by `@imu`.
@@ -171,24 +175,282 @@ line image display library like
 [imgcatr](https://github.com/SilinMeng0510/imgcatr).  Generating a
 Graphviz (`.dot`) or Mermaid file (perhaps am out-grammar could help),
 invoking the shell to convert to an image and then displaying the
-resulting image could help with showing cycle-participant graphs (also
-defined in the experiment) in error messages and in the REPL.  (The
-web playground already supports Mermaid rendering using Mermaid JS
-library support) A MessageTemplate that identifies an output as
-inlinable image output could allow optional inlining if in interactive
-mode and the user has not expressed a preference for accessible
-textual content.
+resulting image could help with showing drop-order graphs in error
+messages and in the REPL.  (The web playground already supports
+Mermaid rendering using Mermaid JS library support) A MessageTemplate
+that identifies an output as inlinable image output could allow
+optional inlining if in interactive mode and the user has not
+expressed a preference for accessible textual content.
 
-### Checking
+### Cycle Checking algorithm
 
 Cycle checking is done per `class` declaration because other type
 declarations do not allocate storage.  Forbids checking is done per
 type phrase; every type that appears in a node's AST.  The former
-cannot be cached but type declarations are relatively few; the latter
+need not be cached because each `class` is only considered once; the latter
 can be aggressively cached as long as care is taken not to use cached
 state from before a type declaration is modified by metaprogramming.
 
-TODO
+```temper
+// Pseudocode
+sealed interface EdgeKind {
+  /** The type the edge points to. */
+  type: Type2;
+
+  @operator("==")
+  eq(that: EdgeKind): Boolean;
+
+  toString(): String;
+}
+
+class HasAEdgeKind(
+  /** The type the edge points to. */
+  public type: Type2,
+  /**
+   * True iff the property is non-var and initialized before
+   * the `this` of its container is used as an rvalue.
+   */
+  public early: Boolean,
+  /** Non-normative.  Let's us reconstruct property chains. */
+  public propertyHint: String,
+) extends EdgeKind {
+  @operator("==")
+  public eq(that: EdgeKind): Boolean {
+    that is HasAEdgeKind && this.type == that.type && this.early == that.early
+  }
+
+  public toString(): String {
+    "${if (early) { "<=" } else { "<" }} ${propertyHint} : ${type}"
+  }
+}
+
+class CanBeAEdgeKind(
+  /** The type the edge points to. */
+  public type: Type2,
+) extends EdgeKind {
+  @operator("==")
+  public eq(that: EdgeKind): Boolean {
+    that is CanBeAEdgeKind && this.type == that.type
+  }
+
+  public toString(): String { "is? ${type}" }
+}
+
+class NodeKey(
+  public type: Type2,
+  /**
+   * Type parameters like `<@imu T>` can specify they bind to an intersection of types but
+   * only effectively-imu variants of that intersection.
+   *
+   * Propagate that is-imu bit so that we can use `<=` outgoing edges from them.
+   * This ends up affecting the has-a edges synthesized for worst-case interfaces.
+   */
+  public imuOverride: Boolean,
+) {}
+
+interface DropOrderNode forbids DropOrderGraph {
+  origin: NodeKey;
+  kind: EdgeKind;
+  dest: NodeKey;
+}
+
+class DropOrderGraph {
+  // Internal state elided.
+
+  public nodeForType(key: NodeKey): DropOrderNode;
+
+  public addEdge(origin: DropOrderNode, kind: EdgeKind, dest: DropOrderNode): Void;
+
+  public allNodes(): List<DropOrderNode>;
+}
+
+let checkClassTypeForPotentialReferenceCycles(classTypeShape) {
+  let graph = new DropOrderGraph();
+
+  // The type of `this` in one of the `class`'s methods.
+  // If `classTypeShape` is `C` and has type formals `<T, U>`
+  // then mainType is `C<T, U>`.
+  let mainType = MkType2(classTypeShape)
+      .bindings(classTypeShape.typeFormals.map { t -> MkType2(t).get() })
+      .get();
+  let mainTypeKey = new DropOrderKey(mainType, false);
+
+  // We need to navigate from there to check for cycles once
+  // we've added edges and pruned them.
+  let mainNode = graph.nodeForType(mainTypeKey);
+
+  // Build out the graph.
+  //
+  // First, we build out all has-a edges.
+  //
+  // Second, we'll link can-be-a edges and potentially add nodes for
+  // super-types, but those nodes rarely add new has-a relationships because
+  // previously unseen super-types are usually non-class types which have
+  // no properties.
+  // There are two exception to the rule:
+  // 1. When an `interface` type is `sealed`, and some of its
+  //    direct sub-types are `class` types.  We add can-be-a edges to
+  //    the direct sub-types and note that they may have properties.
+  // 2. When a <T> can-be-a <U> and the <U> has a class type as an upper-bound,
+  //    the outer loop repeats.  This is a rare case as class types are not
+  //    often useful upper bounds.
+  //
+  // Third, and only after we've converged on all the edges do we prune edges
+  // using `forbids` relationships.
+  //
+  // Fourth, we build a list of cycles by navigating from the mainNode.
+  // We do not look for cycles from other nodes, even if they are class nodes.
+  // They will get checked when it's their turn.
+  //
+  // Fifth, we check that the class definition respect its own (including inherited)
+  // `forbids` clauses.  We scan super-types and contextualize super-type `forbids`
+  // clauses, and collect them.  Then we check that each backed propery's type does
+  // not point to anything forbidden either by having a sufficient forbids type or
+  // by being a class type that does not in fact point to anything forbidden, or
+  // being a sealed interface type each of whose direct sub-types falls into one of
+  // the above categories.
+
+  let needsHasAEdges = new Deque<DropOrderKey>();
+  needsHasAEdges.add(mainTypeKey);
+  let hasAEdgesDone = new SetBuilder<DropOrderKey>();
+  while (!needsHasAEdges.isEmpty) {
+    // Step I
+    while (true) {
+      let key = needsHasAEdges.popOrNull();
+      if (key == null) {
+        break
+      } else {
+        if (hasAEdgesDone.has(key)) {
+          continue;
+        }
+        hasAEdgesDone.add(key);
+
+        // backedPropertiesOf also lists the pseudo-properties per the
+        // rules below that indicate that `Never` types have no properties
+        // and lists `List` types as having a `.0` pseudo property.
+        for (let p of backedPropertiesOf(key.type)) {
+          // For a `class Foo<T>(public myProp: List<T>)`
+          // the type of .myProp in context of `Foo<String>` is `List<String>`.
+          //
+          // Our analysis is the same even if all nullable property types and
+          // TypeFormal upper bounds are replaced with the corresponding non-nullable
+          // type, so we just avoid bloating graphs and sets
+          // (and the visual representation of drop-order graphs) with nodes
+          // for nullable types by using `nonNullableOf`.  It just returns the
+          // non postfix-`?` type for one that has it, or the type given otherwise.
+          let pTypeInContext = nonNullableOf(propertyTypeInContext(p, type));
+          let isEarly = key.imuOverride || isEarly(p);
+          if (!hasAEdgesDone.has(pTypeInContext)) {
+            needsHasAEdges.add(pTypeInContext);
+            needExplodeSupers.add(pTypeInContext);
+          }
+          let pTypeKey = new DropOrderKey(pTypeInContext, key.imuOverride);
+          let pNode = graph.nodeForType(pTypeKey);
+          let pHint = propertyHintFor(p);
+          let kNode = graph.nodeForType(key);
+          graph.addEdge(kNode, new HasAEdgeKind(pTypeInContext, isEarly, pHint), pNode);
+        }
+      }
+    }
+
+    // Step II. Add can-be-a edges.
+    let needExplodeSupers = new Deque<DropOrderKey>();
+    for (node of graph.allNodes()) {
+      needExplodeSupers.add(node.type);
+    }
+    let exploded = new SetBuilder<DropOrderKey>();
+    let fakes = new SetBuilder<DropOrderNode>();
+    while (true) {
+      let key = needExplodeSupers.popOrNull();
+      if (key == null) {
+        break;
+      } else {
+        let type = key.type;
+        if (isClassType(type)) { continue; }
+        if (exploded.has(key)) { continue; }
+        exploded.add(key);
+        if (isInterfaceType(type)) {
+          if (isSealedInterfaceType(type)) {
+            // Add can-be-a relationships.
+            // We're just listing out the direct subtypes, not their subtypes transitively.
+            // If type is `I<List<String>>` and I is based on `sealed interface I<T>` and
+            // `class C<U> extends I<List<U>>` then we use our backwards projection to
+            // come up with `C<String>`
+            for (let subType of directContextualizedSubTypesOf(type)) {
+              let subKey = new DropOrderKey(subType, key.imuOverride);
+              if (isClassType(subType)) {
+                if (!hasAEdgesDone.has(subKey)) {
+                  // First re-enter outer loop condition described above.
+                  needsHasAEdges.add(subKey);
+                }
+              } else {
+                needExplodeSupers.add(subKey);
+              }
+              let kNode = graph.nodeForType(key);
+              let subNode = graph.nodeForType(subKey);
+              graph.addEdge(kNode, new CanBeAEdgeKind(subType), subNode);
+            }
+          } else {
+            // Construct a worst-case class type specifically
+            // for mainType that extends type.
+            // This is one of the reasons that we don't try to cache
+            // drop-graphs for one type that happen to explode out things for
+            // other class-types.
+
+            let fakeClassType = constructFakeClassType(
+              type, // that it extends.  Also type's definitions's name is used as a hint.
+              mainType, // type for its property,
+              key.imuOverride,
+            );
+            let fakeKey = new DropOrderKey(fakeClassType, key.imuOverride);
+
+            let kNode = graph.nodeForType(key);
+            let fakeNode = graph.nodeForType(fakeKey);
+            fakes.add(fakeNode);
+            graph.addEdge(kNode, new CanBeAEdgeKind(fakeClassType), fakeNode);
+            let isEarly = key.imuOverride || isImu(type);
+            let pHint = ".x";
+            graph.addEdge(fakeNode, new HasAEdgeKind(mainType, isEarly, pHint), mainNode);
+            hasAEdgesDone.add(fakeKey);
+          }
+        } else if (isTypeFormalReference(type)) {
+          let upperBounds = type.upperBounds;
+          le isImuRef = isImu(type);
+          let boundKeys = if (upperBounds.isEmpty) {
+            [new DropOrderKey(anyValueType, isImuRef)]
+          } else {
+            upperBounds.map { ub => new DropOrderKey(ub, isImuRef) }
+          }
+          // TODO: This is like unioning, but the semantics of type formal upper bounds
+          // are intersection.
+          for (let boundKey of boundKeys) {
+            let kNode = graph.nodeForType(key);
+            if (!hasAEdgesDone.has(boundKey)) {
+              needsHasAEdges.add(boundKey);
+            }
+            let boundNode = graph.nodeForType(boundKey);
+            graph.addEdge(kNode, new CanBeAKind(boundKey.type), boundNode);
+          }
+        }
+      }
+    }
+  }
+
+  // Step III. Now prune out fake class's has-a edges based on `forbids` relationships.
+  if (!fakes.isEmpty) {
+    // Propagate forbids relationships across graph nodes.
+    // Something is "always forbidden"
+    // if it is forbidden across every incoming edge.
+    // If mainType is forbidden at a fake class type node,
+    // then sever the has-a edge between the fake class type and its fake property.
+    //
+    // For example, TODO
+  }
+
+  // Step IV.
+  TODO
+}
+```
 
 ## Testing and examples
 
@@ -415,7 +677,7 @@ Similarly, if a function's type is reachable via assignment to a class instance 
 class Box<T forbids Box<T>>(public t: T) {}
 
 let outer(): Void {
-  let box: Box<fn: Void>();
+  let box: Box<fn: Void>;
 
   let f(): Void {
     box.t();
@@ -522,9 +784,9 @@ Instead of having possible subtype relationships, we explode out all known varia
 ```mermaid
 stateDiagram-v2
   D --> J : .j #lt;=
-  J --> J1 : is-a
-  J --> J2 : is-a
-  J --> J3 : is-a
+  J --> J1 : can-be-a
+  J --> J2 : can-be-a
+  J --> J3 : can-be-a
   J1 --> String : .s #lt;
   J2 --> Int64 : .n #lt;
   J3 --> D : .d #lt;=
@@ -545,7 +807,7 @@ For example, in a plugin module, we might want a universally extensible
 interface.
 
 ```ts
-class Messager(public subject; String) {
+class Messager(public subject: String) {
   private plugins: ListBuilder<MessagePlugin> = new ListBuilder<MessagePlugin>();
 
   public register(plugin: MessagePlugin): Void {
@@ -592,7 +854,7 @@ stateDiagram-v2
   Messager --> ListBuilderMessagePlugin : .plugins #lt;=
   ListBuilderMessagePlugin : ListBuilder#lt;MessagePlugin#gt;
   ListBuilderMessagePlugin --> MessagePlugin : .0 #lt;
-  MessagePlugin --> BadMessagePlugin : is-a
+  MessagePlugin --> BadMessagePlugin : can-be-a
 ```
 
 But *BadMessagePlugin* inherits a `forbids Messager` clause from its
@@ -607,12 +869,12 @@ stateDiagram-v2
   Messager --> ListBuilderMessagePlugin : .plugins #lt;=
   ListBuilderMessagePlugin : ListBuilder#lt;MessagePlugin#gt;
   ListBuilderMessagePlugin --> MessagePlugin : .0 #lt;
-  MessagePlugin --> MessagePluginSub : is-a
+  MessagePlugin --> MessagePluginSub : can-be-a
   MessagePluginSub --> Messager : .x #lt;
 ```
 
 But we know our worst-case constructed *MessagePluginSub* is forbidden from
-pointing (transitively) to *Messager*, so we prune (see ❌ notation)
+pointing (transitively) to *Messager*, so we can prune (see ❌ notation)
 any of its outgoing edges that eventually lead to *Messager*.
 
 ```mermaid
@@ -620,7 +882,7 @@ stateDiagram-v2
   Messager --> ListBuilderMessagePlugin : .plugins #lt;=
   ListBuilderMessagePlugin : ListBuilder#lt;MessagePlugin#gt;
   ListBuilderMessagePlugin --> MessagePlugin : .0 #lt;
-  MessagePlugin --> MessagePluginSub : is-a
+  MessagePlugin --> MessagePluginSub : can-be-a
   MessagePluginSub --> Messager : ❌ .x #lt;
 ```
 
@@ -632,7 +894,7 @@ stateDiagram-v2
   Messager --> ListBuilderMessagePlugin : .plugins #lt;=
   ListBuilderMessagePlugin : ListBuilder#lt;MessagePlugin#gt;
   ListBuilderMessagePlugin --> MessagePlugin : .0 #lt;
-  MessagePlugin --> MessagePluginSub : is-a
+  MessagePlugin --> MessagePluginSub : can-be-a
 ```
 
 We also allow `forbids` clauses on `class`es, but since we know the actual backed
@@ -645,9 +907,9 @@ point to things in future versions.
 
 ```ts
 let combine<T forbids List<T>>(a: List<T>, b: List<T>): List<T> {
-  buildList { (b) =>
-    b.addAll(a);
-    b.addAll(b);
+  buildList { (builder) =>
+    builder.addAll(a);
+    builder.addAll(b);
   }
 }
 ```
@@ -695,7 +957,7 @@ class LimitedTimeListBuilder<T> extends PointsToNothingAfterRelease {
 }
 
 @inlineUnrealizedGoal
-let buildList<T forbide List<T>>(f: Fn(LimitedTimeListBuilder<T>): Void): List<T> {
+let buildList<T forbids List<T>>(f: Fn(LimitedTimeListBuilder<T>): Void): List<T> {
   let b = new LimitedTimeListBuilder<T>();
   let ls: List<T>;
 //try {
@@ -745,7 +1007,7 @@ defining types while preventing memory leaks:
 
 Temper's *memory cycle checker* checks each `class` declaration to
 ensure that it: cannot point to itself via a chain of property
-lookups.  In Temper, `intereface`s can specify that subtypes need to
+lookups.  In Temper, `interface`s can specify that subtypes need to
 have properties but do not specify memory to hold pointers; only
 `class`es do that.
 
@@ -800,7 +1062,7 @@ class Node(
   private nodeIndex: Int32,
 ) {
   public get value(): Int32 {
-    // The facades
+    owner.getNodeValue(nodeIndex)
   }
   public get outgoing(): List<Edge> {
     owner.getOutgoing(nodeIndex)
@@ -816,10 +1078,10 @@ class Edge(
   private toIndex: Int32,
 ) {
   public get fromNode(): Node {
-    owner.getNode(fromIndex);
+    owner.getNode(fromIndex)
   }
   public get toNode(): Node {
-    owner.getNode(toIndex);
+    owner.getNode(toIndex)
   }
 }
 
@@ -831,7 +1093,7 @@ class AdjEntry(
   // These ints correspond to adjacent nodes.
   public outgoing: ListBuilder<Int32>,
   public incoming: ListBuilder<Int32>,
-)
+) {}
 
 
 /** Stores ints at nodes and edges. */
@@ -846,15 +1108,19 @@ export class Int32Graph {
     new Node(this, index)
   }
 
+  public getNodeValue(index: Int32): Int32 {
+    adjacencyTable[index].value
+  }
+
   public getIncoming(index: Int32): List<Edge> {
     adjacencyTable[index].incoming.map { (i): Edge =>
-      new Edge(owner, i, index)
+      new Edge(this, i, index)
     }
   }
 
   public getOutgoing(index: Int32): List<Edge> {
     adjacencyTable[index].outgoing.map { (i): Edge =>
-      new Edge(owner, index, i)
+      new Edge(this, index, i)
     }
   }
 }
@@ -889,7 +1155,7 @@ that allows mutation, and disallows reference cycles.
 do {
   let ls = new ListBuilder<AnyValue>();
   ls.add(ls);  // ls points to itself.
-|
+}
 // FAILS: ListBuilder<T> forbids ListBuilder<AnyValue>
 ```
 
@@ -994,5 +1260,25 @@ memory cycle errors, see that topic for tips and tricks.  Often
 that memory won't leak. Where possible, using a
 \[`sealed` interface]\[snippet/sealed] helps the compiler avoid
 worst-case reasoning.
+
+## Effect on Backends
+
+With this approach, references can be represented as reference-counting
+smart pointers but they do not need to be.
+
+This proposal does not assign semantics to when deallocation happens;
+no RAII and no destructor effects.
+Backends that assume the runtime provides a scanning garbage collector
+can just leave all deallocation decisions to that garbage collector.
+It is a goal of this approach that backends for the majority of modern
+languages which fall in this category to be able to do nothing re
+deallocation semantics.
+
+Backends for runtimes that do not provide either scanning or reference
+counting garbage collection may have to implement reference counting
+using manual techniques in library code.
+TmpLTranslator does not currently, but could support those backends by
+allowing them to opt-into having increment/decrement instructions
+inserted in TmpL.
 
 ## Open Issues
