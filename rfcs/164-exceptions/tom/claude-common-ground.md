@@ -9,6 +9,21 @@ Evidence: [claude-findings.md](claude-findings.md),
 [example translations](claude-translations/README.md). Syntax marked
 **HYPOTHETICAL** doesn't compile today.
 
+**How this maps to the RFC's
+[two questions](claude-recommendation.md#two-questions).** Nothing here
+depends on the **semantics** question (whether failures are first-class
+values or in flight only), so all of it can be settled first. Several
+sections are parts of the **syntax** question that either answer needs:
+[`return` as an expression](#return-break-and-continue-as-expressions),
+[propagation markers](#propagation-markers),
+[precedence](#precedence), and
+[naming](#naming-across-failure-styles). The rest is behavior both share
+([which builtins panic](#which-builtins-panic),
+[what `orelse` catches](#what-orelse-catches), panics) or the host
+boundary that each backend's **representation** must present
+([host-facing failure types](#host-facing-failure-types),
+[compatibility](#compatibility-of-failure-changes)).
+
 ## `return`, `break`, and `continue` as expressions
 
 Today `f() ?? return null` and `f() orelse return null` don't parse, so

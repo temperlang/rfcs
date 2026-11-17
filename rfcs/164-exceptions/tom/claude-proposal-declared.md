@@ -9,6 +9,22 @@ need is in [claude-common-ground.md](claude-common-ground.md). Evidence:
 [example translations](claude-translations/README.md). All syntax marked
 **HYPOTHETICAL** is invented for comparison and doesn't compile.
 
+**How this maps to the RFC's
+[two questions](claude-recommendation.md#two-questions).** On
+**semantics**, this sketch's answer is that failures are in flight only:
+a failure exists between `throw` and the handler that catches it, and
+Temper code can't hold, store, or return one except by catching it into
+an ordinary value. Generic code and function types then need effect
+polymorphism (a type parameter or function type that says whether it may
+fail, and with what), which this sketch doesn't yet specify; Kotlin
+Temper keeps results second-class in the same way and shows where that
+costs special cases ([review §4](claude-kotlin-result-review.md#4-toms-question-did-mike-deliberately-keep-results-out-of-temper-code)).
+On **syntax**, it shows the most exception-looking sugar: `throws`,
+`throw`, a propagation marker, `catch`, and `error case`; most of that
+surface could also sit on first-class failures.
+**Representation** is still each backend's choice: Rust, Go, Zig, and C
+implement it as values (below).
+
 ## Summary
 
 Mike's semantics with Tom's surface. A function declares at most one
@@ -161,6 +177,13 @@ that propagate implicitly today; 68 of Wherewith's become `throw`s.
   exported functions, where a compiler-known result costs about what a
   nullable does ([hand-written forms](claude-explore/README.md#a-compiler-known-result-type-likely-cost)).
 
+**On real libraries** ([estimates](claude-explore/estimates/README.md)): Kelpto and Wherewith throw no failures on
+valid input, so declared failures cost about nothing there, except Lua's
+`pcall` per executed `orelse` (1 to 6%, removed if bug-like builtins
+panic). One failure in an invalid Wherewith query unwinds 25 frames and
+adds an estimated 15 to 300% to that query on C++, C#, and Java, which
+matters for tools that mostly see invalid input.
+
 ## Open questions
 
 - The name of the sealed type generated for `throws X, Y`, and how a case
@@ -175,6 +198,9 @@ that propagate implicitly today; 68 of Wherewith's become `throw`s.
 - How long `throws Bubble` may keep implicit propagation, and whether
   that warns.
 - How typed failures cross `await` and leave generators on each backend.
+- How failure crosses function types and generics: whether a type
+  parameter or `@fun interface` can say "may fail with `E`", and whether
+  an override may declare less failure (std's `asInt64Safe` twin).
 
 ## Pros and cons
 
