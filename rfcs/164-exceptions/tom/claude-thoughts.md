@@ -104,3 +104,115 @@ and how a host program tells Temper's failures from its own.
 [#163](https://github.com/temperlang/temper/issues/163) (closed) surveys how
 each language could represent Bubble and panic, and is good background for
 the representation question.
+
+## Comparing Tom's and Mike's notes
+
+Added the same day, after reading [tom-thoughts.md](tom-thoughts.md) (the
+#164 proposal, 2024) and [mike-thoughts.md](mike-thoughts.md) (2026-09).
+Findings from the behavior table, measurements, and library survey will be
+cited here once they're in.
+
+### Evidence so far
+
+From [claude-findings.md](claude-findings.md):
+
+- **Messages are what libraries miss most.** Four of six public libraries
+  built a second error channel (Argmas's `ArgError`, Hrefine's `UrlCheck`,
+  Wherewith's problem strings, Kelpto's error lists); Hrefine and Wherewith
+  say it's because a bubble carries no message. Both a single declared
+  failure type and declared kinds fit the cases surveyed, so the evidence
+  doesn't choose between Tom's and Mike's shapes. Accumulated errors (many
+  problems from one call) stay return values under any design.
+- **Most `orelse` today is an assertion:** roughly 85 to 95% are
+  `orelse panic()` on division, `%`, downcasts, and similar, which supports
+  moving those builtins to `panic`.
+- **Today's behavior is less consistent than the design implies:** `orelse`
+  catches far more than Temper failures on five of seven backends (host
+  exceptions, stack overflows, out-of-bounds reads become the fallback
+  value); `panic` ranges from killing the process (C#, C++) to being caught
+  by `orelse` (JS, Lua); host code mostly catches the most general exception
+  type, with no message. Twelve bugs are listed with repros; several can be
+  fixed before any language change.
+- **Cost:** on the success path `orelse` is free except in Lua. A failure
+  costs about 0.3 to 19 µs depending on backend, so at 1% failures C#,
+  Java, and JS loops take about twice as long, and at 10% several times
+  longer, than a null-returning version. Throwing without a stack trace is
+  3 to 30 times cheaper where the runtime allows it (not .NET 6). Failure
+  values inside a library with exceptions only at exported functions pay
+  off only when failures cross many frames first; lowering a `bubble` and
+  `orelse` that meet in one function to a branch is the cheap, safe win.
+
+### Where they agree
+
+- **Failures are declared and explicit,** with no automatic propagation:
+  Tom sketches `try f()` or `f()!`, Mike something like Rust's postfix `?`.
+- **No hierarchies, and no attempt to mirror host languages' own.** Tom:
+  only error kinds declared in Temper are visible to Temper; host standard
+  exceptions are panics. Mike: no type checks on builtin exceptions, and a
+  very simple std.
+- **Panics are for programmer errors;** more builtins should panic; errors
+  are for exceptional cases, not common branching (nullables cover those).
+- **Coarse handling is the style to encourage,** with finer handling
+  available where a library wants it.
+
+### Where they differ, and how they might combine
+
+1. **Several error kinds per function (Tom) or exactly one failure type
+   (Mike).** Mike's reason is real: unions are hard to translate and hard
+   for the type solver. Tom's use cases, different failures from one
+   function and forwarding another library's failures, are covered in
+   Mike's design by a sealed interface for the variants and conversion with
+   a cause for forwarding. Tom's `error case Baddie` declarations could be
+   the sugar Mike asks for: declaring cases builds the sealed type. One type
+   at the type level, several cases in the syntax.
+2. **Details.** Tom: none, or a best-effort message. Mike: every throwable's
+   factory takes an optional message and an optional cause, which Temper
+   code can't necessarily read back. That's a good middle ground: host code
+   gets messages and chained causes, which is what Python, Java, and C#
+   users look for, while Temper's semantics don't depend on them.
+3. **Host types.** Tom: Temper sees only its own errors. Mike: user-declared
+   throwables may be connected to host exception types, with
+   `orelse rethrowAs<T>()` for conversion. Compatible: host exceptions stay
+   invisible to Temper unless connected to a declared type on purpose.
+4. **Syntax:** `orelse(e)` and `try`/`catch` (Tom), `catch` with `match`
+   coverage over sealed variants (Mike), `!` or `?` for propagation. The
+   least settled part, and the least important to settle first.
+
+### Further comments
+
+- **Can Temper code read the fields of a caught user-defined failure?** If a
+  sealed variant is an ordinary class (`MissingValue(option)`), reading its
+  fields is what lets libraries use failures instead of hand-made result
+  values. Mike's opacity seems aimed at message and cause, not at user
+  fields. Suggested: user-declared fields readable, message and cause
+  opaque; the RFC should say so explicitly either way.
+- **What host code catches is API, and should be specified per backend.**
+  For example, each declared failure type becomes an exception class named
+  after the Temper type, and a sealed type's variants become subclasses of
+  one generated base, so host code can catch one variant or all of them.
+  That's a one-level hierarchy that exists only in host code, consistent
+  with "no hierarchies" in Temper. Lua needs a tag field (as Tom noted);
+  Rust, a `Result` with an enum; C++, exceptions or `std::expected` by
+  configuration.
+- **Stack traces are much of the cost** behind the concern that errors are
+  expensive. The JVM can throw without capturing one, JavaScript can throw a
+  plain object, and Python can reuse an instance; .NET has no cheap option.
+  Mike's opaque design leaves each backend free to choose, possibly by
+  configuration (cheap in production, traces in tests). To be measured.
+- **Keeping cost down inside a library:** failures that stay internal to
+  a library (private functions, or a `bubble` caught in the same function
+  after inlining) could be values rather than thrown exceptions, converted to
+  the host's exception at exported functions. Whether that wins depends on
+  failure rates and depth; to be measured, not assumed.
+- **`throws Bubble` as the no-detail case.** Existing code should keep
+  working: `throws Bubble` becomes the failure type with nothing declared,
+  and migration to declared types happens library by library. The RFC needs
+  a section on this, and on what `orelse` without a binding means for typed
+  failures (likely: catch anything the expression declares).
+- **Async and generators:** a failure crossing `await` or leaving a
+  generator should keep its type. Each backend's promise and iterator
+  machinery handles this differently, so it belongs in the behavior table.
+- **Order of decisions:** semantics first (single type, sealed variants,
+  readable fields, opaque message and cause, what hosts catch, which
+  builtins panic), then representation per backend, then syntax chosen by
+  rewriting real library code in each candidate.
