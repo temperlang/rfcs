@@ -121,8 +121,20 @@ Libraries then move to declared types where they want reasons: about 70
 exported members across five libraries, mostly parse and validate entry
 points ([findings §3](claude-findings.md#3-real-cases-in-public-libraries)).
 Moving builtins to panic removes most of the rest, for example 31 of
-Chromarite's 52. Explicit propagation means adding a marker at every call
-that today propagates implicitly; that count isn't measured yet.
+Chromarite's 52.
+
+Explicit propagation, which Tom's and Mike's notes both lean toward,
+needs a marker at every call that propagates implicitly today: 630
+sites (65 public, 565 internal), in 206 of the 268 bubbling functions,
+about one per 60 lines, spread out rather than concentrated. By
+library: Wherewith 365, Chromarite 140, Kelpto 52, Hrefine 36, std 32,
+Argmas 5, and Ordable 0
+([markers](claude-explore/README.md#propagation-markers), counted from
+the type checker's own propagation in generated Rust). Some go
+rather than gaining a marker: 68 of Wherewith's call a helper that
+always bubbles, so they become `throw`s, and about half of Chromarite's
+are matrix reads (52) and Float64 division (19) that stop bubbling once
+out-of-range reads panic and division is settled.
 
 ## Cost
 
@@ -139,11 +151,17 @@ that today propagates implicitly; that count isn't measured yet.
   bubble.
 - **Mitigations:** lowering a `throw` and its handler in one function to a
   branch ([common ground](claude-common-ground.md#lowering-a-local-failure-to-a-branch));
-  throwing without a stack trace (3 times cheaper at depth 20, 10 to 30
-  times at depth 1, in Java and JS; no help on .NET 6); and failure
-  values inside a library with a throw only at exported functions, which
-  pays only when failures cross many frames (about 3 times in Java and C#
-  at depth 20, nothing at depth 1).
+  throwing without a stack trace (Java's `writableStackTrace=false`, a
+  plain object in JS), which costs 0.1 to 0.5 times today's bubbling at
+  1 and 10 percent failures, so most of today's cost there is the stack
+  trace (no help on .NET 6, which collects one regardless); and failure
+  values inside a library with a throw only at exported functions. A
+  result type the compiler knows costs about what a nullable does on
+  every backend, and on C# a struct result is far cheaper than today's
+  bubbling ([compiler-known result](claude-explore/README.md#a-compiler-known-result-type-likely-cost));
+  the boundary throw then pays only when failures cross many frames
+  (about 3 times in Java and C# at depth 20, nothing at depth 1).
+  These are hand-written forms, not yet generated code.
 
 ## Open questions
 
@@ -164,9 +182,9 @@ that today propagates implicitly; that count isn't measured yet.
 
 | Pros | Cons |
 |---|---|
-| Close to today: `throws`, `orelse`, and `bubble()` keep their meaning | Failures stay exceptions inside Temper on C++, C#, Java, and JS, so failure-heavy loops stay slow unless the compiler lowers them |
+| Close to today: `throws`, `orelse`, and `bubble()` keep their meaning | Failures stay exceptions inside Temper on C++, C#, Java, and JS, so failure-heavy loops stay slow unless the compiler lowers them (trace-free throws narrow this on Java and JS, not C#) |
 | Host code in exception languages gets one idiomatic, typed, catchable exception with a message, and nothing else to learn | Three mechanisms for authors: `T?`, `throws E`, and `panic` |
 | No allocation or boxing on the success path | New language surface: failure declarations, generated sealed types, `catch` with coverage, and conversion rules |
 | Fields travel with the failure, so Wherewith's twins and std JSON's dropped messages go | Each backend needs its own failure machinery, including across `await` and generators |
 | Rust, Zig, and C map it to their native patterns | Accumulated errors (Hrefine's `UrlCheck`, Kelpto's lists) stay values regardless |
-| Explicit propagation marks every call that can fail | Every implicitly propagating call needs a marker, an unmeasured migration cost |
+| Explicit propagation marks every call that can fail | Every implicitly propagating call needs a marker: about 630 in the surveyed code |
