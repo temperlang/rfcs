@@ -1,2 +1,16 @@
 # Emacs droppings
 *~
+
+# Build outputs, should anyone build or run examples in place
+temper.out/
+target/
+node_modules/
+__pycache__/
+*.pyc
+.venv/
+bin/
+obj/
+*.class
+build/
+dist/
+.DS_Store

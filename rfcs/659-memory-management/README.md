@@ -51,7 +51,7 @@ There are also a variety of fallback strategies if this proves hard to use:
 - Scoped building idioms. Some mutable types like *ListBuilder* are mutable but short lived, so idioms like Kotlin `buildList { ... }` where the auto-allocated *ListBuilder* switches to a state where it is guaranteed always empty after control exits the `}`, can be exceptions to the rule.  The output *List* type needs to pass the `forbids` constraint checker.
 - Libraries for some apparently cyclic use cases like graphs based on adjacency tables.
 - Weak references and ephemerons can allow for parent pointers in AST representations without breaking use cases where the root pointer is strong and not held by an AST.
-  But a weak reference value clears when its target is collected, at once under reference counting and at some unpredictable time under a scanning collector.  Observable deallocation exposes semantic differences and non-determinism, so a design like JavaScript's intentionally non-enumerable weakly-keyed *WeakMap* might be preferable.
+  But a weak reference value clears when its target is collected, at once under reference counting and at some unpredictable time under a scanning collector.  Observable deallocation exposes semantic differences and non-determinism, so a design like JavaScript's intentionally non-enumera
 
 ## Compatibility
 
@@ -1400,7 +1400,6 @@ problem will resolve.)
 A released builder may still be referenced, but it points to nothing, so
 storing it by mistake can't make a cycle.  That's why a release rule is
 enough, without proving that the builder never escapes.
-
 
 ## Documentation
 

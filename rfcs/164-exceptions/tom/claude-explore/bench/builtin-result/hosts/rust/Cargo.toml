@@ -1,0 +1,13 @@
+[package]
+name = "bench"
+version = "0.0.1"
+edition = "2021"
+
+[dependencies]
+failbench = { path = "../../../temper.out/rust/failbench" }
+temper-core = { path = "../../../temper.out/rust/temper-core" }
+
+[profile.release]
+debug = false
+
+[workspace]
