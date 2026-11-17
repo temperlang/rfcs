@@ -3,8 +3,10 @@ Proposal sketch: **declared failures**, for the failure-handling RFC
 Drafted by Claude, 2026-11-17, as one of two competing sketches; the other
 is [claude-proposal-values.md](claude-proposal-values.md), and what both
 need is in [claude-common-ground.md](claude-common-ground.md). Evidence:
-[claude-findings.md](claude-findings.md) and
-[claude-explore/](claude-explore/README.md). All syntax marked
+[claude-findings.md](claude-findings.md),
+[claude-explore/](claude-explore/README.md), the
+[error types survey](claude-error-types-survey.md), and the
+[example translations](claude-translations/README.md). All syntax marked
 **HYPOTHETICAL** is invented for comparison and doesn't compile.
 
 ## Summary
@@ -21,9 +23,14 @@ error codes, or tagged tables.
 ## Semantics
 
 1. **One failure type per function.** `throws E`, where `E` is a type
-   declared as a failure: a class, or a sealed interface whose variants
-   are classes. No unions, so the type solver and backends see one type
-   ([mike-thoughts.md](mike-thoughts.md)).
+   declared as a failure: a non-generic class, or a sealed interface
+   whose variants are such classes. No unions, so the type solver and
+   backends see one type ([mike-thoughts.md](mike-thoughts.md)). Only
+   declared failure types can be thrown, so each maps directly to one
+   host exception class or error variant, and host code catches the
+   library's own type with no wrapper; a `String` or a generic type must
+   be put in a declared failure first (Java and Kotlin can't make a
+   generic exception class).
 2. **Sugar from #164.** `error case NotFound;` declares a failure class
    with no fields; `error case BadWord(public text: String);` one with
    fields. `throws X, Y` stands for a generated sealed interface with `X`
@@ -46,10 +53,12 @@ error codes, or tagged tables.
 6. **What Temper sees.** Only failures declared in Temper. A host
    exception reaching Temper code (from a connected function or a host
    callback) is a panic, never caught by `orelse`.
-7. **Host connection.** A failure type may carry a meaning category
-   (invalid argument, not found, I/O, unsupported, invalid state); each
-   backend maps a category to an idiomatic host base class or ignores it
-   ([claude-thoughts.md](claude-thoughts.md#connecting-to-existing-host-exception-types)).
+7. **Host connection.** Each failure type keeps the library's name and
+   extends a generated library base (`WherewithException`), and may
+   carry a meaning category (invalid argument, not found, I/O,
+   unsupported, invalid state) that a backend maps where it can; in Java
+   failures are unchecked unless the library opts into checked ones
+   ([common ground](claude-common-ground.md#host-facing-failure-types)).
 
 ## Worked example: Wherewith's parser rule
 
@@ -92,23 +101,27 @@ let s = parseSelect(sql) catch (e) { log("${e.text}, word ${e.word.toString()}")
 Same 13-line shape as today, one marker per fallible call. The `problem`
 field, `report`, and the `selectProblem` twin go. Python host code
 catches `SqlProblem` with the message as text; Rust gets
-`Result<Select, SqlProblem>`.
+`Result<Select, SqlProblem>`; each backend's code is in the
+[translations](claude-translations/README.md).
 
 ## What each backend generates
 
 | Backend | A failure type becomes | Propagation | Host code |
 |---|---|---|---|
-| C# | an exception class; variants subclass a generated base, which extends the category's base (`ArgumentException`) or a Temper base | exceptions | `catch (SqlProblem e)`, `e.Message`, `InnerException` |
-| Java | an unchecked exception class, same shape (`IllegalArgumentException` for invalid argument) | exceptions | `catch (SqlProblem e)`, `getMessage()`, `getCause()` |
-| JS | a class extending `Error` or the category's base (`TypeError`) | exceptions | `instanceof SqlProblem`, `message`, `cause` |
-| Python | an exception class (`class SqlProblem(ValueError)`) | exceptions | `except SqlProblem as e`, `str(e)`, `__cause__` |
-| C++ | a class deriving from a Temper base over `std::exception`; or `std::expected<T, E>` by configuration | exceptions or values | `catch (SqlProblem const&)`, `what()` |
-| Rust | an enum of variants (a struct for one type), implementing `std::error::Error` | `Result<T, E>` and `?`, as today | `match` on `Err(…)` |
+| C# | an exception class extending the library's `WherewithException : Exception` | exceptions | `catch (SqlProblem e)`, `e.Message`, `InnerException` |
+| Java | the same, unchecked (`WherewithException extends RuntimeException`), or checked by a library setting | exceptions | `catch (SqlProblem e)`, `getMessage()`, `getCause()` |
+| JS | a class extending `WherewithError extends Error` | exceptions | `instanceof SqlProblem`, `message`, `cause` |
+| Python | an exception class with the category too: `class SqlProblem(WherewithError, ValueError)` | exceptions | `except SqlProblem as e`, `str(e)`, `__cause__` |
+| C++ | a class deriving from `WherewithError : std::runtime_error`; or `std::expected<T, E>` by configuration | exceptions or values | `catch (SqlProblem const&)`, `what()` |
+| Rust | an enum of variants (a struct for one type), implementing `std::error::Error`, convertible into a crate `wherewith::Error` | `Result<T, E>` and `?`, as today | `match` on `Err(…)` |
+| Go | a struct implementing `error` and the library's `wherewith.Error` interface | `(T, error)` returns, as values | `errors.As(err, &problem)` |
 | Lua | a table with a `kind` tag field and a shared metatable | `error(t)`; `orelse` checks the tag and re-raises anything else | `pcall`, then `e.kind` |
 | Zig (future) | an error set, one code per variant; fields, message, and cause in an optional diagnostics out-parameter | error unions, `try` | `catch`, then the diagnostics |
 | C (future) | a status code per variant; an error struct (kind, fields, message, cause) through an out-parameter | return codes | check the status, read and free the struct |
 
-Each of these names is API, and a changed failure type is a compatibility
+In Rust, Go, Zig, and C, declared failures are implemented as values,
+and the generated API is the same as under
+[failures as values](claude-proposal-values.md). Each of these names is API, and a changed failure type is a compatibility
 change in every backend.
 
 ## Migration from `throws Bubble`
@@ -124,17 +137,8 @@ Moving builtins to panic removes most of the rest, for example 31 of
 Chromarite's 52.
 
 Explicit propagation, which Tom's and Mike's notes both lean toward,
-needs a marker at every call that propagates implicitly today: 630
-sites (65 public, 565 internal), in 206 of the 268 bubbling functions,
-about one per 60 lines, spread out rather than concentrated. By
-library: Wherewith 365, Chromarite 140, Kelpto 52, Hrefine 36, std 32,
-Argmas 5, and Ordable 0
-([markers](claude-explore/README.md#propagation-markers), counted from
-the type checker's own propagation in generated Rust). Some go
-rather than gaining a marker: 68 of Wherewith's call a helper that
-always bubbles, so they become `throw`s, and about half of Chromarite's
-are matrix reads (52) and Float64 division (19) that stop bubbling once
-out-of-range reads panic and division is settled.
+needs a marker at the [630 calls](claude-common-ground.md#propagation-markers)
+that propagate implicitly today; 68 of Wherewith's become `throw`s.
 
 ## Cost
 
@@ -152,16 +156,10 @@ out-of-range reads panic and division is settled.
 - **Mitigations:** lowering a `throw` and its handler in one function to a
   branch ([common ground](claude-common-ground.md#lowering-a-local-failure-to-a-branch));
   throwing without a stack trace (Java's `writableStackTrace=false`, a
-  plain object in JS), which costs 0.1 to 0.5 times today's bubbling at
-  1 and 10 percent failures, so most of today's cost there is the stack
-  trace (no help on .NET 6, which collects one regardless); and failure
-  values inside a library with a throw only at exported functions. A
-  result type the compiler knows costs about what a nullable does on
-  every backend, and on C# a struct result is far cheaper than today's
-  bubbling ([compiler-known result](claude-explore/README.md#a-compiler-known-result-type-likely-cost));
-  the boundary throw then pays only when failures cross many frames
-  (about 3 times in Java and C# at depth 20, nothing at depth 1).
-  These are hand-written forms, not yet generated code.
+  plain object in JS), at 0.1 to 0.5 times today's bubbling cost (no help
+  on .NET 6); and failure values inside a library with a throw only at
+  exported functions, where a compiler-known result costs about what a
+  nullable does ([hand-written forms](claude-explore/README.md#a-compiler-known-result-type-likely-cost)).
 
 ## Open questions
 
@@ -171,9 +169,9 @@ out-of-range reads panic and division is settled.
   types, or only by explicit `rethrowAs`.
 - Whether a failure type can derive its host message from its fields,
   rather than taking a message argument.
-- C# and Java have single inheritance: a category base and a common
-  Temper base can't both be superclasses (a marker interface could stand
-  in for one).
+- Whether categories are worth keeping, given that only Python and Go
+  can show one beside the library base
+  ([common ground](claude-common-ground.md#host-facing-failure-types)).
 - How long `throws Bubble` may keep implicit propagation, and whether
   that warns.
 - How typed failures cross `await` and leave generators on each backend.
@@ -186,5 +184,5 @@ out-of-range reads panic and division is settled.
 | Host code in exception languages gets one idiomatic, typed, catchable exception with a message, and nothing else to learn | Three mechanisms for authors: `T?`, `throws E`, and `panic` |
 | No allocation or boxing on the success path | New language surface: failure declarations, generated sealed types, `catch` with coverage, and conversion rules |
 | Fields travel with the failure, so Wherewith's twins and std JSON's dropped messages go | Each backend needs its own failure machinery, including across `await` and generators |
-| Rust, Zig, and C map it to their native patterns | Accumulated errors (Hrefine's `UrlCheck`, Kelpto's lists) stay values regardless |
+| Rust, Go, Zig, and C map it to their native patterns | Those four implement it as values anyway, so it needs both machineries; accumulated errors (Hrefine's `UrlCheck`, Kelpto's lists) stay values too |
 | Explicit propagation marks every call that can fail | Every implicitly propagating call needs a marker: about 630 in the surveyed code |

@@ -3,8 +3,10 @@ Proposal sketch: **failures as values**, for the failure-handling RFC
 Drafted by Claude, 2026-11-17, as one of two competing sketches; the other
 is [claude-proposal-declared.md](claude-proposal-declared.md), and what
 both need is in [claude-common-ground.md](claude-common-ground.md).
-Evidence: [claude-findings.md](claude-findings.md) and
-[claude-explore/](claude-explore/README.md). All syntax marked
+Evidence: [claude-findings.md](claude-findings.md),
+[claude-explore/](claude-explore/README.md), the
+[error types survey](claude-error-types-survey.md), and the
+[example translations](claude-translations/README.md). All syntax marked
 **HYPOTHETICAL** is invented for comparison and doesn't compile.
 
 ## Summary
@@ -25,7 +27,14 @@ throwing form, named by each language's idiom.
    is any type, typically a class with readable fields or a sealed
    interface of variants. Core holds only the type and what the compiler
    must know; mapping, combining, and collecting failures live in std
-   ([claude-thoughts.md](claude-thoughts.md#core-or-std)).
+   ([claude-thoughts.md](claude-thoughts.md#core-or-std)). Since `E` can
+   be any type, an exported function's throwing form can't throw `E`
+   itself: it throws a generated library exception holding it
+   (`SqlProblemException`, with a `problem` field), or the library base
+   with `E`'s text for a `String`. In Rust a foreign `E` can't implement
+   `std::error::Error` (the orphan rule) and needs a newtype, and in Go a
+   type with `Error()`. Restricting exported failures to classes declared
+   as failures would remove the wrapper (an open question).
 3. **Handling:** `r orelse x` gives the success value or `x`;
    `r orelse (e) …` binds the failure. `??` does the same for `T?`.
 4. **Propagation:** `return`, `break`, and `continue` are expressions of
@@ -39,7 +48,10 @@ throwing form, named by each language's idiom.
 6. **Bugs:** `panic`, never caught by Temper code.
 7. **At exported functions,** Temper callers in other libraries call the
    value form directly; nothing is thrown between Temper libraries. For
-   host callers, each backend generates its idiomatic form (table below).
+   host callers, each backend generates its idiomatic form (table below),
+   with the library's names and base type, and in Java unchecked unless
+   the library opts into checked
+   ([common ground](claude-common-ground.md#host-facing-failure-types)).
    A host callback (a host implementation of a Temper interface) returns
    values too; a host exception thrown there is a panic.
 
@@ -87,8 +99,10 @@ Today's shape and about its line count, with a longer marker per call
 until an operator exists. The `problem` field, `report`, and the
 `selectProblem` twin go. `keyword` returns `Result<Void, SqlProblem>`,
 which needs a unit `Ok()`. Python host code calls the throwing
-`parse_select`, which raises an exception for the `SqlProblem`, or the
-hidden value form; Rust gets `Result<Select, SqlProblem>`.
+`parse_select`, which raises a `SqlProblemError` holding the
+`SqlProblem`, or the hidden value form; Rust gets
+`Result<Select, SqlProblem>`; each backend's code is in the
+[translations](claude-translations/README.md).
 
 ## What each backend generates
 
@@ -98,13 +112,14 @@ no throwing form.
 
 | Backend | Value form (Temper callers, and hosts that want it) | Host-facing form |
 |---|---|---|
-| C# | `TryParseSelect(text, out Select result, out SqlProblem? problem)`, or a result struct | `ParseSelect(text)` throws; both public, as .NET's `Parse` and `TryParse` |
-| Java | a result object, in an `internal` package | `parseSelect(text)` throws `SqlProblem` |
-| JS | a result object, from a module hosts aren't pointed to | `parseSelect(text)` throws |
-| Python | a result object, in a `_temper` submodule | `parse_select(text)` raises `SqlProblem` |
-| C++ | `std::expected<T, E>` (C++23) or a core result struct | open: the value form only, or a throwing form by configuration |
+| C# | `TryParseSelect(text, out Select? select, out SqlProblem? problem)`, a `readonly struct` inside | `ParseSelect(text)` throws `SqlProblemException`; both public, as .NET's `Parse` and `TryParse` |
+| Java | a result object, in an `internal` package | `parseSelect(text)` throws `SqlProblemException` (unchecked by default) |
+| JS | the value or a `Failed`, from the internal module | `parseSelect(text)` throws `SqlProblemError` |
+| Python | the value or a `Failed`, in a `_temper` submodule | `parse_select(text)` raises `SqlProblemError` |
+| C++ | `std::expected<T, E>` (C++23) or a core result struct | open: the value form only (`.value()` throws `std::bad_expected_access`), or a throwing form by configuration |
 | Rust | `Result<T, E>`; `T?` is `Option<T>` | the same |
-| Lua | `nil, failure` (Lua's own multiple-return idiom) | the same |
+| Go | `(T, error)`, `E` implementing `error`; `T?` as a pointer or `(T, bool)` | the same; `errors.As` to match |
+| Lua | `nil, failure` (Lua's own multiple-return idiom) | the same; `assert(f(…))` raises |
 | Zig (future) | an error union, details in an optional diagnostics out-parameter | the same |
 | C (future) | a status code, the value through an out-pointer, an error struct | the same |
 
@@ -121,27 +136,17 @@ internal) keep compiling, and the 87 public ones keep throwing for host
 code through generated throwing forms. Where a library wants absence or
 reasons instead, the rewrite to `T?` is mechanical for 155 declarations
 (54 percent), mechanical for 50 more given one convention for `Void`
-(17 percent), and needs a human decision for 81 (28 percent): bug-like
-bubbles that should panic, public `Void` methods, builtins, interfaces
-hosts implement, already-nullable returns, a constructor (std's `Date`),
-and `Test.bail`
+(17 percent), and needs a human decision for 81 (28 percent), such as
+bug-like bubbles that should panic and interfaces hosts implement
 ([counts](claude-explore/README.md#what-dropping-throws-bubble-would-take)).
 With `return` as an expression, each rewrite stays local
 (`f() ?? return null`) instead of hoisting calls into statements.
 
 Each call that propagates implicitly today needs an explicit marker once
 its callee moves to `T?` or a result: a propagation operator, or, until
-one exists, `?? return null` or `orelse (e) return Failed(e)`. There are
-630 such sites (65 public, 565 internal), in 206 of the 268 bubbling
-functions, about one per 60 lines, spread out rather than concentrated.
-By library: Wherewith 365, Chromarite 140, Kelpto 52, Hrefine 36, std
-32, Argmas 5, and Ordable 0 ([markers](claude-explore/README.md#propagation-markers),
-counted from the type checker's own propagation in generated
-Rust). Some go rather than gaining a marker: 68 of Wherewith's call a
-helper that always bubbles, so they become `return`s of the problem,
-and about half of Chromarite's are matrix reads (52) and Float64
-division (19) that stop bubbling once out-of-range reads panic and
-division is settled.
+one exists, `?? return null` or `orelse (e) return Failed(e)`, at the
+[630 sites](claude-common-ground.md#propagation-markers) counted; 68 of
+Wherewith's become `return`s of the problem.
 
 ## Cost
 
@@ -157,26 +162,21 @@ From [claude-explore](claude-explore/README.md#measurements) and
   and about nothing per failure, in hand-written forms of what each
   backend could emit
   ([compiler-known result](claude-explore/README.md#a-compiler-known-result-type-likely-cost)):
-  on C++ (`std::variant`, a tagged struct, or `std::expected`) and Rust
-  (its own `Result`) about the same as a nullable; on C#, a `readonly
-  struct` is cheaper than `int?` (0.5 times at depth 1, 0.1 times at
-  depth 5) and far cheaper than today's bubbling (0.03 to 0.05 times at 1
-  percent failures); on Java about a nullable's cost, up to 2.6 times at
-  depth 5 with inlining limited, while a `long` with a sentinel stays at
-  3 to 7 ns; on JS, Python, and Lua 0.5 to 1.6 times a nullable.
-- **Written as user code today,** a result type is translated as any
-  sealed interface, with an allocation per call: 1.0 to 1.6 times a
-  nullable on the JVM, JS, and Python, and 40 to 140 times on C++ and
-  Rust (`shared_ptr` and `Arc<dyn …>`). That measures today's
-  translation of user types, not a core type.
+  about a nullable on C++ and Rust; on C#, a `readonly struct` is
+  cheaper than `int?` and 0.03 to 0.05 times today's bubbling at 1
+  percent failures; on Java about a nullable, up to 2.6 times at depth 5
+  with inlining limited; on JS, Python, and Lua 0.5 to 1.6 times.
+- **Written as user code today,** a result type allocates per call: 1.0
+  to 1.6 times a nullable on the JVM, JS, and Python, and 40 to 140 times
+  on C++ and Rust, measuring today's translation of user types, not a
+  core type.
 - **Against today's exceptions:** bubbling costs 2 to 13 times at 1
   percent failures and 11 to 107 times at 10 percent on C++, C#, Java, and
   JS, which values avoid inside Temper. Most of that is the stack trace on
   Java and JS: thrown without one, it's 0.1 to 0.5 times today's. A host
   caller of a throwing form pays one shallow throw per failure.
-- **Still unmeasured:** generated code (the forms above are hand-written),
-  larger failure values copied by value in C++, C#, and Rust, and
-  generated throwing forms.
+- **Still unmeasured:** generated code, larger failure values copied by
+  value in C++, C#, and Rust, and generated throwing forms.
 
 ## Open questions
 
@@ -188,11 +188,13 @@ From [claude-explore](claude-explore/README.md#measurements) and
 - Whether, and when, `throws Bubble` is deprecated in favor of `T?`.
 - Constructors that fail (std's `Date`) become factories, which changes
   host code's `new Date(…)`.
-- What the throwing form raises: the failure class itself generated as
-  a host exception subclass (one class, but on the JVM and .NET a stack
-  trace at every construction unless disabled), or a generated wrapper
-  exception holding it; and where its host message comes from (a
-  convention on `E`, or Mike's optional message).
+- What the throwing form raises: a generated wrapper holding `E` (two
+  host names per failure), or, when `E` is a class only used as a
+  failure, `E` itself generated as an exception subclass (one name, but
+  the JVM and V8 capture a stack trace at construction unless the
+  generated code avoids it; .NET and Python capture it when thrown); and
+  where its host message comes from (`E`'s `toString()`, or Mike's
+  optional message).
 - The default host form per backend for C++, and whether a library opts
   into throwing forms or out of them.
 
@@ -204,5 +206,6 @@ From [claude-explore](claude-explore/README.md#measurements) and
 | No exceptions between Temper functions, so failure-heavy loops stay cheap on C++, C#, Java, and JS | `Int?` on the JVM and `int?` on .NET 6 cost more than today when failures are rare, unless the compiler avoids them (a `long` sentinel, a struct) |
 | `await`, generators, and what `orelse` catches need no special failure machinery | Cheap only once the compiler knows the result type; as user code today it allocates per call |
 | Libraries' existing result values (Argmas's `ParseResult`, Hrefine's `UrlCheck`) become the normal style | Every fallible call needs a marker (about 630 in the surveyed code), and without an operator it's `orelse (e) return Failed(e)` |
-| Rust, Zig, C, and Lua get their native idioms directly | Host callbacks in Java, Python, and C# must return result values, which is unusual there |
+| Rust, Go, Zig, C, and Lua get their native idioms directly | Host callbacks in Java, Python, and C# must return result values, which is unusual there |
+| Any type can be a failure | In exception languages the throwing form wraps it, so host code sees two names (`SqlProblemException` holding `SqlProblem`) |
 | `throws Bubble` code keeps working, and moves only where a library wants to | Two default operators (`??`, `orelse`) and two failure styles until `throws Bubble` is retired |

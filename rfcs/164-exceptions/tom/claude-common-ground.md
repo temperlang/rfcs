@@ -3,8 +3,10 @@ Common ground for the failure-handling RFC
 decisions that both [declared failures](claude-proposal-declared.md) and
 [failures as values](claude-proposal-values.md) need, and that can be
 made before choosing between them. Drafted by Claude, 2026-11-17.
-Evidence: [claude-findings.md](claude-findings.md) and
-[claude-explore/](claude-explore/README.md). Syntax marked
+Evidence: [claude-findings.md](claude-findings.md),
+[claude-explore/](claude-explore/README.md), the
+[error types survey](claude-error-types-survey.md), and the
+[example translations](claude-translations/README.md). Syntax marked
 **HYPOTHETICAL** doesn't compile today.
 
 ## `return`, `break`, and `continue` as expressions
@@ -21,6 +23,21 @@ useful under either proposal:
 let tree = parseJson(text) ?? return null;
 let n = s.toInt32() orelse continue;
 ```
+
+## Propagation markers
+
+Both proposals want a marker at each call that propagates a failure,
+where today's `throws Bubble` propagates implicitly: 630 sites (65
+public, 565 internal), in 206 of the 268 bubbling functions, about one
+per 60 lines, spread out rather than concentrated. By library: Wherewith
+365, Chromarite 140, Kelpto 52, Hrefine 36, std 32, Argmas 5, and
+Ordable 0 ([markers](claude-explore/README.md#propagation-markers),
+counted from the type checker's own propagation in generated Rust). Some
+go rather than gaining a marker: 68 of Wherewith's call a helper that
+always bubbles, and about half of Chromarite's are matrix reads (52) and
+Float64 division (19) that stop bubbling once out-of-range reads panic
+and division is settled. The type checker already knows each site, so a
+rewriting tool can add them.
 
 ## Which builtins panic
 
@@ -55,6 +72,61 @@ That needs one Temper failure type per backend that host code can also
 catch selectively, and builtins raising it rather than `ValueError`,
 `NumberFormatException`, or Lua strings.
 
+## Host-facing failure types
+
+What host code catches or checks, under either proposal. The
+[survey](claude-error-types-survey.md) has the facts per language, and
+the [translations](claude-translations/README.md) show each one.
+
+- **Library names, never Temper's.** Each failure type a library declares
+  is generated under its own name in the library's namespace, and each
+  library gets one generated base: a class in C++, C#, Java, JavaScript,
+  and Python (`WherewithException` in C# and Java, by their naming rules;
+  `WherewithError` elsewhere), an `Error` interface in Go, an `Error` enum
+  in Rust, a metatable in Lua. Host code catches everything from one
+  library with it, as Python code catches `requests.RequestException`.
+  A `throws Bubble` failure, which has no detail, surfaces as that base
+  itself. Today the only catchable failure types, C++'s
+  `temper::core::TemperBubble` and Rust's `temper_core::Error`, are named
+  after Temper, and the other backends throw bare `RuntimeException`,
+  `RuntimeError`, `Error`, or `Exception`; both change. (Temper names
+  elsewhere in host APIs, such as C++'s `temper::core::Str`, are a
+  separate question.)
+- **A category alongside the base.** Java, C#, JavaScript, and C++ allow
+  one superclass chain, and Java and C# can't catch interfaces, so a
+  failure can't extend both `WherewithException` and
+  `IllegalArgumentException`. Proposed: the library base is always the
+  superclass, as the JDK's `DateTimeException` and .NET's
+  `JsonException` are; Python adds the category by multiple inheritance
+  (`class SqlProblem(WherewithError, ValueError)`), and Go by an `Is`
+  method; where a library's failures all share one category, its base
+  can extend that category's class. Otherwise the category is dropped.
+  Open: whether categories are worth having with this little reach.
+- **Java: unchecked by default.** The base extends `RuntimeException`, so
+  failures work with lambdas and streams, as in Kotlin, where nothing is
+  checked; generated signatures still list them in `throws` clauses,
+  which Java allows for unchecked exceptions. A library-wide setting
+  makes the base extend `Exception`, so every failure is checked. It's
+  per library, not per function, since one base serves all.
+- **A message always; equality never required.** Every host has a
+  message slot and Go and Rust require one, so each failure gets a
+  message, from the author or generated from its fields. No host language
+  requires or uses equality or hashing on thrown types, so failure types
+  don't need them. Causes map to each host's slot (`getCause`,
+  `InnerException`, `__cause__`, `cause`, `source()`, `Unwrap()`).
+- **Generic failure types** can't become JVM exceptions (Java and Kotlin
+  forbid generic `Throwable` subclasses), so a failure type that
+  becomes an exception class must be non-generic.
+- **C++ without exceptions.** Many C++ codebases build with
+  `-fno-exceptions`, where generated code that throws doesn't compile.
+  C++ output should offer an exception-free style: failures as
+  `std::expected<T, E>`, with a small shim of the same interface in the
+  runtime below C++23, and panics through a configurable abort hook. Since
+  the two styles have different signatures, this fits a per-build option
+  better than preprocessor switches in one output. Under failures as
+  values it's the natural C++ form; under declared failures, C++ needs
+  both mechanisms.
+
 ## Precedence
 
 Today `orelse` (4) and `??` (9) bind looser than `==`, so
@@ -75,6 +147,48 @@ postfix `?`), and say how it combines with `await`: Rust writes
 `f().await?` so the awaited value's failure propagates. Postfix `!` reads
 as "assert not null" to TypeScript, Kotlin, C#, and Swift users, which is
 worth weighing.
+
+## Naming across failure styles
+
+The same operation may come in variants that fail, give null, take a
+fallback, or panic. Temper's std already mixes names for them:
+`propertyValueOrNull` beside `propertyValueOrBubble`; `JsonInt32.asInt64`,
+which bubbles, beside `asInt64Safe`, which can't fail; `getOr(key,
+fallback)`; and `toInt32Unsafe`, which gives a backend-dependent value
+out of range. Precedents:
+
+| Language | Fails | Absent or fallback | Panics |
+|---|---|---|---|
+| Kotlin | `toInt()` throws | `toIntOrNull()`, `getOrNull(i)`, `getOrElse(i) { … }` | `!!`, `error()` |
+| C# | `int.Parse` throws | `int.TryParse(s, out v)` | |
+| Swift | a `throws` function | `try?` at the call | `try!` at the call |
+| Rust | `parse()` returns `Result` | `get(i)` returns `Option`; `.ok()` at the call | `v[i]`; `unwrap()`, `expect()` at the call |
+| Go | `(v, err)` | | `regexp.MustCompile` |
+| Java, JS | `Integer.parseInt`, `JSON.parse` throw | Guava's `Ints.tryParse`; zod's `safeParse` | |
+
+Proposed rule:
+
+1. **In Temper source and std, the plain name fails** with the
+   operation's failure (thrown under declared failures, returned under
+   values): `parseSelect`, `toInt32`.
+2. **Variants take a suffix with one meaning each:** `…OrNull` returns
+   `T?` and drops the reason; `…Or(fallback)` returns the fallback, as
+   `getOr` does. No `…OrBubble` or `…Safe`. (`asInt64Safe` exists
+   because an override can't drop `throws Bubble`; whether an override
+   may declare less failure is a question for either proposal.)
+3. **No panicking variants by name;** callers write `orelse panic()`.
+   The exception is syntax that panics by contract (`list[i]`), whose
+   checked forms are the named ones (`getOrNull`, `getOr`).
+   `toInt32Unsafe` describes out-of-range behavior, not a failure style,
+   and is better named for that behavior once it's settled (Rust's
+   `wrapping_`, `saturating_`).
+4. **Generated host forms follow the host, never Temper's suffixes:** the
+   plain name is each host's default (throwing in C#, Java, JavaScript,
+   and Python; `Result` in Rust; `(v, err)` in Go; `nil, failure` in
+   Lua), and a second generated form uses the host's own name for it
+   (C#'s `TryParseSelect`; Go's `MustParseSelect` only if asked for).
+   Variants an author writes in Temper keep their Temper names, case
+   converted. Generated names are recorded in `temper.keep`.
 
 ## Lowering a local failure to a branch
 
