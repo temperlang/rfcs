@@ -216,3 +216,249 @@ From [claude-findings.md](claude-findings.md):
   readable fields, opaque message and cause, what hosts catch, which
   builtins panic), then representation per backend, then syntax chosen by
   rewriting real library code in each candidate.
+
+### Representations beyond the current backends
+
+Readable failure fields and Mike's message and cause don't block languages
+without exceptions; each has its own pattern for "kind plus details":
+
+- **Zig:** error sets are codes with no data (`error.MissingValue`), by
+  design. The standard library's idiom for details is a diagnostics
+  out-parameter (as `std.json` does). A Temper function failing with
+  `MissingValue(option)` could return `ArgError!T` for the kind and fill
+  an optional `*Diagnostics` the caller passes in with the fields, message,
+  and cause; `try` and `catch` stay idiomatic, and callers that don't care
+  pass nothing. Temper-to-Temper calls inside generated code could return
+  a tagged union instead.
+- **C:** the GLib `GError**` pattern: return a status code (zero for
+  success, one code per variant), the value through an out-pointer, and an
+  error struct with kind, fields, message, and cause that the caller frees.
+  An allocation per failure, acceptable for exceptional cases.
+- **Out-parameters and compatibility.** Adding an out-parameter to an
+  existing function later breaks source and binary compatibility in C and
+  Zig, unlike adding an optional parameter in languages with defaults. So
+  any function that can fail should have its diagnostics parameter from
+  its first version, even when it fails without details (a `throws Bubble`
+  function would still take a nullable diagnostics pointer), and the
+  diagnostics struct should be opaque and extensible (accessor functions,
+  or a size or version field), so details can grow without changing
+  signatures. The alternative, an errno-style "last error" per thread or
+  context, avoids the parameter but is fragile with async code and
+  callbacks. More broadly, adding or changing a declared failure type on an
+  exported function is a compatibility change in every backend where it's
+  visible (a checked failure in Temper, a new exception type to catch, a
+  new error code); the RFC should say which failure changes are compatible.
+
+### Connecting to existing host exception types
+
+User-space connected types can't yet name an existing backend type, only
+define new ones. Three levels are possible:
+
+1. **Identity:** the Temper type is the host's `ValueError` or
+   `IllegalArgumentException`. Constructors, fields, and catching would
+   have to map onto each host class's own API, and host exceptions would
+   become visible to Temper code, against "only Temper-declared failures
+   are visible". Hard, and not needed yet.
+2. **Subclassing:** each generated failure class extends an idiomatic host
+   base (`class MissingValue(ValueError)` in Python, `extends
+   IllegalArgumentException` in Java, `: ArgumentException` in C#,
+   `extends TypeError` in JavaScript). Temper's semantics don't change, and
+   host code catches the failure as it would any invalid argument. Cheap
+   and useful.
+3. **None:** today, where generated classes extend only a Temper base.
+
+For level 2, rather than naming host classes per backend in Temper source,
+a few meaning categories (invalid argument, not found, I/O failure,
+unsupported, invalid state) could decorate a declared failure type, with
+each backend mapping a category to its idiomatic base and ignoring ones it
+has no good base for. Library source stays backend-neutral, and each
+backend owns its mapping.
+
+### Panics, as Tom currently sees it
+
+Panics may differ by backend, as long as each is that backend's idiomatic
+panic (process exit in some, an uncatchable-by-convention error in others).
+Temper libraries get no guarantee that a panic is recoverable, so library
+code must not rely on catching one. What the RFC can still pin down: a
+panic is never caught by `orelse` (today it is on JavaScript and Lua), and
+test runners report a panicking test as a failure with its message rather
+than losing the run's results.
+
+### Current bugs
+
+The bugs in the findings are best fixed as part of the RFC's work, since
+most touch what `orelse` catches or which builtins fail how, unless one
+proves urgent.
+
+## Failures as values: a fuller sketch
+
+Written after Tom's note that he sometimes regrets mapping failures to
+exceptions in exception-based backends, and wonders whether nullables plus
+explicit error types would be simpler. Mike's original aim was failure
+handling that's idiomatic and fast inside Temper, not only for rare errors.
+
+### What exists today
+
+- **Propagating null takes a statement:** `let h = half(n) ?? return null;`
+  doesn't parse in either compiler (`return` isn't an expression, and the
+  same goes for `orelse return null`). Narrowing does work, identically on
+  all eight backends:
+
+  ```temper
+  let h = half(n);
+  if (h == null) { return null }
+  half(h) // h is Int here
+  ```
+
+- **A result type can already be written in user code** as a sealed
+  interface with two classes, and matched with `when`. What's missing is
+  propagation sugar and backend-aware translation.
+
+### The idea
+
+Failure inside Temper is an ordinary value; each backend translates that
+value into its own idiom at the edges, the same way Temper already turns
+`Int`, `String`, and `List` into each language's own types.
+
+1. **Absence:** `T?`, as today.
+2. **Failure with a reason:** a small generic result type, `Ok<T>` or
+   `Failed<E>` (names to be decided), with `E` any type, typically a
+   library's sealed interface of variants with readable fields (Mike's
+   sealed variants, Tom's declared kinds as sugar for them), plus Mike's
+   optional message and cause if wanted.
+3. **Bugs:** `panic`, idiomatic per backend, never caught by Temper code.
+4. **One propagation operator** for both: if the value is null or failed,
+   return it from the enclosing function, otherwise unwrap it. Something
+   like a postfix `?` or `orelse return`, compiling to a plain branch.
+   `??` stays the way to supply a default.
+5. **`throws Bubble` becomes a special case:** a function that "bubbles"
+   returns a failure with no details. `f() orelse x` reads like `f() ?? x`.
+   That makes migration mechanical, and makes the two concepts one.
+
+The appeal: no control flow besides `return`, so the cost, `await`,
+generators, what `orelse` catches, and stack-trace questions mostly go
+away; C, Zig, Rust, and Go get their own idioms naturally (status codes,
+error unions, `Result`, `(value, err)`); and libraries' existing hand-made
+error values become the normal style rather than a workaround.
+
+### Core or std
+
+**Core,** if the propagation operator and backend translation know about
+the result type, as Swift's compiler knows `Optional` and Rust's `?` knows
+`Result`. Std works only if the type stays an ordinary library type with no
+sugar or special translation, and then most of the benefit is lost. A
+minimal core type, with conveniences (mapping, combining, collecting many
+failures) in std.
+
+### Exported functions and Temper callers
+
+Exported functions are called both by host code and by other Temper
+libraries, so the boundary has to tell them apart:
+
+- **Temper callers always use the value form,** across libraries too: the
+  compiler generates the call, so library B calls library A's
+  value-returning function directly, with no exception anywhere.
+- **Host callers in exception-based languages can also get an idiomatic
+  throwing form,** generated alongside the value form when a library asks
+  for it (by decoration or configuration), raising an exception named
+  after the failure type with its message (and, per the earlier
+  categories, subclassing an idiomatic host base). Which form gets the
+  plain name in each language is API and needs a rule: for example C#'s
+  `Parse` and `TryParse`, or Java's `parse` and `parseOrNull`. Whichever
+  rule, it belongs in `temper.keep`'s compatibility tracking.
+- **Host code calling into Temper callbacks** (host implementations of
+  Temper interfaces) that fail would return failure values too; a host
+  exception thrown there is a panic from Temper's point of view.
+
+The cost of exceptions is then paid only when a failure crosses into host
+code, which the measurements found to be the cheap case.
+
+### Is there a unifying principle?
+
+Possibly this: **failure is data inside Temper, and an idiom outside it.**
+Inside, everything is a value checked by the type system, cheap, and the
+same on every backend, which is Mike's goal. At the edge each backend
+presents that value the way its language expects, which is Tom's goal.
+Absence (`T?`), failure with a reason (the result type), and failure
+without one (today's Bubble) are the same idea at three levels of detail,
+handled by the same two operators (default and propagate). Panics are the
+one thing outside the model, deliberately.
+
+### Risks and open points
+
+- **Allocation:** a result value may allocate (and later be collected)
+  where a nullable doesn't, but a thrown exception allocates too, usually
+  more, with its stack trace. The difference is the success path: a
+  wrapped success (`Ok(value)`) can allocate on every call, where an
+  exception costs nothing until something fails. Ways to keep success
+  free: no wrapper at all for failures without details (nullables);
+  structs or value types where the backend has them (Rust's `Result`, C#
+  structs, C++'s `std::expected`, Zig's error unions); in dynamic
+  languages, returning the plain value on success and a failure object
+  only on failure; and on the JVM and in V8, short-lived wrappers are often
+  removed by escape analysis. Measure against today's bubbling and against
+  nullables before deciding.
+- **Nullable primitives on the JVM:** `Int?` is a boxed `Integer` in
+  Java, which allocates for values outside the small cached range, while
+  an `int` return with a rare exception allocates nothing on success. So
+  for `Int?`, `Int64?`, and `Float64?` returns, nullables can cost more
+  than exceptions on the JVM when failures are rare. Other backends don't
+  have this problem (`int?` in C# and `std::optional<int>` in C++ are
+  values; Rust's `Option<i32>` too; Python, JavaScript, and Lua box
+  everything anyway). Possible mitigations in generated Java: escape
+  analysis after inlining often removes the box; internal (non-exported)
+  functions returning `Int32?` could return a `long` with an out-of-range
+  value meaning null, with no allocation; and exported functions keep
+  `Integer` (or `OptionalInt`) as their API. Worth including in the
+  measurements.
+- **Absent and failed together:** `Result<T?, E>` covers a successful null,
+  but nested optionals need care in backends without them (Java, C#).
+- **Ergonomics** depend on the propagation operator; without it, deep call
+  chains get noisy.
+- **Precedence:** today `orelse` binds looser than `==`, so
+  `assert(x orelse 0i64 == y)` parses as `x orelse (0i64 == y)`, and the
+  type mismatch that follows isn't caught by the type checker, only by a
+  backend. Whatever operators the RFC settles on, the default operator
+  should bind tighter than comparisons, as Kotlin's `?:` does (C#'s and
+  JavaScript's `??` bind looser than `==`, the same trap), and a postfix
+  propagation operator should bind like a method call, so `a.f()?.g()` and
+  `x ?? 0 == y` read the way they look. Mixing `??` with `&&` and `||`
+  without parentheses could be an error, as JavaScript makes it.
+- **Migration** of `throws Bubble` code and of builtins, and which builtins
+  return nullable, a result, or panic.
+- **Host idiom without wrappers:** if a library doesn't ask for throwing
+  forms, Python, Java, and C# users get `None`, `null`, or a result
+  object. Acceptable for many APIs, unusual for some.
+
+Explorations of real library code under these designs are in
+[claude-explore/](claude-explore/).
+
+### Value and exception forms at exported functions
+
+If a failure-carrying result translates to an exception for host callers,
+does each exported function need both forms generated? Mostly yes, but
+cheaply, and not always both as public API:
+
+- **The value form must exist in generated code,** because other Temper
+  libraries call it: a call from library B to library A compiles to a call
+  of A's generated package in the same host language. It can be public but
+  marked as not for host callers where the language allows (a `_temper`
+  submodule in Python, an `internal` package in Java,
+  `[EditorBrowsable(Never)]` in C#, `#[doc(hidden)]` in Rust).
+- **The exception form is a thin wrapper:** call the value form; on
+  failure, raise the failure's exception type with its message. The logic
+  isn't duplicated, only a few lines per exported function.
+- **Absence and failure differ here:** a function returning `T?` means
+  absence, which stays `null`/`None` in every host (as `Map.get` does), so
+  it gets no exception form. Only functions returning the result type get
+  one. The author's choice between `T?` and a result is the signal.
+- **Per-backend policy, following each language's idiom:**
+  - C#: both public, as .NET's `Parse` and `TryParse`;
+  - Java, Python, JavaScript: the throwing form as the API, the value form
+    hidden;
+  - Rust: `Result` only; Zig: an error union; C: a status code; Go:
+    `(value, err)`;
+  - Lua: `nil, message`, its own multiple-return idiom, with no wrapper.
+- **Names and policy are API,** so they belong in `temper.keep`, and a
+  library may want to override the default per function (by decoration),
+  for example to keep a hot exported function exception-free.
