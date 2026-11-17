@@ -251,6 +251,249 @@ enclosing class, and `export`; the categories "bug-like" and
 "interfaces hosts implement" were assigned by reading the code, and
 are estimates.
 
+## Added measurements
+
+Two more measurements, for questions the designs raise: how many
+explicit propagation markers they would add to today's code, and what a
+result type the compiler knows might cost on each backend.
+
+### Propagation markers
+
+Today a call to a `throws Bubble` function inside another `throws
+Bubble` function propagates silently. Under B and C each such call
+needs a marker (`!`, `try`), and under A a postfix `?` or, without one,
+a statement. How many such call sites are there?
+
+**Method.** tempest's Rust backend shows the type checker's answer
+directly: `throws Bubble` becomes a `temper_core::Result` return, each
+implicitly propagating call becomes a Rust `?` (or, in tail position,
+a call whose `Result` is returned as it is), and `orelse` becomes an
+immediately called closure or `.unwrap_or(…)`. So
+[bench/markers/count_markers.py](bench/markers/count_markers.py)
+tokenizes the generated Rust for the same sources as above (the six
+public libraries and `lib/std`; tests and the generated init, glue,
+and `support/` files left out) and counts each `?` whose innermost
+enclosing function returns `temper_core::Result`, outside the closures
+that `orelse` makes, plus tail calls returning a `Result` that isn't an
+`Ok(…)` or `Err(…)`. Generated forwarders (an interface's `impl Trait
+for Type` calling the class's own method) aren't counted. A site is
+public when its function is: a `pub fn` at module level, or a method
+of a `pub` type or trait. Three bubbling helpers defined in test files
+(Argmas's `Even` and `Port`, Hrefine's `setPart`) are left out, as the
+tests are. Typed, so it sees through `/` with a non-constant divisor,
+failing `as`, and methods reached through receivers; a parse of the
+Temper source would have to guess those. Error sources: tail-call
+detection is a backward walk over `if`/`else` and `match` arms, which
+could miss a tail in some other block form; the public rule follows
+Rust visibility, not Temper's (an internal class implementing a public
+interface counts as internal); and core's two pure-Temper fallback
+bodies (`Generator.next` calling its function, and `appendCodePoint`
+calling `String.fromCodePoint`) aren't in the Rust output, so they're
+counted by hand and left out of the table. Spot check by hand: six
+functions across all six sources (Argmas's `IntType.parse`,
+Chromarite's `parseCssColor`, Hrefine's `punycodeDecode`, Kelpto's
+`editAll`, Wherewith's `StatementParser.insert`, and std's
+`Date.fromIsoString`), 38 sites, matched the count exactly. Every site
+is listed in
+[bench/markers/results/sites.tsv](bench/markers/results/sites.tsv).
+
+| Library | Sites | Public | Internal | Library calls | Builtins | `/` and `%` | `as` | Functions with a site / bubbling functions |
+|---|---|---|---|---|---|---|---|---|
+| Argmas | 5 | 0 | 5 | 2 | 3 | 0 | 0 | 3 / 7 |
+| Chromarite | 140 | 2 | 138 | 119 | 2 | 19 | 0 | 38 / 52 |
+| Hrefine | 36 | 10 | 26 | 26 | 0 | 10 | 0 | 19 / 24 |
+| Kelpto | 52 | 30 | 22 | 52 | 0 | 0 | 0 | 35 / 49 |
+| Ordable | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 / 0 |
+| Wherewith | 365 | 1 | 364 | 365 | 0 | 0 | 0 | 89 / 104 |
+| std | 32 | 22 | 10 | 12 | 13 | 0 | 7 | 22 / 32 |
+| **All** | **630** | **65** | **565** | 576 | 18 | 29 | 7 | 206 / 268 |
+
+Plus 2 in core's fallback bodies. 82 of the 630 are tail calls (the
+call is the function's result), which a marker would still have to
+cover. Beside them, 65 calls already sit under an `orelse` and need no
+new marker.
+
+**Concentration:** spread out, not concentrated. The 630 sites sit in
+206 functions; the top 5 hold 93 (15 percent), the top 10 hold 149 (24
+percent), and half the sites are in 37 functions (18 percent of those
+with a site). 89 functions have exactly one site. The largest are
+Wherewith's `CommonChecker.check` (28), `StatementChecker.select` (18),
+Chromarite's `fitContrastRows` (17), Wherewith's
+`StatementParser.select` (16), and `CommonChecker.call` (14). Per
+library, the top 5 functions hold 24 percent of Wherewith's sites, 35
+percent of Chromarite's and Kelpto's, 38 percent of std's, and 53
+percent of Hrefine's.
+
+What the sites are:
+
+- **Wherewith (365, 58 percent of all):** a recursive-descent parser
+  and checkers, where nearly every step can fail. 68 are calls to
+  `CommonChecker.fail(message, at)`, a `Void` helper that records the
+  problem and always bubbles: a raise in disguise, which under A or B
+  would become a `return`/`throw` of the problem rather than a marker.
+- **Chromarite (140):** 52 are reads through `Matrix.get`, `at`, and
+  `alphaAt`, and 19 are Float64 `/`: the bug-like bubbles of
+  observation 7. Once out-of-range reads panic and the division
+  question is settled, about half of these go, and with them much of
+  the rest (the callers that bubble only because of them).
+- **Public (65):** mostly Kelpto's `MarkdownEditor` methods and its
+  tree edits (30) and std's JSON adapters, `Date`, and regex (22). Of
+  std's 32, 13 are builtin conversions (`toInt32`, `toFloat64`,
+  `Int64.toInt32`, …) and 7 a failing `as`.
+
+So each design with explicit markers would add about 630 markers to
+these libraries (about one per 60 lines of their indented Temper code,
+tests in separate files left out), most in
+parsers and checkers, where a marker on nearly every line is the cost
+of making propagation visible.
+
+To reproduce: copy each library's source folder (Argmas's `src`,
+Kelpto's four library folders, and so on) into one work root, run
+`temper build -b rust` there, then `uv run
+bench/markers/count_markers.py WORKROOT/temper.out/rust --json
+counts.json` and `uv run bench/markers/summarize.py counts.json
+--sites sites.tsv`.
+
+### A compiler-known result type: likely cost
+
+The first benchmark's `result` variant is a result type written as user
+code, translated as any sealed interface is (an allocation per call;
+`shared_ptr` and `dynamic_cast` in C++, `Arc<dyn …>` in Rust). A
+result type the compiler knows could get each backend's cheapest
+form. [bench/builtin-result/](bench/builtin-result/) hand-writes those
+forms in each host language, beside the generated `bubble` and `null`
+runners from [bench/src](bench/src/failbench.temper.md), with the same
+loop, inputs, failure rates (0, 0.1, 1, and 10 percent), and depths (1,
+and 5 with the failure passed up four more calls). The failure carries
+a small `Bad` value (the input), so it isn't just a null.
+
+| Backend | Hand-written forms |
+|---|---|
+| C++ | `variant`: `std::variant<int32_t, Bad>` by value; `tagged`: a struct with a flag, the value, and the failure; `expected`: C++23 `std::expected<int32_t, Bad>` |
+| C# | `rstruct`: a `readonly struct Result<T, E>` by value, `E` a class allocated only on failure; `flag`: the plain value with the failure in an `out` parameter |
+| Java | `rec`: a sealed interface with records `Ok(int)` and `Failed(Bad)`; `obj`: the plain value (as `Object`, so an `Integer`) or a `Failed`; `long`: a primitive with a sentinel (the failure's data lost) |
+| JS, Python, Lua | `value`: the plain value, or a `Failed` object (checked with `instanceof`, `isinstance`, or the metatable) |
+| Rust | `result`: `Result<i32, Bad>` by value, propagated with `?` |
+
+Also, where quick, today's bubbling thrown without a stack trace
+(`nothrow`): Java with a `RuntimeException` subclass constructed with
+`writableStackTrace=false`, JS throwing a plain object instead of
+`Error()`. The JS, Python, and Lua forms use the generated code's own
+arithmetic helpers and loop shape, so only the failure handling
+differs.
+
+How it ran: the same toolchains as the first benchmark (g++ 13.3 at
+`-O2 -std=c++23`, .NET 6, OpenJDK 21, Node 24, Lua 5.4, CPython 3.12,
+Rust 1.99), a fresh process per backend, rate, and variant, warm-up
+runs, then the median of 7 timed runs; three rounds back to back; n =
+200,000 (50,000 for Lua and Python). Java and C# also ran with inlining
+limited, as before. The machine was shared with other jobs during the
+rounds, so absolute times spread widely (see the ranges); the ratios
+divide by `null` (or `bubble`) within each round. Raw output and full
+tables are in [bench/builtin-result/results/](bench/builtin-result/results/).
+
+Ratios to `null`, ranges over the three rounds, depth 1:
+
+| Backend | Form | ns per item, 0% / 10% | / null at 0% | 0.1% | 1% | 10% | / bubble at 1% | 10% |
+|---|---|---|---|---|---|---|---|---|
+| C++ | variant | 2.1-3.2 / 2.4-3.6 | 1.2-1.7x | 1.0-1.1x | 0.8-1.1x | 1.1-1.5x | 0.15-0.24x | 0.02-0.03x |
+| | tagged | 2.6-3.2 / 2.8-3.3 | 1.2-1.7x | 0.7-1.1x | 0.7-1.1x | 1.2-1.5x | 0.15-0.16x | 0.02-0.03x |
+| | expected | 2.3-3.1 / 2.4-3.5 | 1.2-1.7x | 0.7-1.2x | 0.7-1.5x | 1.0-1.5x | 0.15-0.21x | 0.02-0.03x |
+| C# | rstruct | 3.7-8.7 / 6.5-10 | 0.5-0.8x | 0.5-0.7x | 0.5-0.9x | 0.7-1.0x | 0.03-0.05x | under 0.01x |
+| | flag | 3.8-6.0 / 7.1-9.3 | 0.5x | 0.5x | 0.5-0.7x | 0.7-0.9x | 0.04x | under 0.01x |
+| Java | rec | 2.9-7.9 / 4.6-16 | 1.0-1.1x | 0.6-0.8x | 0.8-1.0x | 1.1-2.0x | 0.2x | 0.07-0.08x |
+| | obj | 2.8-9.3 / 5.3-11 | 0.7-1.2x | 0.8-1.0x | 0.7-1.8x | 1.3x | 0.2-0.4x | 0.06-0.08x |
+| | long | 2.8-8.2 / 3.2-6.8 | 0.7-1.1x | 0.6-1.0x | 0.6-1.3x | 0.7-0.8x | 0.1-0.3x | 0.03-0.05x |
+| JS | value | 10-19 / 18-36 | 0.6-0.9x | 0.7-1.0x | 0.9-1.3x | 1.3-1.6x | 0.3-0.5x | 0.07-0.09x |
+| Lua | value | 843-1953 / 854-1752 | 0.8-1.0x | 0.6-1.0x | 0.8-1.1x | 0.9-1.1x | 0.6-0.8x | 0.6-1.0x |
+| Python | value | 1426-2458 / 1797-1942 | 0.9-1.2x | 1.0-1.2x | 1.1-1.4x | 1.1x | 1.0-1.4x | 1.0-1.2x |
+| Rust | result | 1.2-1.7 / 1.2-1.9 | 1.0x | 1.0x | 0.8-1.0x | 1.0-1.2x | 0.8-1.1x | 1.1x |
+
+Depth 5 (the failure passes up four more calls):
+
+| Backend | Form | ns per item, 0% / 10% | / null at 0% | 0.1% | 1% | 10% | / bubble at 1% | 10% |
+|---|---|---|---|---|---|---|---|---|
+| C++ | variant | 2.4-3.1 / 2.4-2.9 | 1.2-1.7x | 0.7-1.7x | 1.0-1.1x | 0.7-1.0x | 0.16-0.23x | 0.02x |
+| | tagged | 2.3-3.4 / 2.6-3.3 | 1.1-1.7x | 1.1-1.2x | 0.7-1.1x | 0.7-1.2x | 0.16x | 0.02-0.03x |
+| | expected | 2.1-2.4 / 2.3-3.6 | 1.1-1.2x | 1.1-1.2x | 0.7-1.7x | 0.7-1.0x | 0.15-0.23x | 0.02x |
+| C# | rstruct | 4.9-6.5 / 7.1-8.4 | 0.1x | 0.1x | 0.1x | 0.1x | 0.04-0.05x | under 0.01x |
+| | flag | 4.3-7.9 / 6.1-8.8 | 0.1x | 0.1x | 0.1x | 0.1x | 0.04x | under 0.01x |
+| Java | rec | 2.9-5.3 / 12-26 | 1.0-1.2x | 0.6-0.8x | 0.6-1.0x | 0.5-1.6x | 0.5x | 0.07-0.19x |
+| | obj | 2.8-5.2 / 11-30 | 1.0-1.1x | 0.7-0.9x | 0.5-1.3x | 0.7-1.7x | 0.4-0.7x | 0.1-0.2x |
+| | long | 2.9-6.8 / 3.1-7.0 | 1.0-1.5x | 0.1-0.3x | 0.2-0.3x | 0.2-0.4x | 0.1-0.2x | 0.03-0.05x |
+| JS | value | 11-34 / 19-42 | 0.5-0.8x | 0.8-0.9x | 0.9-1.0x | 1.0x | 0.3-0.5x | 0.05-0.07x |
+| Lua | value | 1443-3171 / 1376-2743 | 0.8-1.0x | 0.7-0.9x | 1.0-1.2x | 0.5-1.0x | 1.0x | 0.8-1.0x |
+| Python | value | 2935-3799 / 2660-2922 | 1.0-1.5x | 1.1-1.3x | 1.1-1.3x | 0.9-1.1x | 1.1-1.5x | 1.0-1.2x |
+| Rust | result | 1.2-1.3 / 1.2-1.6 | 1.0x | 0.8-1.0x | 0.8-1.0x | 1.0-1.1x | 0.9-1.1x | 1.1-1.3x |
+
+With inlining limited: C#'s `rstruct` stays at 0.4 to 0.7 times `null`
+at depth 1 and 0.1 to 0.2 times at depth 5. On Java with the steps not
+inlined, at depth 5, `rec` and `obj` cost 1.3 to 2.6 times `null` with
+no failures (24 to 83 ns against 18 to 58) and 0.6 to 1.5 times once
+failures occur; `long` stays at 0.3 to 1.2 times.
+
+Throwing without a stack trace (ns per item at 1 / 10 percent
+failures):
+
+| Backend, depth | Today's bubble | `nothrow` | `nothrow` / bubble | `nothrow` / null at 10% |
+|---|---|---|---|---|
+| Java, 1 | 22-40 / 63-203 | 3.3-9.8 / 6.2-24 | 0.2-0.3x / 0.1x | 1.6-2.9x |
+| Java, 5 | 24-44 / 68-169 | 5.4-8.7 / 7.5-18 | 0.2-0.4x / 0.1x | 0.5-1.0x |
+| Java not inlined, 1 | 17-58 / 101-245 | 5.7-19 / 22-74 | 0.3-0.4x / 0.2-0.3x | 3.5-5.7x |
+| Java not inlined, 5 | 37-124 / 170-348 | 18-47 / 62-186 | 0.3-0.5x / 0.3-0.5x | 2.6-3.3x |
+| JS, 1 | 33-108 / 211-488 | 13-26 / 58-102 | 0.2-0.4x / 0.1-0.3x | 2.6-5.3x |
+| JS, 5 | 51-89 / 295-871 | 12-25 / 27-65 | 0.2-0.3x / 0.1x | 1.5-1.6x |
+
+**What it shows:**
+
+- **A compiler-known result costs about what a nullable costs, on every
+  backend measured,** and about nothing per failure: within 0.5 to 2.0
+  times `null` on C++, Java, JS, Lua, Python, and Rust at every rate
+  and depth (much of the spread is noise; the JVM's `long` is lower
+  still), against 30 to 700 times for the user-defined result
+  type on C++ and Rust in the first benchmark. In C++ the three forms
+  (`std::variant`, a tagged struct, `std::expected`) cost the same,
+  2 to 3.6 ns; in Rust a `Result<i32, Bad>` costs the same as today's
+  bubble (already a `Result`) and `Option`, about 1.2 to 1.9 ns.
+- **On .NET, a struct result is cheaper than `int?`:** 0.5 times `null`
+  at depth 1 and 0.1 times at depth 5 (5 to 8 ns against 54 to 76),
+  with or without inlining. So the depth-5 `int?` cost seen in the
+  first benchmark looks specific to `Nullable<T>` returns across calls
+  on .NET 6 (not investigated further); a plain struct with a flag, or
+  an `out` parameter, doesn't pay it.
+  Against today's bubbles, the struct costs 0.03 to 0.05 times at 1
+  percent failures.
+- **On the JVM, which form matters at depth:** with inlining, `rec` and
+  `obj` cost about what `null` does (both box or allocate once failures
+  occur), 12 to 30 ns at depth 5 with 10 percent failures; the `long`
+  sentinel stays at 3 to 7 ns. Without inlining, `rec` and `obj` cost
+  up to 2.6 times `null` with no failures. So for an `Int` success
+  value, a primitive with a sentinel (failure data kept elsewhere, such
+  as a field) is the form that never allocates; for a reference
+  success value, `obj` (the plain value, or a `Failed`) allocates only
+  on failure.
+- **Most of an exception's cost on the JVM and JS is the stack trace.**
+  Without one, throwing costs 0.1 to 0.5 times today's bubbling at 1
+  and 10 percent failures, and 0.5 to 5.7 times `null` at 10 percent.
+  So generated code could make today's `bubble()` much cheaper there
+  without changing the language: a preallocated or trace-free
+  exception class in Java, and a plain object instead of `Error()` in
+  JS.
+
+**Caveats:** hand-written, not generated, so these are what a backend
+*could* emit, not what one does; the step is tiny, so the failure
+mechanism dominates, as before; `Bad` is one integer, and a larger
+failure value would cost more to copy in the by-value forms (C++, C#,
+Rust); a shared machine spread the absolute times (up to about 3 times
+between rounds on Java, JS, Lua, and Python), so read the ratios, and
+the ranges of the ratios as the uncertainty; the Java `obj` form boxes
+because the success value is an `int`.
+
+To reproduce, from [bench/](bench/): `temper build` for the backends,
+then `uv run builtin-result/run.py BACKEND` (also `java-noinline` and
+`csharp-noinline`) once per round, and `uv run
+builtin-result/summarize.py results/round-*.txt`.
+
 ## Operator precedence
 
 Today's relevant precedences (tempest and Kotlin Temper share the same
