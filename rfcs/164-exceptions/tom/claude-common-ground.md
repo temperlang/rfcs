@@ -190,6 +190,26 @@ Proposed rule:
    Variants an author writes in Temper keep their Temper names, case
    converted. Generated names are recorded in `temper.keep`.
 
+How this fits the team's earlier naming discussion
+([team-function-naming.md](team-function-naming.md), 2026-10-06):
+
+- **Its affix rules agree with the rule above:** add an affix when it
+  disambiguates (`…OrNull` against `…OrEmpty`); leave the API people
+  should use unaffixed; and when a safe alternative is preferred, put a
+  negative affix on the unsafe, occasional one.
+- **Its kinds of unsafety are a useful vocabulary for docs and affixes**,
+  beyond failure styles: can bubble, can panic, semantic ambiguity across
+  backends, a security issue if misused, and a contract the caller must
+  uphold. The last three are where negative affixes belong (for example
+  an API taking raw HTML beside one taking `SafeHtml`), while failure
+  styles follow the suffixes above.
+- **`tryX`** (Tom's idea, not in that discussion) is an alternative to
+  `…OrNull` for the variant that returns `T?`: familiar from C#'s
+  `TryParse` and Guava's `tryParse`, shorter at call sites, but it reads
+  like propagation syntax if Temper adopts a `try` keyword, and in C# it
+  conventionally means a `bool` result with an `out` parameter. Worth
+  deciding together with the propagation syntax.
+
 ## Lowering a local failure to a branch
 
 Where a failure is raised and handled in one function, directly or after
