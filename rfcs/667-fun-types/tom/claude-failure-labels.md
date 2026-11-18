@@ -31,3 +31,5 @@ Points that touch this RFC:
 
 See [Semantics, item 6](../../164-exceptions/tom/claude-proposal.md#semantics) for the full
 rule.
+
+See also the [fun types study](claude-fun-types-study.md).

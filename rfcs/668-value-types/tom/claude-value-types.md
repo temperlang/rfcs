@@ -98,6 +98,69 @@ references. Layering helps:
 Dense containers can be a separate, opt-in step, so they don't hold up
 value types themselves.
 
+## Lists of values
+
+Core's `List` and `ListBuilder` need nothing new: where values are held
+by value, `List<Point>` is already contiguous (`std::vector<Point>` in
+C++, `Vec<Point>` in Rust, `List<Point>` in C#, which stores structs
+inline, and arrays or slices in Swift and Go). Immutability fits both:
+reading `list[i]` gives a copy that can't be told from a shared
+reference, and `ListBuilder` changes which values a list holds, never a
+value's fields. A dense container is then only for JavaScript, Java,
+Python, and Lua, over typed arrays, where density matters there.
+
+## A Valhalla path for Java
+
+- **Now:** a `record` (a `final` class for Java 8 targets), documented
+  as *value-based*, as the JDK documents `Optional` and `LocalDate`: no
+  identity (don't use `==`, `synchronized`, or identity hash codes),
+  structural `equals`. Recorded in `temper.keep` as a promise.
+- **Later:** `value record Point(…)` as a target option once JEP 401 is
+  final (a preview in JDK 28). The migration is designed to be binary
+  compatible for code that keeps the value-based contract; only
+  identity-sensitive uses change (`==` compares state, `synchronized`
+  throws).
+- **What it gains:** arrays of value classes and fields of value-class
+  type can be flattened. `ArrayList<Point>` stays references until a
+  later Valhalla phase specializes generics, so dense Java storage
+  would come from an array-backed list or from that phase. Full
+  flattening also needs null-restricted types (`Point!`, a later JEP),
+  which Temper's `Point` versus `Point?` maps onto.
+
+## Host code and value semantics
+
+Host code can break the semantics in three ways; each has a mitigation
+in what backends generate, plus a stated contract.
+
+1. **Mutating a value Temper shares.** In object hosts every holder
+   would see the change, unlike a by-value copy. JavaScript: private
+   `#fields` with getters, or `Object.freeze`. Python: frozen
+   `dataclass` (bypassable with `object.__setattr__`; a documented
+   contract suffices). Lua: tables stay writable; a proxy with
+   metatables costs every read, so rely on the contract. C++, Rust, Go:
+   changing one's own copy is harmless; keep fields private, with
+   getters.
+2. **Creating values without the constructor,** which can break a
+   type's invariants. C#: `default(Point)` and `new Point[n]` make
+   all-zero values, and a positional `record struct` allows `with`,
+   which skips validation; generate a `readonly struct` with get-only
+   properties and no `with`, and where an all-zero value is invalid
+   use a class (copying and sharing can't be told apart, so this is
+   allowed). Go: zero values always exist (`var p Point`); unexported
+   fields and a constructor limit the rest. Rust and C++: private
+   fields and constructors, no derived `Default`. Java records, Kotlin
+   data classes (`copy` runs the constructor), and Swift (internal
+   memberwise initializer) are fine.
+3. **Observing identity.** `==` in Java, `===` in JavaScript, and `is`
+   in Python can tell equal values apart. Temper code never asks, but
+   host code relying on it would differ by backend (and under
+   Valhalla); identity is unspecified across the boundary.
+
+The RFC needs: when a zero value is acceptable for a type (or that
+backends use classes when it isn't), generated code as immutable as
+each host allows, and the host contract: don't mutate, don't rely on
+identity, construct only through the type's own constructors.
+
 ## Open questions
 
 - Marking: an annotation (`@value`), a keyword, or inferred from

@@ -1,0 +1,259 @@
+diff -ruN a/lib/core/core.temper b/lib/core/core.temper
+--- a/lib/core/core.temper	2026-11-18 22:50:44.330992023 +0000
++++ b/lib/core/core.temper	2026-11-18 22:50:44.448247048 +0000
+@@ -133,6 +133,47 @@
+  */
+ export interface GeneratorFn extends Function {}
+ 
++/*
++ * Fun interfaces for common roles (draft, RFC 667). Function literals
++ * take these as their target types; a same-shape conversion such as
++ * `Mapper(keySelector)` adapts one name to another. Backends map each to
++ * the host's standard type where one exists (Java's java.util.function
++ * and Comparator, C#'s Func/Action/Comparison, …). With failure
++ * parameters (RFC 164), each would gain `E extends Error` and
++ * `throws E`, defaulting to `Never<Error>`.
++ */
++
++/** Maps a value to another, as `map` and `join` take. */
++export @fun interface Mapper<T, R>(value: T): R;
++
++/** Tests a value, as `filter` takes. */
++export @fun interface Predicate<T>(value: T): Boolean;
++
++/** Orders two values: negative, zero, or positive, as `sort` takes. */
++export @fun interface Comparator<T>(left: T, right: T): Int;
++
++/** Folds a value into an accumulated one, as `reduce` takes. */
++export @fun interface Accumulator<A, T>(accumulated: A, value: T): A;
++
++/** Takes a value for its effect, as `forEach` takes. */
++export @fun interface Consumer<T>(value: T): Void;
++
++/** Gives a value when asked, such as a message computed only if needed. */
++export @fun interface Supplier<T>(): T;
++
++/** Maps a map's entry, as `toListWith` takes. */
++export @fun interface EntryMapper<K, V, R>(key: K, value: V): R;
++
++/** Takes a map's entry for its effect, as `Map.forEach` takes. */
++export @fun interface EntryConsumer<K, V>(key: K, value: V): Void;
++
++/** A generator function's step, which may bubble. */
++@fun interface GeneratorStep<YIELD extends AnyValue>(): GeneratorResult<YIELD> throws Bubble;
++
++/** A safe generator function's step. */
++@fun interface SafeGeneratorStep<YIELD extends AnyValue>(): GeneratorResult<YIELD>;
++
++
+ /**
+  * One of a sequence of results from a [snippet/type/Generator].
+  */
+@@ -254,10 +295,10 @@
+  */
+ class GeneratorFnWrapper<@out YIELD extends AnyValue>
+ extends Generator<YIELD> {
+-  private let generatorFn: fn (): GeneratorResult<YIELD> throws Bubble;
++  private let generatorFn: GeneratorStep<YIELD>;
+   private var _done: builtins.Boolean = false;
+ 
+-  public constructor(generatorFn: fn (): GeneratorResult<YIELD> throws Bubble) {
++  public constructor(generatorFn: GeneratorStep<YIELD>) {
+     this.generatorFn = generatorFn;
+   }
+ 
+@@ -286,10 +327,10 @@
+  */
+ class SafeGeneratorFnWrapper<@out YIELD extends AnyValue>
+ extends SafeGenerator<YIELD> {
+-  private let generatorFn: fn (): GeneratorResult<YIELD>;
++  private let generatorFn: SafeGeneratorStep<YIELD>;
+   private var _done: builtins.Boolean = false;
+ 
+-  public constructor(generatorFn: fn (): GeneratorResult<YIELD>) {
++  public constructor(generatorFn: SafeGeneratorStep<YIELD>) {
+     this.generatorFn = generatorFn;
+   }
+ 
+@@ -619,7 +660,7 @@
+    * ```
+    */
+   @connected
+-  public forEach(@inlineUnrealizedGoal let body: fn (Int): Void): Void {
++  public forEach(@inlineUnrealizedGoal let body: Consumer<Int>): Void {
+     for (var index = String.begin; this.hasIndex(index); index = this.next(index)) {
+       let codePoint: Int = this[index];
+       body(codePoint);
+@@ -974,27 +1015,27 @@
+ 
+   /** Maps elements using [transform]. */
+   @connected
+-  public map<O>(transform: fn (T): O): List<O>;
++  public map<O>(transform: Mapper<T, O>): List<O>;
+ 
+   @connected
+-  public filter(predicate: fn (T): builtins.Boolean): List<T>;
++  public filter(predicate: Predicate<T>): List<T>;
+ 
+   /**
+    * Reduce to a single value, starting from the first item in this list.
+    * Panic if empty.
+    */
+   @connected
+-  public reduce(accumulate: fn (T, T): T): T {
++  public reduce(accumulate: Accumulator<T, T>): T {
+     reduceFromIndex(this[0], 1, accumulate)
+   }
+ 
+   /** Reduce to a single value, starting from the given initial value. */
+   @connected
+-  public reduceFrom<O>(initial: O, accumulate: fn (O, T): O): O {
++  public reduceFrom<O>(initial: O, accumulate: Accumulator<O, T>): O {
+     reduceFromIndex(initial, 0, accumulate)
+   }
+ 
+-  public reduceFromIndex<O>(initial: O, index: Int, accumulate: fn (O, T): O): O {
++  public reduceFromIndex<O>(initial: O, index: Int, accumulate: Accumulator<O, T>): O {
+     var result = initial;
+     for (var i = index; i < length; i += 1) {
+       result = accumulate(result, this[i]);
+@@ -1003,13 +1044,13 @@
+   }
+ 
+   @connected
+-  public join(separator: String, stringify: fn (T): String): String;
++  public join(separator: String, stringify: Mapper<T, String>): String;
+ 
+   /**
+    * Returns a sorted version of this listed. Uses stable sorting.
+    */
+   @connected
+-  public sorted(compare: fn (T, T): Int): List<T>;
++  public sorted(compare: Comparator<T>): List<T>;
+ }
+ 
+ /**
+@@ -1049,7 +1090,7 @@
+   // TODO(mikesamuel): once we know what semantics we want for iterating when body mutates,
+   // move this onto Listed.
+   @connected
+-  public forEach(@inlineUnrealizedGoal let body: fn (T): Void): Void {
++  public forEach(@inlineUnrealizedGoal let body: Consumer<T>): Void {
+     let n = length;
+     var i = 0;
+     while (i < n) {
+@@ -1107,7 +1148,7 @@
+    * Sorts in place. Uses stable sorting.
+    */
+   @connected
+-  public sort(compare: fn (T, T): Int): Void;
++  public sort(compare: Comparator<T>): Void;
+ 
+   /**
+    * Removes `removeCount` items starting at `index`, or until the end of the
+@@ -1273,7 +1314,7 @@
+    * Calls [func] on each key and value in the [snippet/type/Mapped].
+    */
+   @connected
+-  public toListWith<T>(func: fn(K, V): T): List<T> {
++  public toListWith<T>(func: EntryMapper<K, V, T>): List<T> {
+     toListBuilderWith(func).toList()
+   }
+ 
+@@ -1283,7 +1324,7 @@
+    * Calls [func] on each key and value in the [snippet/type/Mapped].
+    */
+   @connected
+-  public toListBuilderWith<T>(func: fn(K, V): T): ListBuilder<T> {
++  public toListBuilderWith<T>(func: EntryMapper<K, V, T>): ListBuilder<T> {
+     var builder = new ListBuilder<T>();
+     forEach { key, value =>
+       builder.add(func(key, value));
+@@ -1297,7 +1338,7 @@
+    * This method is more likely to change or be removed before Temper 1.0 than most
+    */
+   @connected
+-  public forEach(func: fn(K, V): Void): Void;
++  public forEach(func: EntryConsumer<K, V>): Void;
+ }
+ 
+ /**
+diff -ruN a/lib/std/regex/regex.temper.md b/lib/std/regex/regex.temper.md
+--- a/lib/std/regex/regex.temper.md	2026-11-18 22:50:44.374996057 +0000
++++ b/lib/std/regex/regex.temper.md	2026-11-18 22:50:58.851355877 +0000
+@@ -74,7 +74,7 @@
+ the string, replacing all or splitting at all.
+ 
+ ```
+-  public replace(text: String, format: fn (Match): String): String {
++  public replace(text: String, format: Replacer): String {
+     compiled().replace(text, format)
+   }
+ 
+@@ -397,6 +397,9 @@
+ TODO Make Regex a connected type for lighter weight usage?
+ 
+ ```
++/** Gives the replacement text for a match, as `replace` takes (draft, RFC 667). */
++export @fun interface Replacer(match: Match): String;
++
+ export class Regex {
+ ```
+ 
+@@ -426,7 +429,7 @@
+     compiledFind(compiled, text, begin, regexRefs)
+   }
+ 
+-  public replace(text: String, format: fn (Match): String): String {
++  public replace(text: String, format: Replacer): String {
+     compiledReplace(compiled, text, format, regexRefs)
+   }
+ 
+@@ -456,7 +459,7 @@
+   private compiledReplace(
+     compiled: AnyValue,
+     text: String,
+-    format: fn (Match): String,
++    format: Replacer,
+     regexRefs: RegexRefs,
+   ): String;
+ 
+diff -ruN a/lib/std/testing/testing.temper.md b/lib/std/testing/testing.temper.md
+--- a/lib/std/testing/testing.temper.md	2026-11-18 22:50:44.354994224 +0000
++++ b/lib/std/testing/testing.temper.md	2026-11-18 22:50:44.448862439 +0000
+@@ -12,7 +12,7 @@
+ you check multiple conditions more easily.
+ 
+       @connected
+-      public assert(success: Boolean, message: fn (): String): Void {
++      public assert(success: Boolean, message: Supplier<String>): Void {
+         if (!success) {
+           _passing = false;
+           _messages.add(message());
+@@ -24,7 +24,7 @@
+       @connected
+       public assertHard(
+         success: Boolean,
+-        message: fn (): String,
++        message: Supplier<String>,
+       ): Void throws Bubble {
+         assert(success, message);
+         if (!success) {
+@@ -107,7 +107,7 @@
+ 
+     export let TestCase = Pair<TestName, TestFun>;
+     export let TestFailureMessage = String;
+-    export let TestFun = fn (Test): Void throws Bubble;
++    export @fun interface TestFun(test: Test): Void throws Bubble;
+     export let TestName = String;
+     export let TestResult = Pair<TestName, List<TestFailureMessage>>;
+ 
+@@ -140,7 +140,7 @@
+     @connected
+     export let reportTestResults(
+       testResults: List<TestResult>,
+-      writeLine: fn (String): Void,
++      writeLine: Consumer<String>,
+     ): Void {
+       // Write as junit xml for consistency with our other backends.
+       // TODO Inject some call to gather this info in structured form?
