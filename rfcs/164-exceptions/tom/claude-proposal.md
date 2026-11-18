@@ -167,6 +167,27 @@ Temper code can't hold a result in the first version.
     they cover: never a panic, a host exception, a stack overflow, or an
     out-of-bounds read
     ([common ground](claude-common-ground.md#what-orelse-catches)).
+11. **Inferred failure labels** (proposed). Private functions and methods
+    get their `throws` label inferred from their bodies, in one pass over
+    call-graph groups after typing (with return-type inference, if that
+    is adopted). Exported functions and methods must state it; if one
+    doesn't, the compiler reports the inferred label and keeps compiling
+    with it, as Shaw suggested for signatures generally (infer, report
+    missing annotations where required, compile with what was inferred).
+    Function types and fun interfaces state it or use a generic `E`.
+    Editors show inferred labels as inlay hints with a quick fix. A
+    private function passed as a callback has its group settled first;
+    recursion through function values gets a conservative fallback.
+    Whether an override of a labeled interface method may drop the label
+    is open (12 cases measured, such as `JsonInt32.asInt32`).
+
+Measured ([throws after panics](claude-explore/throws-after-panics/README.md)):
+289 functions are labeled today, and 252 stay labeled once bug-like
+builtins panic (70 exported, 182 private), since most labels come from
+libraries' own `bubble()` and from parsing; but 296 of 501
+`orelse panic()` go. With private labels inferred, authors write 70
+(Wherewith 104 → 7), and in 94 functions the label comes only from
+callees.
 
 ```temper
 // Proposed: `error case`, `throws`, prefix `try`, `catch`, and failure
@@ -267,17 +288,14 @@ let v = do { try a(); try b() } catch (e) {
 The root is `Error`, the most common name across languages: JS, Python
 (by PEP 8's suffix convention), Rust, Swift, and Go all use it, and
 Temper favors common names. Tom would like `Exception` for its broader
-meaning, but it's longer and less common across languages. Mike first
-chose "bubble" so it wouldn't sound like failure, but nullables are the
-clearest way to express a non-value that doesn't imply failure, so
-`throws` and `Error` are for real errors. It also fits the names
+meaning, but it's longer and less common across languages. Nullables
+express a non-value that isn't a failure, so `throws` and `Error` are for
+real errors. It also fits the names
 programmers already bind, `e` and `err` (`catch (e) { … }`). Java's
 `java.lang.Error` ("don't catch") doesn't matter: the root never
-appears in host code. Considered: `Failure`, the earlier working name,
-which breaks that habit (`f`), clashes with test-failure vocabulary in
-std testing, and is a new word to learn;
-`Exception`; `Fault`; and `Problem`, which core already has as a
-builtin.
+appears in host code. Considered: `Failure` (breaks that habit, clashes
+with std testing's vocabulary), `Exception`, `Fault`, and `Problem`
+(already a core builtin).
 
 ### Builtins: panic or fail
 
@@ -449,6 +467,11 @@ Mike kept results second-class so that backends needn't represent
 ad-hoc unions; this keeps result types out of host APIs entirely.
 Exception-style syntax then tells the truth: no value is ever a result.
 
+Inferring private labels keeps checked labels where they're API and
+removes most of their cost elsewhere (182 of 252), which answers the main
+maintenance worry about declared failures: Java's checked-exception
+spread.
+
 ### Alternatives considered
 
 - **First-class results** ([values sketch](claude-proposal-values.md)),
@@ -476,13 +499,10 @@ Exception-style syntax then tells the truth: no value is ever a result.
   ([details](claude-proposal-values-details.md#any-type-as-a-failure)).
 - **A dedicated empty failure type** for "can't fail", like Rust's
   `std::convert::Infallible`: a second spelling of `Never<Error>`.
-- **Syntax alternatives**
-  ([options](claude-syntax-options.md)): per-call prefix `try` (Zig)
-  nests in chains; postfix `?` collides with `?.`; postfix `!` reads as a
-  non-null assertion to TypeScript, Kotlin, C#, and Swift users; postfix
-  `.try` is unfamiliar; `orelse (e) …` binding is ambiguous with a
-  parenthesized fallback; Java's `try { } catch` block clashes with a
-  prefix `try`; methods on results fit first-class results only.
+- **Syntax alternatives** ([options](claude-syntax-options.md)): per-call
+  `try` nests in chains; postfix `?` collides with `?.`; postfix `!` reads
+  as a non-null assertion; `orelse (e) …` is ambiguous with a
+  parenthesized fallback.
 
 ### Performance
 
@@ -491,10 +511,9 @@ Speed doesn't decide the semantics
 free on every backend but Lua, where each `orelse` costs a closure and a
 `pcall` (1 to 6 percent of a Kelpto parse or a Wherewith query, gone once
 bug-like builtins panic). Kelpto and Wherewith throw no failure on valid
-input. Thrown failures cost 2 to 13 times a nullable at 1 percent
-failures and 11 to 107 times at 10 percent on C++, C#, Java, and JS
-([measurements](claude-explore/README.md#measurements)); one failure in
-an invalid Wherewith query adds an estimated 15 to 300 percent. Local
+input. Thrown failures cost 2 to 107 times a nullable at 1 to 10 percent
+failures on C++, C#, Java, and JS
+([measurements](claude-explore/README.md#measurements)). Local
 lowering to a branch, trace-free throws (0.1 to 0.5 times today's cost
 on Java and JS), and value representations narrow that
 ([compiler-known result](claude-explore/README.md#a-compiler-known-result-type-likely-cost)).
@@ -514,9 +533,8 @@ implicitly today (65 public, 565 internal, about one per 60 lines;
 Wherewith 365, Chromarite 140, Kelpto 52, Hrefine 36, std 32, Argmas 5)
 ([markers](claude-common-ground.md#propagation-markers)). The type
 checker knows each site, so a **rewriting tool** adds `try`; some sites
-go instead (68 of Wherewith's become `throw`s, and about half of
-Chromarite's are matrix reads and division that stop failing once those
-panic). `throws Bubble` functions keep implicit propagation, with a
+go instead (68 of Wherewith's become `throw`s; many of Chromarite's are
+matrix reads and division). `throws Bubble` functions keep implicit propagation, with a
 warning, for a period the team sets.
 
 **Where libraries move,** about 70 exported members across five
@@ -568,10 +586,7 @@ far as possible.
    implicit propagation.
 
 Bugs fixed along the way: the twelve in the
-[common ground](claude-common-ground.md#bugs-to-fix-as-part-of-the-rfc-work)
-(among them `orelse` catching panics and out-of-bounds reads, Float64
-division by zero disagreeing, bubbling `await` and generators failing at
-translation, and C# and C++ test runs losing every result after a panic),
+[common ground](claude-common-ground.md#bugs-to-fix-as-part-of-the-rfc-work),
 plus the precedence trap and the generic-sealed `when` gaps the
 explorations found.
 
@@ -623,7 +638,10 @@ rule joins the style guide.
 - Whether categories are worth keeping, given that only Python and Go can
   show one beside the library base.
 - Whether a failure type derives its host message from its fields;
-  whether an override may declare less failure (`asInt64Safe`).
+  whether an override may declare less failure or drop its parent's
+  label (`asInt64Safe`, `JsonInt32.asInt32`).
+- Whether return-type inference for values is adopted alongside label
+  inference.
 - When `orelse` and `??` merge, and when implicit propagation in
   `throws Bubble` ends.
 - C++'s default (`std::expected` or exceptions) and C#'s later `Try…`

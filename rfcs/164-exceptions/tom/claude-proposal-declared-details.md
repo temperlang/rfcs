@@ -84,8 +84,10 @@ std compile unchanged at first, and host code keeps catching an exception
 Libraries then move to declared types where they want reasons: about 70
 exported members across five libraries, mostly parse and validate entry
 points ([findings §3](claude-findings.md#3-real-cases-in-public-libraries)).
-Moving builtins to panic removes most of the rest, for example 31 of
-Chromarite's 52.
+Moving bug-like builtins to panic removes fewer labels than it seems
+(289 become 252, most of the drop in core, std, and Chromarite); inferring
+private labels removes most of the rest, leaving 70 exported labels to
+write ([throws after panics](claude-explore/throws-after-panics/README.md)).
 
 Explicit propagation, which Tom's and Mike's notes both lean toward,
 needs a marker at the [630 calls](claude-common-ground.md#propagation-markers)

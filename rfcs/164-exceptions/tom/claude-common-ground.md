@@ -74,6 +74,11 @@ Of 596 `orelse`s in the surveyed libraries and std, 500 are
 conversions (1). Bubbles from indexing and division also spread
 `throws Bubble` through 31 of Chromarite's 52 declarations
 ([findings §3](claude-findings.md#3-real-cases-in-public-libraries)).
+Across all libraries, though, panicking builtins remove few labels (289
+become 252, since most come from libraries' own `bubble()` and from
+parsing), while 296 of 501 `orelse panic()` go; inferring labels on
+private code (proposed) is what cuts the labels authors write, to 70
+([throws after panics](claude-explore/throws-after-panics/README.md)).
 Suggested split:
 
 | Panic (bugs, avoidable by a cheap check) | Stay recoverable (where libraries recover) |

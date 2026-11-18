@@ -7,7 +7,7 @@ nothing here is decided.
 
 Immutable, identity-free values are natural messages: copying or sharing
 them across actors is safe, and no host needs locks or deep copies to
-send them (see [value types](../../664-structs/tom/claude-value-types.md)
+send them (see [value types](../../668-value-types/tom/claude-value-types.md)
 and `@imu` in [RFC 666](../../666-top-level-safety/README.md)). A rule like "a message type must be `@imu` or a value type" might give
 BEAM and worker-based targets (JS, Dart) one portable story.
 

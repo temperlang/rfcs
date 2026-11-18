@@ -1,22 +1,19 @@
-# Value types: notes toward struct types
+# Value types
 
-By Claude, 2026-11-18, as input for this RFC. Nothing here is decided;
-all syntax is hypothetical.
+By Claude, 2026-11-18, as input for this RFC
+([#668](https://github.com/temperlang/temper/issues/668)). Nothing here
+is decided; all syntax is hypothetical. A survey of how 50 languages
+could host them is in [claude-language-survey.md](claude-language-survey.md).
 
-Two related wishes may or may not share one solution:
-
-- **Value types:** small immutable data that C++, Rust, C#, Swift, and
-  Go can hold by value (no allocation, contiguous lists), without
-  costing JavaScript, Python, Java, or Lua anything.
-- **Layout structs** (this RFC's issue, #664): fixed-size types with a
-  predictable byte layout, read from and written to blobs (#663) for
-  binary formats and typed IPC.
+**Goal:** small immutable data that C++, Rust, C#, Swift, and Go can
+hold by value (no allocation, contiguous lists), without costing
+JavaScript, Python, Java, or Lua anything.
 
 ## Related issues
 
 | Issue | What it covers |
 |---|---|
-| [#664](https://github.com/temperlang/temper/issues/664) | predictable-layout struct types (this RFC) |
+| [#664](https://github.com/temperlang/temper/issues/664) | predictable-layout struct types, which may build on value types |
 | [#663](https://github.com/temperlang/temper/issues/663) | blobs and byte content, a prerequisite for #664 |
 | [#90](https://github.com/temperlang/temper/issues/90) | value stability: shallowly immutable classes without identity (`===`), so constructor calls can be inlined |
 | [#36](https://github.com/temperlang/temper/issues/36) | default and custom equivalence for record classes |
@@ -80,43 +77,33 @@ let moved = { ...p, x: 3.0 };   // a variation, as #297 asks
 textbook value types; its matrices are flat partly for want of value
 types), small records in parsers, and any `List` of small data.
 
-## Layout structs as a subset?
+## Dense storage
 
-One possible shape: a layout struct is a value type whose fields are
-fixed-size scalars (`Int32`, `Float64`, fixed-width integers if Temper
-gains them), other layout structs, or fixed-length arrays, with a
-declared byte order and packing. Then:
+Value types alone make `List<Point>` contiguous only where structs are
+native (C, C++, Rust, C#, Swift, Go); elsewhere it's still a list of
+references. Layering helps:
 
-- C, C++, Rust, C#, Go, and Swift get real `struct`s with matching
-  layout (`#[repr(C)]`, `[StructLayout]`), readable straight from a
-  blob where alignment allows.
-- JavaScript, Java, Python, and Lua get ordinary objects plus generated
-  read and write methods over `DataView`, `ByteBuffer`,
-  `struct`/`memoryview`, and `string.pack`.
+1. **Value types** are the semantic base (above).
+2. **Plain-data value types**, whose fields are all fixed-size scalars
+   or other plain-data value types, can be recognized by the compiler
+   with no annotation. A std container (hypothetically `DenseList<P>`)
+   can then be dense on every backend: a vector of structs where hosts
+   have them, typed arrays underneath elsewhere (fields interleaved, or
+   one array per field, which is often faster in JavaScript). Since
+   elements are immutable and reads give copies, the backend chooses.
+3. **Explicit byte layout** (byte order, packing, alignment) is needed
+   only for binary interchange, in [RFC 664](../../664-structs/README.md).
+   Dense in-memory storage needs none of it.
 
-**Why they might not share a solution:**
-
-- Layout cares about bytes (order, padding, alignment, fixed widths);
-  value types care about semantics (immutability, identity). A
-  general value type may hold strings and lists, which have no fixed
-  layout.
-- Binary formats often need variable-length parts, versioning, and
-  validation that a struct type alone doesn't express; a schema or
-  codec library (in Temper) might serve them better than a language
-  feature.
-- Mutation in place in a buffer (a view over bytes) is useful for
-  binary work but contradicts value semantics.
-
-So value types could come first as the semantic base, with layout
-either built on them or kept separate as views or codecs over blobs.
+Dense containers can be a separate, opt-in step, so they don't hold up
+value types themselves.
 
 ## Open questions
 
 - Marking: an annotation (`@value`), a keyword, or inferred from
   `@imu` plus no identity use?
-- Whether `==` on value types is always structural, and how custom
-  equivalence (#36) interacts.
+- Whether `==` on value types is always structural, how custom
+  equivalence (#36) interacts, and one rule for float fields (NaN, -0.0).
 - Size limits or hints for by-value representation.
-- Fixed-width integer types for layout (`UInt8`, `Int16`, …) and how
-  they map where hosts lack them (JavaScript, Lua).
-- Endianness and alignment defaults for layout structs.
+- Whether value types may be map keys (Temper's `MapKey` is closed
+  today); if so, runtimes without host hashing (Lua, PHP) must supply it.

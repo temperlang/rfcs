@@ -70,7 +70,8 @@ result type.
   become `T?` mechanically and 62 `Boolean` given one convention for
   `Void`; only 12 need a reason (Wherewith's seven entry points, std's
   JSON parsing, Hrefine's policy builders), and 8 are ambiguous because
-  `null` already means something.
+  `null` already means something
+  ([every (d)](claude-option-no-failures-audit.md#every-d-null-already-means-something)).
 - **Libraries already hand-roll result values.** Argmas's
   `ParseResult`, Hrefine's `UrlCheck` and `ErrorLog`, Kelpto's
   `HtmlParseError` lists, and Wherewith's `…Problem` twins and `problem`

@@ -260,7 +260,7 @@ case, never need flagging.
 
 ## Related: value types
 
-Immutable value types ([RFC 664](../../664-structs/tom/claude-value-types.md))
+Immutable value types ([RFC 668](../../668-value-types/tom/claude-value-types.md))
 can't form cycles, since a value can't be changed to point back at
 itself, so the checker can skip them. Held by value in C++ and Rust, they
 need no reference counting at all.

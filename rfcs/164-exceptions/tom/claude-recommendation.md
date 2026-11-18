@@ -78,7 +78,12 @@ internally, lets failure polymorphism fall out of ordinary generics:
   `Never<Error>` when `f` can't fail, so that call needs no `try`. The
   body can only propagate or handle `f`'s failure, never hold it, with
   no effect system beyond "results can't be held". Swift went the same
-  way, from `rethrows` to typed `throws(E)`.
+  way, from `rethrows` to typed `throws(E)`. The label spread that
+  Java's checked exceptions are known for is answered separately by
+  inferring labels on private code (proposed): authors would write 70 of
+  today's 289
+  ([throws after panics](claude-explore/throws-after-panics/README.md);
+  [proposal](claude-proposal.md#semantics)).
 
 So Kotlin's complexity came from having no failure polymorphism (its
 `Bubble` type parameters couldn't be bounded), not from in-flight
