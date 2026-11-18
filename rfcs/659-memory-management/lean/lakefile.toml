@@ -1,0 +1,17 @@
+name = "cycles"
+defaultTargets = ["Cycles", "search", "search2"]
+
+[[lean_lib]]
+name = "Cycles"
+
+[[lean_exe]]
+name = "search"
+root = "Main"
+
+[[lean_exe]]
+name = "search2"
+root = "GenericMain"
+
+[[lean_exe]]
+name = "compare2"
+root = "Compare"
