@@ -87,12 +87,9 @@ problems:
 Tom's 2024 notes ([tom-thoughts.md](tom-thoughts.md)) and Mike's 2026
 notes ([mike-thoughts.md](mike-thoughts.md)) agree on the direction:
 declared failures distinct from panics, only declared failures catchable,
-explicit propagation, and idiomatic host forms. Mike adds a single failure
-type per function and opaque, convertible messages and causes. This
-proposal combines them and answers the question the two sketches
-([declared](claude-proposal-declared.md) and
-[values](claude-proposal-values.md)) separate, whether Temper code can
-hold a result: not in the first version.
+explicit propagation, and idiomatic host forms; Mike adds one failure
+type per function. Unlike the [values sketch](claude-proposal-values.md),
+Temper code can't hold a result in the first version.
 
 ## Proposal
 
@@ -133,12 +130,13 @@ hold a result: not in the first version.
    only between `throw` and its handler.
 6. **Callbacks are polymorphic through an ordinary generic failure
    parameter,** as with Swift 6's typed `throws(E)`, instead of a special
-   `rethrows` keyword:
-   `map<T, R, E>(xs: List<T>, f: fn (T): R throws E): List<R> throws E`.
+   `rethrows` keyword. Following
+   [RFC 667](../../667-fun-types/README.md)'s direction (named, nominal
+   fun interfaces replace bare arrow types), `E` lives on the interface:
+   `map<T, R, E extends Error>(xs: List<T>, f: Mapper<T, R, E>): List<R> throws E`.
    - `E` is bounded by the root: `E extends Error`, written or implied
      by its use after `throws`.
-   - A function type without `throws` means `throws Never<Error>`.
-     Under Temper's `Never<T>` rules, `Never<Error>` is a subtype of
+   - A signature without `throws` means `throws Never<Error>`. Under Temper's `Never<T>` rules, `Never<Error>` is a subtype of
      `Error` only and has no values, so it fits the bound and means "a
      failure that can't happen".
    - Inference fills `E` at each call, so users never write it: a
@@ -186,7 +184,9 @@ public select(): Select throws SqlProblem {
   new Select(columns.toList(), table)
 }
 
-public map<T, R, E>(xs: List<T>, f: fn (T): R throws E): List<R> throws E {
+@fun interface Mapper<T, R, E extends Error> { apply(x: T): R throws E; }
+
+public map<T, R, E extends Error>(xs: List<T>, f: Mapper<T, R, E>): List<R> throws E {
   let out = new ListBuilder<R>();
   for (let x of xs) { try out.add(f(x)); }
   out.toList()
@@ -229,6 +229,16 @@ All proposed; the spellings of `try` and failure parameters are open
   to the `catch`
   ([a full try/catch block](claude-syntax-options.md#a-full-trycatch-block)).
 - **`??` stays for null,** and could later merge with `orelse`.
+- **Cleanup, `finally` or `defer`** (open, all hypothetical;
+  [RFC 661](../../661-try-finally/README.md)): `try { … } finally { … }`,
+  where `try` before a block marks propagation from it and `finally`
+  attaches cleanup, which Tom suspects reads consistently with `try` as
+  a marker; `do { … } finally { … }`, matching `do { … } catch`; or a
+  `defer { … }` statement (Swift, Go, Zig), which fits 661's "as if a call
+  to a nested function" well. Cleanup can't run on a panic everywhere
+  (C#'s `Environment.FailFast` and C++'s `std::terminate` skip it), so a
+  portable rule might be: it runs on normal completion and on failures,
+  and on a panic it may or may not run.
 - **`return`, `break`, and `continue` become expressions** of type
   `Never`, as in Kotlin and Rust
   ([common ground](claude-common-ground.md#return-break-and-continue-as-expressions)).
@@ -422,8 +432,9 @@ It removes Kotlin's special cases
   ([#109](https://github.com/temperlang/temper/issues/109)). Here
   `Error` is a nominal interface, and stripping `E` is ordinary
   `Result<T, E>` handling.
-- **Inlined `forEach`.** `forEach<T, E>(f: fn (T): Void throws E): Void
-  throws E` propagates without inlining.
+- **Inlined `forEach`.** A `forEach` generic over `E` propagates
+  without inlining. (Arrow types below are only for brevity; see
+  [RFC 667](../../667-fun-types/README.md).)
 - **The `checkFun` TODO.** `fn <T>(f: fn (): T): T { f() }` accepts only
   callbacks that can't fail; the failing version declares `E`.
 - **Bug 10 and `asInt64Safe`.** A function that can't fail fits where a
@@ -442,20 +453,14 @@ Exception-style syntax then tells the truth: no value is ever a result.
 
 - **First-class results** ([values sketch](claude-proposal-values.md)),
   the main alternative: Temper code can hold, store, return, collect,
-  and map a `Result<T, E>`. No rule beyond the result type; generics,
-  `await`, generators, and caches need nothing special; libraries'
-  result values become the normal style. It is the better choice if the
-  team expects many APIs to store outcomes (lazy values, caches, tasks).
-  Not chosen because any value may then be a result, `map` collecting
-  results needs a separate short-circuiting function, exception backends
-  need held results wherever one may be held, and exported APIs that hold
-  results need a host result type. Most of this proposal (failure types,
-  host mapping, builtins, handling syntax) carries over if the team
-  picks it.
+  and map a `Result<T, E>`. Better if many APIs store outcomes (lazy
+  values, caches, tasks). Not chosen because any value may then be a
+  result, exception backends need held results wherever one may be held,
+  and exported APIs that hold results need a host result type. Most of
+  this proposal carries over if the team picks it.
 - **Capture** (`capture { … }` turning a failure into a held result, in
-  earlier drafts): a possible later addition. Left out of the first
-  version because failure objects are already ordinary values and
-  promises hold async failures, and when in doubt, leave it out.
+  earlier drafts): a possible later addition; failure objects are
+  already values, and when in doubt, leave it out.
 - **A `rethrows`-style keyword** instead of a failure parameter: a second
   mechanism beside generics, which Swift 6's typed throws subsumes.
 - **In flight without failure polymorphism** (Kotlin Temper today): no
@@ -464,16 +469,13 @@ Exception-style syntax then tells the truth: no value is ever a result.
   translate and to solve, as Mike notes; `throws X, Y` is sugar for one
   sealed type instead.
 - **Kinds without details** (Tom's 2024 `error case` without fields):
-  keeps the side channels, since a kind can't carry Wherewith's text or
-  Hrefine's position
+  can't carry Wherewith's text or Hrefine's position
   ([observations](claude-explore/README.md#observations)).
 - **Any type as a failure** (the values sketch's default): exception
   hosts throw a wrapper, so host code sees two names
   ([details](claude-proposal-values-details.md#any-type-as-a-failure)).
 - **A dedicated empty failure type** for "can't fail", like Rust's
-  `std::convert::Infallible`, instead of `Never<Error>`: as good, but a
-  second spelling of what `Never` already means. The root needs a name
-  either way.
+  `std::convert::Infallible`: a second spelling of `Never<Error>`.
 - **Syntax alternatives**
   ([options](claude-syntax-options.md)): per-call prefix `try` (Zig)
   nests in chains; postfix `?` collides with `?.`; postfix `!` reads as a
