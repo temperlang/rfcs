@@ -14,9 +14,17 @@ compile.
 
 **How this maps to the RFC's
 [two questions](claude-recommendation.md#two-questions).** On
-**semantics**, this sketch's answer is that failures are first-class
-values: a result type Temper code can hold, store, return, collect, and
-map, so generic code and function types work unchanged. On **syntax**, it
+**semantics**, this sketch's answer is first-class results: a result type
+(the success-or-failure union) that Temper code can hold, store, return,
+collect, and map. Failure objects are ordinary values under every answer;
+what this sketch adds is holding the union. Typing a fallible call as
+returning `Result<T, E>`, as Kotlin already does internally, lets failure
+polymorphism fall out of ordinary generics: `map<T, R>(xs, f: fn (T): R)`
+given a fallible `f` instantiates `R` as `Result<U, E>`, and `map` may
+collect its `R`s into a `List<R>`, unchanged. A middle ground keeps
+results in flight, with pass-through and explicit capture
+([declared sketch](claude-proposal-declared.md#refinement-pass-through-and-capture)).
+On **syntax**, it
 shows the least sugar (`orelse`, `??`, and `return` as an expression, with
 a propagation operator later); exception-looking sugar such as `T throws E`
 for returning a result, or the declared sketch's `error case`, can sit on
@@ -115,7 +123,7 @@ For an exported function returning `Result<T, E>`. Functions returning
 
 | Backend | Value form (Temper callers, and hosts that want it) | Host-facing form |
 |---|---|---|
-| C# | `TryParseSelect(text, out Select? select, out SqlProblem? problem)`, a `readonly struct` inside | `ParseSelect(text)` throws `SqlProblemException`; both public, as .NET's `Parse` and `TryParse` |
+| C# | a hidden value form for Temper callers (exceptions internally in a first pass; a `readonly struct` result later if measurements warrant) | `ParseSelect(text)` throws `SqlProblemException`; a `TryParseSelect` twin only later, where failure is a common outcome |
 | Java | a result object, in an `internal` package | `parseSelect(text)` throws `SqlProblemException` (unchecked by default) |
 | JS | the value or a `Failed`, from the internal module | `parseSelect(text)` throws `SqlProblemError` |
 | Python | the value or a `Failed`, in a `_temper` submodule | `parse_select(text)` raises `SqlProblemError` |
@@ -133,14 +141,16 @@ throwing form is a few lines over the value form
 
 ### Semantics and representation are separate choices
 
-Failures are values in Temper's semantics; each backend picks the
+Results are first-class values in Temper's semantics; each backend picks the
 representation that is readable and cheapest there, with identical
 behavior. On the JVM that can be lightweight exceptions internally, with
 real return types and the same exception classes the public API shows;
 stack traces are captured only where the compiler sees a failure may
 reach an exported function unhandled. Where Temper code holds a result,
 the JVM materializes `Ok(value)` or `Failed(failure)` around the same
-failure object, rethrown as that object if later propagated. C# and C++
+failure object, rethrown as that object if later propagated. C# can keep
+exceptions in a first pass (real libraries rarely fail on valid input, so
+it matters only for failure-heavy uses) and move to value types later; C++
 can use value types, dynamic languages plain values, and Go, C, and Zig
 their error values and status codes
 ([details](claude-proposal-values-details.md#representation-on-each-backend)).
@@ -182,6 +192,8 @@ Full numbers, including nullables on the JVM and .NET 6, are in the
   `Result<Void, E>`; `Result<T?, E>` in Java and C#.
 - Whether `orelse` and `??` merge, and whether and when `throws Bubble`
   is deprecated.
+- Whether std offers a short-circuiting `map` (a `List<U>` or the first
+  failure) beside the plain one that collects results.
 - What the throwing form raises (a wrapper holding `E`, or `E` generated
   as an exception class), and where its host message comes from.
 - C++'s default host form; failing constructors becoming factories

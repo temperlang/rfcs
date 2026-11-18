@@ -11,8 +11,9 @@ Evidence: [claude-findings.md](claude-findings.md),
 
 **How this maps to the RFC's
 [two questions](claude-recommendation.md#two-questions).** Nothing here
-depends on the **semantics** question (whether failures are first-class
-values or in flight only), so all of it can be settled first. Several
+depends on the **semantics** question (whether results, the
+success-or-failure union, are first-class, in flight only, or in the
+middle ground between), so all of it can be settled first. Several
 sections are parts of the **syntax** question that either answer needs:
 [`return` as an expression](#return-break-and-continue-as-expressions),
 [propagation markers](#propagation-markers),
@@ -132,6 +133,19 @@ the [translations](claude-translations/README.md) show each one.
 - **Generic failure types** can't become JVM exceptions (Java and Kotlin
   forbid generic `Throwable` subclasses), so a failure type that
   becomes an exception class must be non-generic.
+- **Failure types are sealed (closed).** Languages without exceptions need
+  every variant known when the library is compiled: Zig turns the kinds
+  into an error set and the fields into a tagged union carried in a
+  diagnostics parameter; C uses an enum plus a struct with a union; Rust
+  an enum; Go one concrete type per variant matched with `errors.As`;
+  Elixir one struct per variant (with its own `parse`/`parse!` pair of
+  forms); Lua a tag field. An open failure interface, which other
+  libraries could extend later, has no representation in Zig or C, so
+  failure types must be sealed as well as non-generic. Across the 30 or
+  so most used languages, sealed variants with fields map onto
+  exceptions (one class per variant), sum or result types, or codes plus
+  data; only environments with no structured error data, such as shell
+  exit codes, can't carry them, and those aren't library hosts.
 - **C++ without exceptions.** Many C++ codebases build with
   `-fno-exceptions`, where generated code that throws doesn't compile.
   C++ output should offer an exception-free style: failures as
@@ -200,10 +214,14 @@ Proposed rule:
 4. **Generated host forms follow the host, never Temper's suffixes:** the
    plain name is each host's default (throwing in C#, Java, JavaScript,
    and Python; `Result` in Rust; `(v, err)` in Go; `nil, failure` in
-   Lua), and a second generated form uses the host's own name for it
-   (C#'s `TryParseSelect`; Go's `MustParseSelect` only if asked for).
-   Variants an author writes in Temper keep their Temper names, case
-   converted. Generated names are recorded in `temper.keep`.
+   Lua). In a first pass, that's the only generated form: no `Try…` or
+   `Must…` twins. Most .NET methods have no `Try` form either; .NET
+   reserves the Try pattern for operations where failure is a common,
+   normal outcome. Later, a library could ask for one where that's true,
+   for example by presenting an author-written `…OrNull` variant as C#'s
+   `TryParseSelect(…, out …)`. Variants an author writes in Temper keep
+   their Temper names, case converted. Generated names are recorded in
+   `temper.keep`.
 
 How this fits the team's earlier naming discussion
 ([team-function-naming.md](team-function-naming.md), 2026-10-06):

@@ -25,7 +25,7 @@ type and no propagation, the rule grows from 13 lines to 31.
 
 ## Representation on each backend
 
-Failures are values in Temper's semantics; each backend still picks the
+Results are first-class values in Temper's semantics; each backend still picks the
 representation that is readable and cheapest there, with identical
 behavior. On the JVM, the clearest choice is lightweight exceptions
 internally: methods keep their real return types (`SqlNode`, not
