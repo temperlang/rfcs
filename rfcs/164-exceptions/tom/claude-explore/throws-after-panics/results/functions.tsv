@@ -1,0 +1,290 @@
+library	file	line	function	visibility	abstract	override	after_best	after_optimistic	after_pessimistic	after_authors	stays_because	unhandled_today	still_failing_via
+Argmas	argmas/src/values.temper.md	25	ValueType.parse	exported	abstract		1	1	1	1	direct		ChoiceType.parse FloatType.parse Int64Type.parse IntType.parse
+Argmas	argmas/src/values.temper.md	70	IntType.parse	private		ValueType.parse	1	1	1	1	direct	call:2	String.toInt32 integerText
+Argmas	argmas/src/values.temper.md	87	Int64Type.parse	private		ValueType.parse	1	1	1	1	direct	call:2	String.toInt64 integerText
+Argmas	argmas/src/values.temper.md	101	integerText	private			1	1	1	1	direct	bubble:3 call:5 ctor:1 index:1	
+Argmas	argmas/src/values.temper.md	158	FloatType.parse	private		ValueType.parse	1	1	1	1	direct	bubble:4 call:28 ctor:3 index:13	String.toFloat64
+Argmas	argmas/src/values.temper.md	241	StringType.parse	private		ValueType.parse	0	0	0	0			
+Argmas	argmas/src/values.temper.md	262	ChoiceType.parse	private		ValueType.parse	1	1	1	1	direct	bubble:1	
+Argmas	argmas/src/values.temper.md	280	parseBoolean	private			1	1	1	1	direct	bubble:1 call:1	
+Chromarite	chromarite/src/adjust.temper.md	16	adjustLch	private			0	0	0	0		call:4	
+Chromarite	chromarite/src/adjust.temper.md	66	luminanceRows	private			1	0	1	0	calls only	call:5 ctor:1 index:1	get?2/2
+Chromarite	chromarite/src/adjust.temper.md	78	contrastRows	private			1	0	1	0	calls only	call:6 ctor:1 div:1 index:2	luminanceRows
+Chromarite	chromarite/src/adjust.temper.md	144	fitContrastRows	private			1	0	1	0	calls only	call:51 ctor:9 div:3 index:22	contrastRows get?2/2 lightnessIn luminanceRows
+Chromarite	chromarite/src/adjust.temper.md	257	lightnessIn	private			1	0	1	0	calls only	call:6 ctor:1 index:3	get?2/2
+Chromarite	chromarite/src/color.temper.md	101	Color.get	exported			1	0	1	0	calls only	index:1	get?2/2
+Chromarite	chromarite/src/color.temper.md	114	Color.alphaAt	exported			1	1	1	0	direct	bubble:1 index:1	
+Chromarite	chromarite/src/color.temper.md	278	Color.parse	exported			1	1	1	1	calls only	call:1	parseCssColor
+Chromarite	chromarite/src/css.temper.md	24	parseCssColor	private			1	1	1	1	direct	bubble:3 call:19 index:3	hueFirstColor labColor lchColor parseArgs parseHex predefinedColor rgbColor tokenize
+Chromarite	chromarite/src/css.temper.md	120	tokenize	private			1	1	1	1	direct	bubble:1 call:20 ctor:7 index:4	toNumber
+Chromarite	chromarite/src/css.temper.md	213	toNumber	private			1	0	1	1	direct	call:3 index:4	String.toFloat64
+Chromarite	chromarite/src/css.temper.md	237	parseArgs	private			1	1	1	1	calls only	call:2	parseLegacyArgs parseModernArgs
+Chromarite	chromarite/src/css.temper.md	249	parseModernArgs	private			1	1	1	1	direct	bubble:2 call:3 ctor:3 index:2	
+Chromarite	chromarite/src/css.temper.md	269	parseLegacyArgs	private			1	1	1	1	direct	bubble:4 call:3 ctor:3 div:2 index:2	
+Chromarite	chromarite/src/css.temper.md	297	numberOrPercent	private			1	1	1	1	direct	bubble:1 div:1	
+Chromarite	chromarite/src/css.temper.md	312	hueValue	private			1	1	1	1	direct	bubble:2 call:1 div:1	
+Chromarite	chromarite/src/css.temper.md	336	alphaValue	private			1	1	1	1	calls only	call:3	numberOrPercent
+Chromarite	chromarite/src/css.temper.md	344	finish	private			1	1	1	1	calls only	call:3 index:3	alphaValue
+Chromarite	chromarite/src/css.temper.md	356	rgbColor	private			1	1	1	1	direct	bubble:2 call:5 ctor:1 div:1 index:4	finish numberOrPercent
+Chromarite	chromarite/src/css.temper.md	372	hueFirstColor	private			1	1	1	1	direct	bubble:2 call:5 div:2 index:5	finish hueValue numberOrPercent
+Chromarite	chromarite/src/css.temper.md	388	lchColor	private			1	1	1	1	direct	bubble:1 call:6 index:3	finish hueValue numberOrPercent
+Chromarite	chromarite/src/css.temper.md	399	labColor	private			1	1	1	1	direct	bubble:1 call:5 index:3	finish numberOrPercent
+Chromarite	chromarite/src/css.temper.md	410	predefinedColor	private			1	1	1	1	direct	bubble:1 call:5 index:5	finish numberOrPercent predefinedSpace
+Chromarite	chromarite/src/css.temper.md	422	predefinedSpace	private			1	1	1	1	direct	bubble:1	
+Chromarite	chromarite/src/css.temper.md	452	cssStrings	private			1	1	1	1	calls only	call:29 ctor:1 index:4	get?2/2 predefinedName
+Chromarite	chromarite/src/css.temper.md	486	predefinedName	private			1	1	1	1	direct	bubble:1	
+Chromarite	chromarite/src/gamut.temper.md	34	deltaEOkRows	private			1	0	1	0	calls only	call:7 ctor:1 index:6	get?2/2
+Chromarite	chromarite/src/gamut.temper.md	57	inGamutRows	private			1	0	1	0	calls only	call:7 ctor:1 index:3	get?2/2
+Chromarite	chromarite/src/gamut.temper.md	78	mapToGamut	private			1	0	1	0	calls only	call:14 ctor:2 index:3	get?2/2
+Chromarite	chromarite/src/gamut.temper.md	109	mapRow	private			0	0	0	0		call:12	
+Chromarite	chromarite/src/gamut.temper.md	159	lchIn	private			0	0	0	0		call:2	
+Chromarite	chromarite/src/gamut.temper.md	165	clippedDelta	private			0	0	0	0		call:7 div:1	
+Chromarite	chromarite/src/gamut.temper.md	173	rowInUnitCube	private			0	0	0	0		call:4	
+Chromarite	chromarite/src/gamut.temper.md	193	maxChromaRows	private			1	0	1	0	calls only	call:18 ctor:7 index:11	get?2/2
+Chromarite	chromarite/src/gamut.temper.md	240	fitChromaRows	private			1	0	1	0	calls only	call:13 ctor:4 index:6	get?2/2 inGamutRows maxChromaRows
+Chromarite	chromarite/src/helpers.temper.md	37	assertConvertColors	private			0	0	0	0		call:2	
+Chromarite	chromarite/src/hsv.temper.md	16	hueDegrees	private			0	0	0	0		div:3	
+Chromarite	chromarite/src/hsv.temper.md	29	wrap	private			0	0	0	0		call:1 div:1	
+Chromarite	chromarite/src/lab.temper.md	76	labCurve	private			0	0	0	0		call:1 div:1	
+Chromarite	chromarite/src/lab.temper.md	96	labCurveInverse	private			0	0	0	0		div:1	
+Chromarite	chromarite/src/matrix.temper.md	50	Matrix.get	private			1	1	1	0	direct	bubble:1 index:1	
+Chromarite	chromarite/src/matrix.temper.md	57	Matrix.at	private			0	0	0	0		index:1	
+Chromarite	chromarite/src/matrix.temper.md	86	matrixRow	private			1	1	1	0	direct	bubble:1 call:3 index:2	
+Chromarite	chromarite/src/matrix.temper.md	146	times	private			1	1	1	0	direct	bubble:1 call:2	
+Chromarite	chromarite/src/mix.temper.md	65	hueIsPowerless	private			0	0	0	0		index:5	
+Chromarite	chromarite/src/mix.temper.md	88	mixColors	private			1	1	1	0	calls only	call:8 ctor:1	Blend.add Color.alphaAt
+Chromarite	chromarite/src/mix.temper.md	114	gradientColors	private			1	1	1	0	calls only	call:16 ctor:1 div:1	Blend.add Color.alphaAt
+Chromarite	chromarite/src/mix.temper.md	157	Blend.add	private			1	0	1	0	calls only	call:8 ctor:2 div:1 index:8	get?2/2
+Chromarite	chromarite/src/mix.temper.md	187	Blend.fixHues	private			0	0	0	0		call:27 index:6	
+Chromarite	chromarite/src/named.temper.md	7	parseNamed	private			0	0	0	0		call:6	
+Chromarite	chromarite/src/rgb.temper.md	46	parseHex	private			1	1	1	1	direct	bubble:1 call:9 ctor:2 div:2 index:5	hexDigit
+Chromarite	chromarite/src/rgb.temper.md	83	hexDigit	private			1	1	1	1	direct	bubble:1	
+Hrefine	hrefine/src/host.temper.md	21	parseHost	exported			1	1	1	1	calls only	call:2 ctor:1	runHostParser
+Hrefine	hrefine/src/host.temper.md	103	runHostParser	private			1	1	1	1	direct	bubble:1 call:10 index:2	parseDomain parseIpv6 parseOpaqueHost
+Hrefine	hrefine/src/host.temper.md	157	parseDomain	private			1	1	1	1	direct	bubble:2 call:16 index:2	domainToAscii domainToAsciiNoting parseIpv4
+Hrefine	hrefine/src/host.temper.md	200	domainToAsciiNoting	private			1	1	1	1	direct	bubble:1 call:1	
+Hrefine	hrefine/src/host.temper.md	239	parseOpaqueHost	private			1	1	1	1	direct	bubble:1 call:8 index:1	
+Hrefine	hrefine/src/host.temper.md	308	parseIpv4	private			1	1	1	1	direct	bubble:4 call:10 index:3	
+Hrefine	hrefine/src/host.temper.md	413	parseIpv6	private			1	1	1	1	direct	bubble:13 call:42 index:7	
+Hrefine	hrefine/src/idna.temper.md	29	domainToAscii	exported			1	1	1	1	direct	bubble:1 call:3	internationalToAscii
+Hrefine	hrefine/src/idna.temper.md	36	internationalToAscii	private			1	1	1	1	direct	bubble:2 call:7 ctor:2 index:2	punycodeEncode
+Hrefine	hrefine/src/policy.temper.md	200	UrlPolicy.withHosts	exported			1	1	1	1	calls only	call:1 ctor:1	allowedHosts
+Hrefine	hrefine/src/policy.temper.md	214	UrlPolicy.withSubdomainsOf	exported			1	1	1	1	calls only	call:1 ctor:1	allowedHosts
+Hrefine	hrefine/src/policy.temper.md	229	UrlPolicy.withPorts	exported			1	1	1	1	direct	bubble:1 call:2 ctor:2 index:1	
+Hrefine	hrefine/src/policy.temper.md	414	allowedHosts	private			1	1	1	1	direct	bubble:1 call:6 ctor:1 index:1	parseHost
+Hrefine	hrefine/src/punycode.temper.md	30	punycodeDecode	private			1	1	1	1	direct	bubble:5 call:6 ctor:1 div:5 index:3	
+Hrefine	hrefine/src/punycode.temper.md	116	punycodeAdapt	private			0	0	0	0		div:6	
+Hrefine	hrefine/src/punycode.temper.md	131	punycodeEncode	private			1	1	1	1	direct	bubble:2 call:8 div:3 index:6	
+Hrefine	hrefine/src/source.temper.md	35	parseUrlSource	exported			1	1	1	1	calls only	call:11 ctor:3	parseRecord
+Hrefine	hrefine/src/url.temper.md	24	parseUrl	exported			1	1	1	1	calls only	call:2	parseAgainst
+Hrefine	hrefine/src/url.temper.md	28	parseAgainst	private			1	1	1	1	calls only	call:2	parseRecord
+Hrefine	hrefine/src/url.temper.md	41	checkUrl	exported			1	1	1	1	calls only	call:4 ctor:2	parseRecord
+Hrefine	hrefine/src/url.temper.md	377	Url.resolve	exported			1	1	1	1	calls only	call:3	parseRecord
+Hrefine	hrefine/src/url.temper.md	395	Url.withHref	exported			1	1	1	1	calls only	call:1	parseUrl
+Hrefine	hrefine/src/url.temper.md	1041	parseRecord	private			1	1	1	1	calls only	call:1	basicUrlParse
+Hrefine	hrefine/src/url.temper.md	1054	basicUrlParse	private			1	1	1	1	direct	bubble:12 call:158 ctor:3 index:10	runHostParser
+Kelpto	kelpto/kelpto-core/tree.temper.md	491	replaceAll	exported			1	1	1	1	calls only	call:1	editAll
+Kelpto	kelpto/kelpto-core/tree.temper.md	509	editAll	exported			1	1	1	1	direct	bubble:3 call:22 ctor:6 index:10	pathTo rebuild
+Kelpto	kelpto/kelpto-core/tree.temper.md	568	pathTo	private			1	1	1	1	direct	bubble:4 call:5 ctor:3 index:4	
+Kelpto	kelpto/kelpto-core/tree.temper.md	615	rebuild	private			1	1	1	1	direct	bubble:5 call:5 ctor:2 index:32	rebuild
+Kelpto	kelpto/kelpto-md/build.temper.md	168	MarkdownBuilder.heading	exported			1	1	1	1	direct	bubble:1 call:7 ctor:1	
+Kelpto	kelpto/kelpto-md/build.temper.md	241	MarkdownBuilder.orderedList	exported			1	1	1	1	direct	bubble:1 call:2 ctor:1	
+Kelpto	kelpto/kelpto-md/build.temper.md	270	MarkdownBuilder.markdownBetween	exported			1	1	1	1	direct	bubble:1 call:12 ctor:2 index:3	bulletFor
+Kelpto	kelpto/kelpto-md/build.temper.md	346	bulletFor	private			1	1	1	1	direct	bubble:1 call:1 index:2	
+Kelpto	kelpto/kelpto-md/edit.temper.md	44	prefixesOf	private			1	1	1	1	direct	bubble:1 call:18 ctor:7 index:3	itemContentWidth markerOfWidth
+Kelpto	kelpto/kelpto-md/edit.temper.md	85	itemContentWidth	private			1	1	1	1	direct	bubble:3 call:2 index:8	
+Kelpto	kelpto/kelpto-md/edit.temper.md	116	markerOfWidth	private			1	1	1	1	direct	bubble:1 call:4 ctor:1	
+Kelpto	kelpto/kelpto-md/edit.temper.md	142	parsedInContainer	private			1	1	1	1	direct	bubble:1 call:9 index:6	firstNodeOf prefixesOf
+Kelpto	kelpto/kelpto-md/edit.temper.md	179	firstNodeOf	private			1	1	1	1	direct	bubble:1 index:2	
+Kelpto	kelpto/kelpto-md/edit.temper.md	191	paragraphContentEdit	private			1	1	1	1	direct	bubble:2 call:5 ctor:3 index:6	parsedInContainer
+Kelpto	kelpto/kelpto-md/edit.temper.md	230	blockSplices	private			1	1	1	1	calls only	call:9 ctor:6 index:2	ContainerEdits.make checkDefinitionsKept
+Kelpto	kelpto/kelpto-md/edit.temper.md	289	ContainerEdits.make	private			1	1	1	1	direct	bubble:1 call:20 ctor:8 index:11	ContainerEdits.gap ContainerEdits.positionOf
+Kelpto	kelpto/kelpto-md/edit.temper.md	341	ContainerEdits.positionOf	private			1	1	1	1	direct	bubble:1 index:1	
+Kelpto	kelpto/kelpto-md/edit.temper.md	358	ContainerEdits.gap	private			1	1	1	1	direct	bubble:6 call:30 ctor:3 index:8	ContainerEdits.blankInside MarkdownBuilder.markdownBetween parsedInContainer
+Kelpto	kelpto/kelpto-md/edit.temper.md	515	ContainerEdits.blankInside	private			1	1	1	1	calls only	call:10 ctor:2 index:1	parsedInContainer
+Kelpto	kelpto/kelpto-md/edit.temper.md	602	checkDefinitionsKept	private			1	1	1	1	direct	bubble:2 call:12 ctor:2 index:7	
+Kelpto	kelpto/kelpto-md/views.temper.md	587	Heading.withLevel	exported			1	1	1	1	calls only	call:2	headingLevelEdit
+Kelpto	kelpto/kelpto-md/views.temper.md	624	headingLevelEdit	private			1	1	1	1	direct	bubble:2 call:5 ctor:6	
+Kelpto	kelpto/kelpto-md/views.temper.md	663	Paragraph.withText	exported			1	1	1	1	calls only	call:3	paragraphContentEdit
+Kelpto	kelpto/kelpto-md/views.temper.md	670	Paragraph.withContent	exported			1	1	1	1	calls only	call:2	paragraphContentEdit
+Kelpto	kelpto/kelpto-md/views.temper.md	721	CodeBlock.withInfo	exported			1	1	1	1	calls only	call:2	infoEdit
+Kelpto	kelpto/kelpto-md/views.temper.md	724	infoEdit	private			1	1	1	1	direct	bubble:1 call:11 ctor:4 index:4	
+Kelpto	kelpto/kelpto-md/views.temper.md	832	LinkReferenceDefinition.withDestination	exported			1	1	1	1	calls only	call:2	destinationEdit
+Kelpto	kelpto/kelpto-md/views.temper.md	870	destinationEdit	private			1	1	1	1	direct	bubble:1 call:6 ctor:4 index:1	writeDestination
+Kelpto	kelpto/kelpto-md/views.temper.md	889	writeDestination	private			1	1	1	1	direct	bubble:1 call:15 ctor:1 index:2	
+Kelpto	kelpto/kelpto-md/views.temper.md	1164	FootnoteDefinition.withLabel	exported			1	1	1	1	calls only	call:2	footnoteDefinitionLabelEdit
+Kelpto	kelpto/kelpto-md/views.temper.md	1169	footnoteDefinitionLabelEdit	private			1	1	1	1	calls only	call:1 ctor:2	checkFootnoteLabel
+Kelpto	kelpto/kelpto-md/views.temper.md	1180	checkFootnoteLabel	private			1	1	1	1	direct	bubble:2 call:3 index:1	
+Kelpto	kelpto/kelpto-md/views.temper.md	1507	Link.withDestination	exported			1	1	1	1	calls only	call:2	linkDestinationEdit
+Kelpto	kelpto/kelpto-md/views.temper.md	1533	Image.withDestination	exported			1	1	1	1	calls only	call:2	linkDestinationEdit
+Kelpto	kelpto/kelpto-md/views.temper.md	1538	linkDestinationEdit	private			1	1	1	1	direct	bubble:1 call:2	destinationEdit
+Kelpto	kelpto/kelpto-md/views.temper.md	1746	FootnoteReference.withLabel	exported			1	1	1	1	calls only	call:2	footnoteReferenceLabelEdit
+Kelpto	kelpto/kelpto-md/views.temper.md	1751	footnoteReferenceLabelEdit	private			1	1	1	1	calls only	call:4 ctor:4 index:2	checkFootnoteLabel
+Kelpto	kelpto/kelpto-md/walk.temper.md	238	MarkdownEditor.setText	exported			1	1	1	1	direct	bubble:1 call:7	paragraphContentEdit
+Kelpto	kelpto/kelpto-md/walk.temper.md	250	MarkdownEditor.setContent	exported			1	1	1	1	direct	bubble:1 call:6	paragraphContentEdit
+Kelpto	kelpto/kelpto-md/walk.temper.md	261	MarkdownEditor.setLevel	exported			1	1	1	1	calls only	call:2	headingLevelEdit
+Kelpto	kelpto/kelpto-md/walk.temper.md	267	MarkdownEditor.setInfo	exported			1	1	1	1	calls only	call:2	infoEdit
+Kelpto	kelpto/kelpto-md/walk.temper.md	274	MarkdownEditor.setDestination	exported			1	1	1	1	direct	bubble:1 call:6	destinationEdit linkDestinationEdit
+Kelpto	kelpto/kelpto-md/walk.temper.md	292	MarkdownEditor.setLabel	exported			1	1	1	1	direct	bubble:1 call:4	footnoteDefinitionLabelEdit footnoteReferenceLabelEdit
+Kelpto	kelpto/kelpto-md/walk.temper.md	305	MarkdownEditor.insertBefore	exported			1	1	1	1	calls only	call:3	blockEditOf
+Kelpto	kelpto/kelpto-md/walk.temper.md	309	MarkdownEditor.insertAfter	exported			1	1	1	1	calls only	call:3	blockEditOf
+Kelpto	kelpto/kelpto-md/walk.temper.md	315	MarkdownEditor.replace	exported			1	1	1	1	calls only	call:3	blockEditOf
+Kelpto	kelpto/kelpto-md/walk.temper.md	322	MarkdownEditor.remove	exported			1	1	1	1	calls only	call:2	blockEditOf
+Kelpto	kelpto/kelpto-md/walk.temper.md	333	MarkdownEditor.toDocument	exported			1	1	1	1	calls only	call:4 ctor:1	blockSplices editAll
+Kelpto	kelpto/kelpto-md/walk.temper.md	339	blockEditOf	private			1	1	1	1	direct	bubble:1 call:1 ctor:1	
+Wherewith	wherewith/src/common-expressions.temper.md	274	CommonParser.parseExpression	private			1	1	1	1	direct	bubble:1 call:5	CommonParser.expression
+Wherewith	wherewith/src/common-expressions.temper.md	287	CommonParser.parseStatement	private			1	1	1	1	calls only	call:1 ctor:1	StatementParser.whole
+Wherewith	wherewith/src/common-expressions.temper.md	291	CommonParser.expression	private			1	1	1	1	calls only	call:2	CommonParser.disjunction CommonParser.enter
+Wherewith	wherewith/src/common-expressions.temper.md	298	CommonParser.disjunction	private			1	1	1	1	calls only	call:13 ctor:2	CommonParser.conjunction CommonParser.deep
+Wherewith	wherewith/src/common-expressions.temper.md	315	CommonParser.conjunction	private			1	1	1	1	calls only	call:13 ctor:2	CommonParser.deep CommonParser.negation
+Wherewith	wherewith/src/common-expressions.temper.md	332	CommonParser.negation	private			1	1	1	1	calls only	call:7 ctor:1	CommonParser.deep CommonParser.enter CommonParser.negation CommonParser.predicate
+Wherewith	wherewith/src/common-expressions.temper.md	343	CommonParser.predicate	private			1	1	1	1	direct	bubble:6 call:53 ctor:4 index:1	CommonParser.concatenation CommonParser.deep CommonParser.inPredicate
+Wherewith	wherewith/src/common-expressions.temper.md	403	CommonParser.inPredicate	private			1	1	1	1	calls only	call:13 ctor:3	CommonParser.expectSymbol CommonParser.expression CommonParser.subquery
+Wherewith	wherewith/src/common-expressions.temper.md	424	CommonParser.concatenation	private			1	1	1	1	calls only	call:15 ctor:2	CommonParser.deep CommonParser.sum CommonParser.tightBeside
+Wherewith	wherewith/src/common-expressions.temper.md	443	CommonParser.tightBeside	private			1	1	1	1	direct	bubble:1 call:1	
+Wherewith	wherewith/src/common-expressions.temper.md	451	CommonParser.sum	private			1	1	1	1	calls only	call:7 ctor:1	CommonParser.deep CommonParser.product
+Wherewith	wherewith/src/common-expressions.temper.md	466	CommonParser.product	private			1	1	1	1	calls only	call:7 ctor:1	CommonParser.deep CommonParser.unary
+Wherewith	wherewith/src/common-expressions.temper.md	481	CommonParser.unary	private			1	1	1	1	calls only	call:7 ctor:1	CommonParser.deep CommonParser.enter CommonParser.primary CommonParser.unary
+Wherewith	wherewith/src/common-expressions.temper.md	491	CommonParser.primary	private			1	1	1	1	direct	bubble:6 call:31 ctor:4	CommonParser.call CommonParser.caseExpr CommonParser.castExpr CommonParser.column CommonParser.deep CommonParser.expectSymbol CommonParser.expression CommonParser.need CommonParser.subquery
+Wherewith	wherewith/src/common-expressions.temper.md	564	CommonParser.subquery	private			1	1	1	1	direct	bubble:2 call:10 ctor:2	CommonParser.enter CommonParser.need StatementParser.nestedSelect StatementParser.select
+Wherewith	wherewith/src/common-expressions.temper.md	589	CommonParser.column	private			1	1	1	1	direct	bubble:1 call:8 ctor:2	CommonParser.name
+Wherewith	wherewith/src/common-expressions.temper.md	599	CommonParser.name	private			1	1	1	1	direct	bubble:2 call:5 ctor:1	CommonParser.need
+Wherewith	wherewith/src/common-expressions.temper.md	621	CommonParser.call	private			1	1	1	1	direct	bubble:3 call:30 ctor:3 index:1	CommonParser.deep CommonParser.expectSymbol CommonParser.expression
+Wherewith	wherewith/src/common-expressions.temper.md	660	CommonParser.caseExpr	private			1	1	1	1	direct	bubble:3 call:35 ctor:3	CommonParser.deep CommonParser.expression
+Wherewith	wherewith/src/common-expressions.temper.md	694	CommonParser.castExpr	private			1	1	1	1	direct	bubble:2 call:13 ctor:1	CommonParser.deep CommonParser.expectSymbol CommonParser.expression
+Wherewith	wherewith/src/common-expressions.temper.md	726	CommonParser.need	private			1	1	1	1	direct	bubble:1 call:2	
+Wherewith	wherewith/src/common-expressions.temper.md	812	CommonParser.expectSymbol	private			1	1	1	1	direct	bubble:1 call:5	
+Wherewith	wherewith/src/common-expressions.temper.md	823	CommonParser.enter	private			1	1	1	1	direct	bubble:1 call:2	
+Wherewith	wherewith/src/common-expressions.temper.md	831	CommonParser.deep	private			1	1	1	1	direct	bubble:1 call:1	
+Wherewith	wherewith/src/common-expressions.temper.md	1004	CommonChecker.check	private			1	1	1	1	calls only	call:30 ctor:3	CommonChecker.arithmetic CommonChecker.binary CommonChecker.call CommonChecker.caseKind CommonChecker.cast CommonChecker.chain CommonChecker.check CommonChecker.compare CommonChecker.condition CommonChecker.constant CommonChecker.fail CommonChecker.like CommonChecker.value StatementChecker.inSubquery StatementChecker.single StatementChecker.subquery
+Wherewith	wherewith/src/common-expressions.temper.md	1081	CommonChecker.value	private			1	1	1	1	calls only	call:10 index:1	CommonChecker.fail
+Wherewith	wherewith/src/common-expressions.temper.md	1134	CommonChecker.binary	private			1	1	1	1	calls only	call:24 index:1	CommonChecker.arithmetic CommonChecker.check CommonChecker.compare CommonChecker.constant CommonChecker.fail
+Wherewith	wherewith/src/common-expressions.temper.md	1180	CommonChecker.chain	private			1	1	1	1	calls only	call:6	CommonChecker.check CommonChecker.condition CommonChecker.fail
+Wherewith	wherewith/src/common-expressions.temper.md	1195	CommonChecker.like	private			1	1	1	1	calls only	call:11	CommonChecker.check CommonChecker.escaped CommonChecker.fail CommonChecker.textual
+Wherewith	wherewith/src/common-expressions.temper.md	1220	CommonChecker.escaped	private			1	1	1	1	calls only	call:10 index:3	CommonChecker.fail
+Wherewith	wherewith/src/common-expressions.temper.md	1243	CommonChecker.caseKind	private			1	1	1	1	calls only	call:16 ctor:2 index:3	CommonChecker.check CommonChecker.compare CommonChecker.condition CommonChecker.fail CommonChecker.mixed
+Wherewith	wherewith/src/common-expressions.temper.md	1270	CommonChecker.cast	private			1	1	1	1	calls only	call:9	CommonChecker.check CommonChecker.constant CommonChecker.fail
+Wherewith	wherewith/src/common-expressions.temper.md	1291	CommonChecker.call	private			1	1	1	1	calls only	call:30 ctor:2 index:21	CommonChecker.check CommonChecker.compare CommonChecker.constant CommonChecker.fail CommonChecker.mixed CommonChecker.numeric CommonChecker.textual
+Wherewith	wherewith/src/common-expressions.temper.md	1367	CommonChecker.condition	private			1	1	1	1	calls only	call:3	CommonChecker.fail
+Wherewith	wherewith/src/common-expressions.temper.md	1373	CommonChecker.arithmetic	private			1	1	1	1	calls only	call:3	CommonChecker.fail
+Wherewith	wherewith/src/common-expressions.temper.md	1377	CommonChecker.numeric	private			1	1	1	1	calls only	call:3	CommonChecker.fail
+Wherewith	wherewith/src/common-expressions.temper.md	1381	CommonChecker.textual	private			1	1	1	1	calls only	call:3	CommonChecker.fail
+Wherewith	wherewith/src/common-expressions.temper.md	1387	CommonChecker.compare	private			1	1	1	1	calls only	call:6	CommonChecker.fail
+Wherewith	wherewith/src/common-expressions.temper.md	1396	CommonChecker.mixed	private			1	1	1	1	calls only	call:7 index:2	CommonChecker.fail
+Wherewith	wherewith/src/common-expressions.temper.md	1423	CommonChecker.fail	private			1	1	1	1	direct	bubble:1 call:1	
+Wherewith	wherewith/src/common-expressions.temper.md	1644	CommonChecker.constant	private			1	1	1	1	calls only	call:3	CommonChecker.fail
+Wherewith	wherewith/src/common-statements.temper.md	151	StatementParser.whole	private			1	1	1	1	direct	bubble:1 call:5	StatementParser.statement
+Wherewith	wherewith/src/common-statements.temper.md	162	StatementParser.statement	private			1	1	1	1	direct	bubble:1 call:11	CommonParser.need StatementParser.deleteFrom StatementParser.insert StatementParser.nested StatementParser.select StatementParser.update
+Wherewith	wherewith/src/common-statements.temper.md	176	StatementParser.nested	private			1	1	1	1	calls only	call:3	StatementParser.ends StatementParser.statement
+Wherewith	wherewith/src/common-statements.temper.md	183	StatementParser.nestedSelect	private			1	1	1	1	direct	bubble:1 call:6	StatementParser.ends StatementParser.select
+Wherewith	wherewith/src/common-statements.temper.md	194	StatementParser.ends	private			1	1	1	1	direct	bubble:1 call:3	
+Wherewith	wherewith/src/common-statements.temper.md	205	StatementParser.select	private			1	1	1	1	direct	bubble:3 call:63 ctor:5 index:1	CommonParser.expression StatementParser.clause StatementParser.count StatementParser.expectKeyword StatementParser.fromSource StatementParser.joined StatementParser.orderItem StatementParser.selectItem
+Wherewith	wherewith/src/common-statements.temper.md	301	StatementParser.clause	private			1	1	1	1	direct	bubble:1 call:4	
+Wherewith	wherewith/src/common-statements.temper.md	312	StatementParser.selectItem	private			1	1	1	1	calls only	call:19 ctor:3	CommonParser.expression CommonParser.name CommonParser.need
+Wherewith	wherewith/src/common-statements.temper.md	337	StatementParser.fromSource	private			1	1	1	1	direct	bubble:2 call:12 ctor:2	CommonParser.need CommonParser.subquery StatementParser.sourceAlias StatementParser.tableName
+Wherewith	wherewith/src/common-statements.temper.md	357	StatementParser.sourceAlias	private			1	1	1	1	calls only	call:7	CommonParser.name
+Wherewith	wherewith/src/common-statements.temper.md	365	StatementParser.tableName	private			1	1	1	1	direct	bubble:1 call:8 ctor:2	CommonParser.name
+Wherewith	wherewith/src/common-statements.temper.md	380	StatementParser.joined	private			1	1	1	1	calls only	call:2	StatementParser.joinedAt
+Wherewith	wherewith/src/common-statements.temper.md	385	StatementParser.joinedAt	private			1	1	1	1	direct	bubble:2 call:15 ctor:1	CommonParser.expression StatementParser.expectKeyword StatementParser.fromSource
+Wherewith	wherewith/src/common-statements.temper.md	420	StatementParser.orderItem	private			1	1	1	1	direct	bubble:1 call:12 ctor:1	CommonParser.expression
+Wherewith	wherewith/src/common-statements.temper.md	451	StatementParser.count	private			1	1	1	1	direct	bubble:1 call:4 ctor:2	CommonParser.need
+Wherewith	wherewith/src/common-statements.temper.md	472	StatementParser.insert	private			1	1	1	1	direct	bubble:3 call:41 ctor:4	CommonParser.expectSymbol CommonParser.expression CommonParser.name StatementParser.expectKeyword StatementParser.nestedSelect StatementParser.select StatementParser.tableName
+Wherewith	wherewith/src/common-statements.temper.md	524	StatementParser.update	private			1	1	1	1	direct	bubble:1 call:20 ctor:3	CommonParser.expectSymbol CommonParser.expression CommonParser.name StatementParser.expectKeyword StatementParser.tableName StatementParser.where
+Wherewith	wherewith/src/common-statements.temper.md	549	StatementParser.deleteFrom	private			1	1	1	1	calls only	call:5 ctor:1	StatementParser.expectKeyword StatementParser.tableName StatementParser.where
+Wherewith	wherewith/src/common-statements.temper.md	557	StatementParser.where	private			1	1	1	1	calls only	call:4	CommonParser.expression
+Wherewith	wherewith/src/common-statements.temper.md	565	StatementParser.expectKeyword	private			1	1	1	1	direct	bubble:1 call:5	
+Wherewith	wherewith/src/common-statements.temper.md	729	StatementChecker.statement	private			1	1	1	1	calls only	call:5 ctor:1	NameCases.statement StatementChecker.deleteFrom StatementChecker.insert StatementChecker.select StatementChecker.update
+Wherewith	wherewith/src/common-statements.temper.md	750	StatementChecker.single	private			1	1	1	1	calls only	call:3 index:1	CommonChecker.fail StatementChecker.subquery
+Wherewith	wherewith/src/common-statements.temper.md	756	StatementChecker.subquery	private			1	1	1	1	calls only	call:1	StatementChecker.scoped
+Wherewith	wherewith/src/common-statements.temper.md	763	StatementChecker.scoped	private			1	1	1	1	calls only	call:1	StatementChecker.select
+Wherewith	wherewith/src/common-statements.temper.md	771	StatementChecker.inSubquery	private			1	1	1	1	calls only	call:2	CommonChecker.fail
+Wherewith	wherewith/src/common-statements.temper.md	780	StatementChecker.select	private			1	1	1	1	calls only	call:19 index:1	CommonChecker.check CommonChecker.condition CommonChecker.fail StatementChecker.aliases StatementChecker.constant StatementChecker.count StatementChecker.distinctOrder StatementChecker.grouping StatementChecker.itemNames StatementChecker.places StatementChecker.sources
+Wherewith	wherewith/src/common-statements.temper.md	823	StatementChecker.sources	private			1	1	1	1	calls only	call:5 ctor:1 index:1	CommonChecker.check CommonChecker.condition StatementChecker.joinedLater StatementChecker.source
+Wherewith	wherewith/src/common-statements.temper.md	838	StatementChecker.source	private			1	1	1	1	calls only	call:8 index:1	CommonChecker.fail StatementChecker.derived StatementChecker.scoped
+Wherewith	wherewith/src/common-statements.temper.md	859	StatementChecker.joinedLater	private			1	1	1	1	calls only	call:7 index:1	CommonChecker.fail StatementChecker.joinedLater
+Wherewith	wherewith/src/common-statements.temper.md	882	StatementChecker.derived	private			1	1	1	1	calls only	call:7 ctor:1 index:1	CommonChecker.fail
+Wherewith	wherewith/src/common-statements.temper.md	918	StatementChecker.places	private			1	1	1	1	calls only	call:7 index:2	CommonChecker.fail StatementChecker.itemPlace
+Wherewith	wherewith/src/common-statements.temper.md	948	StatementChecker.itemPlace	private			1	1	1	1	calls only	call:4	CommonChecker.fail
+Wherewith	wherewith/src/common-statements.temper.md	963	StatementChecker.constant	private			1	1	1	1	calls only	call:2	CommonChecker.fail
+Wherewith	wherewith/src/common-statements.temper.md	978	StatementChecker.count	private			1	1	1	1	calls only	call:5	CommonChecker.fail
+Wherewith	wherewith/src/common-statements.temper.md	997	StatementChecker.aliases	private			1	1	1	1	calls only	call:12 ctor:1	StatementChecker.aliasRefs StatementChecker.orderAlias StatementChecker.outputNames
+Wherewith	wherewith/src/common-statements.temper.md	1034	StatementChecker.aliasRefs	private			1	1	1	1	calls only	call:6 index:1	CommonChecker.fail StatementChecker.aliasRefs
+Wherewith	wherewith/src/common-statements.temper.md	1075	StatementChecker.orderAlias	private			1	1	1	1	calls only	call:8	CommonChecker.fail
+Wherewith	wherewith/src/common-statements.temper.md	1101	StatementChecker.outputNames	private			1	1	1	1	calls only	call:10 ctor:1	CommonChecker.fail
+Wherewith	wherewith/src/common-statements.temper.md	1140	StatementChecker.itemNames	private			1	1	1	1	calls only	call:18 ctor:3 index:5	CommonChecker.fail StatementChecker.itemNameRefs
+Wherewith	wherewith/src/common-statements.temper.md	1194	StatementChecker.itemNameRefs	private			1	1	1	1	calls only	call:6	CommonChecker.fail StatementChecker.itemNameRefs
+Wherewith	wherewith/src/common-statements.temper.md	1216	StatementChecker.grouping	private			1	1	1	1	calls only	call:12 ctor:2 index:5	CommonChecker.fail StatementChecker.ungrouped
+Wherewith	wherewith/src/common-statements.temper.md	1259	StatementChecker.ungrouped	private			1	1	1	1	calls only	call:7 index:1	CommonChecker.fail StatementChecker.ungrouped
+Wherewith	wherewith/src/common-statements.temper.md	1313	StatementChecker.distinctOrder	private			1	1	1	1	calls only	call:5 ctor:1 index:1	CommonChecker.fail
+Wherewith	wherewith/src/common-statements.temper.md	1341	StatementChecker.insert	private			1	1	1	1	calls only	call:8 index:2	CommonChecker.check CommonChecker.fail StatementChecker.reads StatementChecker.select StatementChecker.twice
+Wherewith	wherewith/src/common-statements.temper.md	1368	StatementChecker.update	private			1	1	1	1	calls only	call:13 ctor:1 index:3	CommonChecker.check CommonChecker.condition StatementChecker.reads StatementChecker.setEarlier StatementChecker.twice
+Wherewith	wherewith/src/common-statements.temper.md	1386	StatementChecker.deleteFrom	private			1	1	1	1	calls only	call:4	CommonChecker.check CommonChecker.condition StatementChecker.reads
+Wherewith	wherewith/src/common-statements.temper.md	1394	StatementChecker.twice	private			1	1	1	1	calls only	call:7 index:4	CommonChecker.fail
+Wherewith	wherewith/src/common-statements.temper.md	1409	StatementChecker.setEarlier	private			1	1	1	1	calls only	call:8	CommonChecker.fail StatementChecker.setEarlier
+Wherewith	wherewith/src/common-statements.temper.md	1429	StatementChecker.reads	private			1	1	1	1	calls only	call:11 ctor:1 index:1	CommonChecker.fail StatementChecker.reads
+Wherewith	wherewith/src/common-statements.temper.md	1521	NameCases.statement	private			1	1	1	1	calls only	call:11	NameCases.expr NameCases.name NameCases.optional NameCases.select NameCases.table
+Wherewith	wherewith/src/common-statements.temper.md	1546	NameCases.select	private			1	1	1	1	calls only	call:10	NameCases.expr NameCases.name NameCases.optional NameCases.source
+Wherewith	wherewith/src/common-statements.temper.md	1567	NameCases.source	private			1	1	1	1	calls only	call:3	NameCases.name NameCases.select NameCases.table
+Wherewith	wherewith/src/common-statements.temper.md	1576	NameCases.table	private			1	1	1	1	calls only	call:2	NameCases.name
+Wherewith	wherewith/src/common-statements.temper.md	1582	NameCases.optional	private			1	1	1	1	calls only	call:1	NameCases.expr
+Wherewith	wherewith/src/common-statements.temper.md	1586	NameCases.expr	private			1	1	1	1	calls only	call:5	NameCases.expr NameCases.name NameCases.select
+Wherewith	wherewith/src/common-statements.temper.md	1601	NameCases.name	private			1	1	1	1	calls only	call:8 index:1	CommonChecker.fail
+Wherewith	wherewith/src/core.temper.md	133	Dialect.quoteName	exported			1	1	1	1	direct	bubble:1 call:2	
+Wherewith	wherewith/src/core.temper.md	178	Dialect.quoteString	exported			1	1	1	1	direct	bubble:1 call:6 ctor:1 index:1	
+Wherewith	wherewith/src/core.temper.md	251	Identifier.named	exported			1	1	1	1	direct	bubble:1 call:1 ctor:1	
+Wherewith	wherewith/src/query.temper.md	98	Query.checked	exported			1	1	1	1	direct	bubble:1 ctor:1	
+Wherewith	wherewith/src/query.temper.md	129	Query.render	exported			1	1	1	1	direct	bubble:1 call:5 ctor:1	
+Wherewith	wherewith/src/query.temper.md	192	Query.renderedParts	exported			1	1	1	1	direct	bubble:1 call:1	
+Wherewith	wherewith/src/query.temper.md	561	QueryBuilder.build	exported			1	1	1	1	direct	bubble:1 call:5	Query.checked
+std	tempest/lib/std/json/json.temper.md	212	JsonObject.propertyValueOrBubble	exported			0	0	0	0		as:1 call:1	
+std	tempest/lib/std/json/json.temper.md	266	JsonNumeric.asInt32	exported	abstract		1	0	1	1	calls only		JsonNumericToken.asInt32
+std	tempest/lib/std/json/json.temper.md	267	JsonNumeric.asInt64	exported	abstract		1	0	1	1	calls only		JsonNumericToken.asInt64
+std	tempest/lib/std/json/json.temper.md	268	JsonNumeric.asFloat64	exported	abstract		1	0	1	1	calls only		JsonNumericToken.asFloat64
+std	tempest/lib/std/json/json.temper.md	284	JsonInt32.asInt32	exported		JsonNumeric.asInt32	0	0	0	0			
+std	tempest/lib/std/json/json.temper.md	287	JsonInt32.asInt64	exported		JsonNumeric.asInt64	0	0	0	0		call:1	
+std	tempest/lib/std/json/json.temper.md	290	JsonInt32.asFloat64	exported		JsonNumeric.asFloat64	0	0	0	0		call:1	
+std	tempest/lib/std/json/json.temper.md	305	JsonInt64.asInt32	exported		JsonNumeric.asInt32	0	0	1	0		call:1	
+std	tempest/lib/std/json/json.temper.md	307	JsonInt64.asInt64	exported		JsonNumeric.asInt64	0	0	0	0			
+std	tempest/lib/std/json/json.temper.md	310	JsonInt64.asFloat64	exported		JsonNumeric.asFloat64	0	0	1	0		call:1	
+std	tempest/lib/std/json/json.temper.md	324	JsonFloat64.asInt32	exported		JsonNumeric.asInt32	0	0	1	0		call:1	
+std	tempest/lib/std/json/json.temper.md	326	JsonFloat64.asInt64	exported		JsonNumeric.asInt64	0	0	1	0		call:1	
+std	tempest/lib/std/json/json.temper.md	328	JsonFloat64.asFloat64	exported		JsonNumeric.asFloat64	0	0	0	0			
+std	tempest/lib/std/json/json.temper.md	343	JsonNumericToken.asInt32	exported		JsonNumeric.asInt32	1	0	1	1	direct	call:2	String.toFloat64
+std	tempest/lib/std/json/json.temper.md	348	JsonNumericToken.asInt64	exported		JsonNumeric.asInt64	1	0	1	1	direct	call:2	String.toFloat64
+std	tempest/lib/std/json/json.temper.md	353	JsonNumericToken.asFloat64	exported		JsonNumeric.asFloat64	1	0	1	1	direct	call:1	String.toFloat64
+std	tempest/lib/std/json/json.temper.md	493	JsonTextProducer.toJsonString	exported			1	1	1	0	direct	bubble:1 call:2	
+std	tempest/lib/std/json/json.temper.md	691	JsonSyntaxTreeProducer.toJsonSyntaxTree	exported			1	1	1	1	direct	bubble:2 index:2	
+std	tempest/lib/std/json/json.temper.md	1259	parseJson	exported			1	1	1	1	calls only	call:2 ctor:1	JsonSyntaxTreeProducer.toJsonSyntaxTree
+std	tempest/lib/std/json/json.temper.md	1275	JsonAdapter.decodeFromJson	exported	abstract		1	1	1	1	direct		Float64JsonAdapter.decodeFromJson Int32JsonAdapter.decodeFromJson Int64JsonAdapter.decodeFromJson ListJsonAdapter.decodeFromJson OrNullJsonAdapter.decodeFromJson
+std	tempest/lib/std/json/json.temper.md	1285	BooleanJsonAdapter.decodeFromJson	private		JsonAdapter.decodeFromJson	0	0	0	0		as:1	
+std	tempest/lib/std/json/json.temper.md	1299	Float64JsonAdapter.decodeFromJson	private		JsonAdapter.decodeFromJson	1	0	1	1	calls only	as:1 call:1	JsonNumeric.asFloat64
+std	tempest/lib/std/json/json.temper.md	1313	Int32JsonAdapter.decodeFromJson	private		JsonAdapter.decodeFromJson	1	0	1	1	calls only	as:1 call:1	JsonNumeric.asInt32
+std	tempest/lib/std/json/json.temper.md	1327	Int64JsonAdapter.decodeFromJson	private		JsonAdapter.decodeFromJson	1	0	1	1	calls only	as:1 call:1	JsonNumeric.asInt64
+std	tempest/lib/std/json/json.temper.md	1341	StringJsonAdapter.decodeFromJson	private		JsonAdapter.decodeFromJson	0	0	0	0		as:1	
+std	tempest/lib/std/json/json.temper.md	1361	ListJsonAdapter.decodeFromJson	private		JsonAdapter.decodeFromJson	1	0	1	1	calls only	as:1 call:3 ctor:1 index:1	JsonAdapter.decodeFromJson
+std	tempest/lib/std/json/json.temper.md	1390	OrNullJsonAdapter.decodeFromJson	exported		JsonAdapter.decodeFromJson	1	0	1	1	calls only	call:1	JsonAdapter.decodeFromJson
+std	tempest/lib/std/regex/regex.temper.md	68	RegexNode.find	exported			1	0	1	1	calls only	call:2	Regex.find
+std	tempest/lib/std/regex/regex.temper.md	425	Regex.find	exported			1	1	1	1	direct	call:1	Regex.compiledFind
+std	tempest/lib/std/regex/regex.temper.md	451	Regex.compiledFind	private	abstract		1	1	1	1	direct		
+std	tempest/lib/std/temporal/temporal.temper.md	112	Date.constructor	exported			1	1	1	1	direct	bubble:1 call:1 index:1	
+std	tempest/lib/std/temporal/temporal.temper.md	142	Date.fromIsoString	exported			1	1	1	1	direct	bubble:2 call:14 ctor:1 index:2	Date.constructor String.toInt32
+std	tempest/lib/std/temporal/temporal.temper.md	255	Date.decodeFromJson	exported			1	1	1	1	calls only	as:1 call:1	Date.fromIsoString
+std	tempest/lib/std/testing/testing.temper.md	25	Test.assertHard	exported			1	1	1	0	calls only	call:1	Test.bail
+std	tempest/lib/std/testing/testing.temper.md	43	Test.softFailToHard	exported			1	1	1	0	calls only	call:1	Test.bail
+std	tempest/lib/std/testing/testing.temper.md	54	Test.bail	private			1	1	1	0	direct	bubble:1	
+std	tempest/lib/std/testing/testing.temper.md	186	runTest	exported			1	1	1	0	calls only	call:1 ctor:1	Test.softFailToHard
+core	tempest/lib/core/core.temper	176	Generator.next	exported	abstract		1	1	1	1	direct		
+core	tempest/lib/core/core.temper	220	SafeGenerator.next	exported		Generator.next	1	1	1	1	direct	call:1	
+core	tempest/lib/core/core.temper	264	GeneratorFnWrapper.next	private		Generator.next	1	1	1	1	direct	call:1	
+core	tempest/lib/core/core.temper	391	String.fromCodePoint	exported	abstract		0	0	0	0			
+core	tempest/lib/core/core.temper	395	String.fromCodePoints	exported	abstract		0	0	0	0			
+core	tempest/lib/core/core.temper	631	String.toFloat64	exported	abstract		1	1	1	1	direct		
+core	tempest/lib/core/core.temper	635	String.toInt32	exported	abstract		1	1	1	1	direct		
+core	tempest/lib/core/core.temper	639	String.toInt64	exported	abstract		1	1	1	1	direct		
+core	tempest/lib/core/core.temper	771	StringBuilder.appendCodePoint	exported			0	0	0	0		call:2	
+core	tempest/lib/core/core.temper	1167	Mapped.get	exported			0	0	0	0		bubble:1 call:1 ctor:1 index:1	
+core	tempest/lib/core/core.temper	1341	MapBuilder.remove	exported	abstract		0	0	0	0			
+core	tempest/lib/core/core.temper	1547	Int64.toFloat64	exported	abstract		0	0	0	0			
+core	tempest/lib/core/core.temper	1559	Int64.toInt32	exported	abstract		0	0	0	0			
+core	tempest/lib/core/core.temper	1615	Float64.toInt32	exported	abstract		0	0	0	0			
+core	tempest/lib/core/core.temper	1626	Float64.toInt64	exported	abstract		0	0	0	0			
