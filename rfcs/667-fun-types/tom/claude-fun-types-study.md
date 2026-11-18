@@ -518,6 +518,9 @@ discussion, not applied):
   `Consumer<String>`.
 - **std regex:** a new `Replacer(match: Match): String` for `replace`.
 - Nothing else in std has function types.
+- These new core members are this RFC's to define; the broader core
+  cleanup in [RFC 671](../../671-core-cleanup/tom/claude-core-cleanup.md)
+  doesn't add them.
 
 **Found while checking the draft:** generic `@fun interface`s (such as
 `Mapper<T, R>`) run on the interpreter but tempest's translation stops
