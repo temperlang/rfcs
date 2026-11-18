@@ -163,8 +163,8 @@ handles it uniformly, but Temper source can't name or hold one.
 **Failure parameters.** A higher-order function is generic over its
 callback's failure type, as with Swift 6's typed `throws(E)`, instead of
 a special `rethrows` keyword. `E` is bounded by a root interface every
-declared failure type extends (`Failure` for now), and a function type
-without `throws` means `throws Never<Failure>`, a failure that can't
+declared failure type extends (`Error`), and a function type
+without `throws` means `throws Never<Error>`, a failure that can't
 happen. Inference fills `E` at each call: a callback that can't fail
 needs no `try` and propagates nothing. The body can only propagate or
 handle the callback's failure, never hold it as a result. One rule
@@ -176,14 +176,14 @@ earlier draft had `capture { … }` turning a failure into a held
 `Result<T, E>`; it could be added later if real code shows the need.
 
 ```temper
-// HYPOTHETICAL: failure parameter `E`, bounded by `Failure`.
+// HYPOTHETICAL: failure parameter `E`, bounded by `Error`.
 public map<T, R, E>(xs: List<T>, f: fn (T): R throws E): List<R> throws E {
   let out = new ListBuilder<R>();
   for (let x of xs) { out.add(f(x)!); }
   out.toList()
 }
 
-let doubled = map(xs, fn (x: Int): Int { x * 2 });   // E = Never<Failure>: no marker
+let doubled = map(xs, fn (x: Int): Int { x * 2 });   // E = Never<Error>: no marker
 let ids = map(texts, fn (t: String): Int throws SqlProblem { parseId(t)! })!;
 var problem: SqlProblem? = null;                      // keep the outcome
 let node = parse(s) catch (e) { problem = e; null };

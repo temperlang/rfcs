@@ -27,7 +27,7 @@ message and cause for host code. The compiler represents `T throws E`
 internally as an ordinary generic result type, but Temper source can't
 name or hold a result. A higher-order function is generic over its
 callback's failure type, as with Swift 6's typed `throws(E)`; a callback
-that can't fail instantiates it as `Never<Failure>`. Code that needs to
+that can't fail instantiates it as `Never<Error>`. Code that needs to
 keep an outcome stores the failure object itself. Propagation is
 explicit with an expression-wide `try`; `orelse` gives defaults, `catch`
 binds the failure in a block, and `return`, `break`, and `continue`
@@ -110,7 +110,7 @@ hold a result: not in the first version.
    ([common ground](claude-common-ground.md#host-facing-failure-types)).
    Only declared failure types can be thrown, so each maps to one host
    class or variant with no wrapper. Every declared failure type extends
-   a root interface in core, named `Failure` for now
+   a root interface in core, named `Error`
    ([naming](#naming-the-root)).
 3. **`error case` sugar** (proposed, from Tom's notes):
    `error case NotFound;` declares a failure class with no fields,
@@ -135,14 +135,14 @@ hold a result: not in the first version.
    parameter,** as with Swift 6's typed `throws(E)`, instead of a special
    `rethrows` keyword:
    `map<T, R, E>(xs: List<T>, f: fn (T): R throws E): List<R> throws E`.
-   - `E` is bounded by the root: `E extends Failure`, written or implied
+   - `E` is bounded by the root: `E extends Error`, written or implied
      by its use after `throws`.
-   - A function type without `throws` means `throws Never<Failure>`.
-     Under Temper's `Never<T>` rules, `Never<Failure>` is a subtype of
-     `Failure` only and has no values, so it fits the bound and means "a
+   - A function type without `throws` means `throws Never<Error>`.
+     Under Temper's `Never<T>` rules, `Never<Error>` is a subtype of
+     `Error` only and has no values, so it fits the bound and means "a
      failure that can't happen".
    - Inference fills `E` at each call, so users never write it: a
-     callback that can't fail gives `Never<Failure>`, and the call needs
+     callback that can't fail gives `Never<Error>`, and the call needs
      no `try`; one that throws `SqlProblem` needs `try` or a handler. A
      function that can't fail is also accepted where a failing one is
      expected.
@@ -150,7 +150,7 @@ hold a result: not in the first version.
      failure object if it likes. It can't store a result, since item 5
      forbids holding one: no effect system beyond that.
    - Exported failure types stay sealed and non-generic. A generic `E` is
-     instantiated with a concrete declared type or `Never<Failure>` at
+     instantiated with a concrete declared type or `Never<Error>` at
      each use, so every failure reaching a host has a concrete type.
 7. **Keeping an outcome means keeping the failure object.** No `capture`
    in the first version: code that needs an outcome later stores the
@@ -172,7 +172,7 @@ hold a result: not in the first version.
 
 ```temper
 // Proposed: `error case`, `throws`, prefix `try`, `catch`, and failure
-// parameters (`E`, bounded by `Failure` through its use after `throws`).
+// parameters (`E`, bounded by `Error` through its use after `throws`).
 export error case SqlProblem(public text: String, public word: Int);
 
 public select(): Select throws SqlProblem {
@@ -192,7 +192,7 @@ public map<T, R, E>(xs: List<T>, f: fn (T): R throws E): List<R> throws E {
   out.toList()
 }
 
-let doubled = map(xs, fn (x: Int): Int { x * 2 });  // E = Never<Failure>: no `try`
+let doubled = map(xs, fn (x: Int): Int { x * 2 });  // E = Never<Error>: no `try`
 let ids = try map(texts, fn (t: String): Int throws SqlProblem { try parseId(t) });
 
 var problem: SqlProblem? = null;                     // keep the outcome
@@ -207,8 +207,8 @@ propagating expression; Wherewith's `problem` field, `report`, and
 ### Syntax
 
 All proposed; the spellings of `try` and failure parameters are open
-([options](claude-syntax-options.md)), and the root's name is `Failure`
-for now ([naming](#naming-the-root)).
+([options](claude-syntax-options.md)), and the root is named `Error`
+([naming](#naming-the-root)).
 
 - **`try` marks propagation for the whole expression to its right,** as
   in Swift: `let c = try lookup(s).column().type();`. A failure goes to
@@ -254,13 +254,19 @@ let v = do { try a(); try b() } catch (e) {
 
 ### Naming the root
 
-The root is `Failure` for now. Mike first chose "bubble" so it wouldn't
-sound like failure, but nullables are the clearest way to express a
-non-value that doesn't imply failure (absence), so `throws` and
-`Failure` are left for actual failures. Considered: `Error`, overloaded
-in JS, Rust, Go, and Swift, and in Java, where `Error` means panic-like
-problems; `Exception`, which names a mechanism and suggests a
-catch-anything root; `Fault`; and `Problem`, which core already has as a
+The root is `Error`, the most common name across languages: JS, Python
+(by PEP 8's suffix convention), Rust, Swift, and Go all use it, and
+Temper favors common names. Tom would like `Exception` for its broader
+meaning, but it's longer and less common across languages. Mike first
+chose "bubble" so it wouldn't sound like failure, but nullables are the
+clearest way to express a non-value that doesn't imply failure, so
+`throws` and `Error` are for real errors. It also fits the names
+programmers already bind, `e` and `err` (`catch (e) { … }`). Java's
+`java.lang.Error` ("don't catch") doesn't matter: the root never
+appears in host code. Considered: `Failure`, the earlier working name,
+which breaks that habit (`f`), clashes with test-failure vocabulary in
+std testing, and is a new word to learn;
+`Exception`; `Fault`; and `Problem`, which core already has as a
 builtin.
 
 ### Builtins: panic or fail
@@ -309,9 +315,26 @@ Rules across backends
   library's name in its namespace, and each library gets one generated
   base (`WherewithException` in C# and Java, `WherewithError` elsewhere,
   an `Error` interface in Go, an `Error` enum in Rust, a metatable in
-  Lua). A `throws Bubble` failure surfaces as that base. `TemperBubble`
+  Lua). A `throws Bubble` failure surfaces as that base. The root
+  `Error` never appears in host code; in Java and C# the library base
+  extends `RuntimeException` or `Exception`. `TemperBubble`
   and `temper_core::Error` leave the host API. A category such as
   `ValueError` joins the base only where the host allows it (Python, Go).
+- **Host names follow the host (proposed).** Libraries name their own
+  types in Temper: `export sealed interface WherewithError extends
+  Error`, `class SqlProblem(…) extends WherewithError`. The Java, C#,
+  and Kotlin backends own one rule: a type extending the root whose name
+  ends in `Error` ends in `Exception` instead (`WherewithException`).
+  Other names (`SqlProblem`) stay as written, with nothing appended.
+  Clashes go through the existing clash handling, private names renamed
+  first; per-backend overrides come from the planned naming RFC (say,
+  `@name(java = "…")`), and host-facing names are recorded in
+  `temper.keep`.
+
+  | Hosts | `WherewithError` | `SqlProblem` |
+  |---|---|---|
+  | C#, Java, Kotlin | `WherewithException` | `SqlProblem` |
+  | Go, JS, Python, Rust, Swift | `WherewithError` | `SqlProblem` |
 - **No result types in host APIs.** Since Temper code can't hold a
   result, no exported function takes or returns one; hosts see only
   their own forms (a throw, `Result`, `(T, error)`, `nil, failure`).
@@ -326,19 +349,14 @@ Rules across backends
   `__cause__`, `cause`, `source()`, `Unwrap()`). Equality and hashing
   aren't required; no host uses them to pick a handler.
 - **Stack traces only where a failure may escape.** With explicit
-  propagation, the compiler knows where a failure created may reach an
-  exported function unhandled, and captures a trace only there; the JVM
-  otherwise uses `writableStackTrace = false`, JS skips the stack, and
-  C# records the origin with `ExceptionDispatchInfo.SetCurrentStackTrace`
-  when it throws a carried failure at the boundary.
+  propagation, the compiler knows where a failure may reach an exported
+  function unhandled, and captures a trace only there.
 - **Naming, first pass: the host's default form only**
   ([naming rule](claude-common-ground.md#naming-across-failure-styles)).
   In Temper source the plain name fails (`parseSelect`), `…OrNull` gives
   `T?`, and `…Or(fallback)` a fallback; no `…OrBubble`, `…Safe`, or
   panicking variants by name. Generated host APIs use each host's plain
-  form and no `Try…` or `Must…` twins; a library could later ask for one
-  where failure is a common outcome, as .NET reserves the Try pattern.
-  Generated names are recorded in `temper.keep`.
+  form and no `Try…` or `Must…` twins.
 - **Representation is each backend's choice,** with identical behavior
   checked by shared tests
   ([values sketch](claude-proposal-values.md#semantics-and-representation-are-separate-choices)).
@@ -349,7 +367,7 @@ Rules across backends
   parameter costs them nothing, since the failure propagates through the
   generic function. C++ and Rust use value types, generic over `E`
   (Rust's `fn map<T, R, E>(…) -> Result<Vec<R>, E>`, with an uninhabited
-  error type for `Never<Failure>`); Go, Zig, and C use error values. A
+  error type for `Never<Error>`); Go, Zig, and C use error values. A
   `throw` handled in the same function, directly or after inlining,
   becomes a branch
   ([common ground](claude-common-ground.md#lowering-a-local-failure-to-a-branch)).
@@ -387,7 +405,7 @@ the compiler's generic machinery carry failure. If a fallible `f` given
 to `map<T, R>` instantiated `R` as a result, `map` could store it, and
 results would be first-class. Instead, failure gets its own parameter:
 `R` never binds a result, and `E` binds only a failure type or
-`Never<Failure>`, so generic code can propagate or handle `E` but never
+`Never<Error>`, so generic code can propagate or handle `E` but never
 hold it, with no rule beyond the bound
 ([why generics decide](claude-recommendation.md#why-generics-decide-the-semantics)).
 Swift took the same path, from `rethrows` to typed `throws(E)`, where
@@ -402,7 +420,7 @@ It removes Kotlin's special cases
   ([#108](https://github.com/temperlang/temper/issues/108)), and
   `Bubble` isn't a nominal type, so it can't be a bound
   ([#109](https://github.com/temperlang/temper/issues/109)). Here
-  `Failure` is a nominal interface, and stripping `E` is ordinary
+  `Error` is a nominal interface, and stripping `E` is ordinary
   `Result<T, E>` handling.
 - **Inlined `forEach`.** `forEach<T, E>(f: fn (T): Void throws E): Void
   throws E` propagates without inlining.
@@ -453,7 +471,7 @@ Exception-style syntax then tells the truth: no value is ever a result.
   hosts throw a wrapper, so host code sees two names
   ([details](claude-proposal-values-details.md#any-type-as-a-failure)).
 - **A dedicated empty failure type** for "can't fail", like Rust's
-  `std::convert::Infallible`, instead of `Never<Failure>`: as good, but a
+  `std::convert::Infallible`, instead of `Never<Error>`: as good, but a
   second spelling of what `Never` already means. The root needs a name
   either way.
 - **Syntax alternatives**
@@ -530,7 +548,7 @@ far as possible.
    their messages; test runners that report a panicking test and keep
    going; and per-library failure types with no Temper names.
 2. **Semantics as generic types,** in the frontend and tmpl: core gains
-   the `Failure` root and a well-known generic `Result<T, E>`, outside
+   the `Error` root and a well-known generic `Result<T, E>`, outside
    `AnyValue`. Tmpl's `bubbles: bool` on signatures and function types,
    and the `MAY_BUBBLE` flag on calls, become that result type, so
    failure parameters are ordinary type parameters that the existing
@@ -563,7 +581,7 @@ explorations found.
   which builtins panic and which inputs fail, panics in callbacks and
   test runners.
 - Failure parameters: higher-order helpers given callbacks that can and
-  can't fail (no `try` needed for `Never<Failure>`), handlers inside
+  can't fail (no `try` needed for `Never<Error>`), handlers inside
   generic code, `await`, generators, and type-checker rejections (a
   fallible call without `try` or a handler, `E` bound to a non-failure
   type).
@@ -585,7 +603,7 @@ rule joins the style guide.
 ## Open issues
 
 - Spellings of `try` and of failure parameters (whether
-  `E extends Failure` is written or implied); and `tryX` names, which
+  `E extends Error` is written or implied); and `tryX` names, which
   read ambiguously beside a `try` keyword
   ([common ground](claude-common-ground.md#naming-across-failure-styles)).
 - Whether real code later needs capture or holdable results: APIs that

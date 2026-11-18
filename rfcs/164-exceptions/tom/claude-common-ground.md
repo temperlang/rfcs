@@ -110,7 +110,9 @@ the [translations](claude-translations/README.md) show each one.
   is generated under its own name in the library's namespace, and each
   library gets one generated base: a class in C++, C#, Java, JavaScript,
   and Python (`WherewithException` in C# and Java, by their naming rules;
-  `WherewithError` elsewhere), an `Error` interface in Go, an `Error` enum
+  `WherewithError` elsewhere; proposed: the Java, C#, and Kotlin backends
+  turn a final `Error` into `Exception` in names of types extending the
+  core root `Error`, which itself never appears in host code), an `Error` interface in Go, an `Error` enum
   in Rust, a metatable in Lua. Host code catches everything from one
   library with it, as Python code catches `requests.RequestException`.
   A `throws Bubble` failure, which has no detail, surfaces as that base

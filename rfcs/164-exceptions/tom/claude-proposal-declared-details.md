@@ -24,17 +24,17 @@ lowering treat it like any generic type. `Result` isn't a subtype of
 result type, and Temper source can't name it.
 
 **Typing.** A failure parameter is an ordinary type parameter bounded by
-the root every declared failure type extends: `E extends Failure`
-(`Failure` for now), written or implied by its use after `throws`. A
-function type without `throws` means `throws Never<Failure>`, which
-under Temper's `Never<T>` rules is a subtype of `Failure` only and has
+the root every declared failure type extends: `E extends Error`,
+written or implied by its use after `throws`. A
+function type without `throws` means `throws Never<Error>`, which
+under Temper's `Never<T>` rules is a subtype of `Error` only and has
 no values: a failure that can't happen. Inference fills `E` at each call
 from the argument, so `map(xs, fn (x: Int): Int { x * 2 })` needs no
 marker, while a callback that throws `SqlProblem` makes the call need
 one. A function type that can't fail is also accepted where one that
 throws a concrete failure type is expected, which fixes a non-failing
 function passed as a failing `@fun interface`. An alternative to
-`Never<Failure>` is a dedicated empty sealed failure type, like Rust's
+`Never<Error>` is a dedicated empty sealed failure type, like Rust's
 `std::convert::Infallible`; the root needs a name either way.
 
 **The body's rule.** A function generic over `E` may call its callback
@@ -47,14 +47,14 @@ as usual.
 
 **Why generic `E` is safe for hosts.** Exported failure types stay
 sealed and non-generic. A failure parameter is instantiated at each use
-with a concrete declared failure type or `Never<Failure>`, so every
+with a concrete declared failure type or `Never<Error>`, so every
 failure that reaches a host is of a concrete type.
 
 **Representation.** On exception backends, failure parameters need
 nothing: the failure propagates through the erased generic function. On
 value backends `E` is a generic error parameter (Rust's
 `fn map<T, R, E>(…) -> Result<Vec<R>, E>`, with an uninhabited error
-type for `Never<Failure>`; C++ templates over `E`), or erased to the
+type for `Never<Error>`; C++ templates over `E`), or erased to the
 host's error type (Go's `error`, a status code in C). Handlers inside
 generic code can't name one library's type, so on hosts without
 generic catch they need a marker every library base carries, or a type

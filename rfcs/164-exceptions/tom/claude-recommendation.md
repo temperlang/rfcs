@@ -74,8 +74,8 @@ internally, lets failure polymorphism fall out of ordinary generics:
   riding in `R`:
   `map<T, R, E>(xs: List<T>, f: fn (T): R throws E): List<R> throws E`.
   `R` never binds a result, since results aren't `AnyValue`; `E` is
-  bounded by the failure root (`Failure` for now) and is
-  `Never<Failure>` when `f` can't fail, so that call needs no `try`. The
+  bounded by the failure root (`Error`) and is
+  `Never<Error>` when `f` can't fail, so that call needs no `try`. The
   body can only propagate or handle `f`'s failure, never hold it, with
   no effect system beyond "results can't be held". Swift went the same
   way, from `rethrows` to typed `throws(E)`.
@@ -194,7 +194,7 @@ Exported functions follow the
   to watch.
 - Spelling of the propagation marker (postfix `?` collides with `?.`;
   postfix `!` reads as a non-null assertion) and of failure parameters.
-  The root is `Failure` for now; `Error`, `Exception`, `Fault`, and
+  The root is `Error`; `Failure`, `Exception`, `Fault`, and
   `Problem` were considered
   ([naming the root](claude-proposal.md#naming-the-root)).
 - Whether exported failures must be declared failure types.
