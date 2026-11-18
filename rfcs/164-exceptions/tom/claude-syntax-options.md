@@ -5,6 +5,8 @@ By Claude, 2026-11-18, as input for the syntax question in
 is **hypothetical syntax**; none of it parses today except option A. The
 semantics question (first-class results, the middle ground, or in-flight
 only) is separate; notes say where an option fits one better.
+[Option 0, no failure support](claude-option-no-failures.md), needs
+none of this beyond task 6 and `return` as an expression.
 
 Each option shows the same six tasks:
 
@@ -12,8 +14,9 @@ Each option shows the same six tasks:
 2. **Propagate through a chain** of calls.
 3. **Default** a failure to a value.
 4. **Bind** the failure and match its variants.
-5. **Hold** a result as a value (first-class results or the middle
-   ground's capture).
+5. **Keep an outcome** for later: hold a result as a value (first-class
+   results), or keep the failure object (the middle ground, where
+   capture into a held result is deferred).
 6. **Default a null**, for comparison.
 
 The examples use `name(...)`, `keyword(...)`, `parse(...)`, and `lookup(...)`
@@ -43,7 +46,7 @@ let n = name("a column") catch (e) { when (e) {         // 4
   is MissingValue -> "";
   is UnknownWord -> panic();
 } };
-let r = capture name("a column");                       // 5 (middle ground)
+let n = name("a column") catch (e) { kept = e; "" };    // 5: keep the failure object
 let x = findCached(k) ?? fallback;                      // 6
 ```
 
@@ -57,8 +60,8 @@ let n = try name("a column");                           // 1
 let c = try lookup(s).column().type();                  // 2: one try covers every call in the expression
 let n = name("a column") orelse "";                     // 3
 let n = name("a column") catch (e) { when (e) { … } };  // 4
-let r = try? name("a column");                          // 5: Swift's try? gives an optional; a result-giving
-                                                        //    variant would suit the middle ground's capture
+let n = name("a column") catch (e) { kept = e; "" };    // 5: keep the failure object (Swift's `try?`
+                                                        //    gives an optional, dropping it)
 let x = findCached(k) ?? fallback;                      // 6
 ```
 
@@ -72,7 +75,7 @@ let n = name("a column").try;                           // 1
 let c = lookup(s).try.column().try.type().try;          // 2
 let n = name("a column") orelse "";                     // 3
 let n = name("a column") catch (e) { when (e) { … } };  // 4
-let r = name("a column").capture;                       // 5
+let n = name("a column") catch (e) { kept = e; "" };    // 5: as in B
 let x = findCached(k) ?? fallback;                      // 6
 ```
 
@@ -87,7 +90,7 @@ let c = lookup(s) orelse (e) return e;                  // 2: one call at a time
 let t = c.column() orelse (e) return e;
 let n = name("a column") orelse "";                     // 3
 let n = name("a column") orelse (e) when (e) { … };     // 4
-let r = capture name("a column");                       // 5
+let n = name("a column") orelse (e) do { kept = e; "" }; // 5: keep the failure object
 let x = findCached(k) ?? return null;                   // 6, now also able to return
 ```
 
@@ -181,6 +184,11 @@ several variants handled by `when` inside the one handler.
 - **`try` as a word:** if `try` marks propagation, `tryX` as a naming
   convention for nullable variants (from the naming discussion) reads
   ambiguously; the two choices should be made together.
+- **Keeping an outcome:** under the middle ground, task 5 stores the
+  failure object (`kept` above, a `SqlProblem?` variable or field). If
+  capture into a held result is added later, a prefix `capture`, a
+  postfix `.capture`, or a result-giving `try?` would each fit B to E.
 - **Syntax follows semantics:** exception-style words (`try`, `catch`)
-  signal that failures aren't values to touch, which suits the middle
-  ground; method-style handling (G) suits first-class results.
+  signal that results aren't values code can hold, while a caught
+  failure object is an ordinary value, which suits the middle ground;
+  method-style handling (G) suits first-class results.

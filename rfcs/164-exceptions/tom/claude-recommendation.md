@@ -10,7 +10,12 @@ proposals stay neutral and don't depend on this page. Drafted by Claude,
 [error types survey](claude-error-types-survey.md), the
 [example translations](claude-translations/README.md), and the
 [Kotlin `Result` review](claude-kotlin-result-review.md). Syntax is
-hypothetical.
+hypothetical. **Update, 2026-11-18:** Tom chose the middle ground, with
+callbacks polymorphic through an ordinary generic failure parameter and
+no `capture` in the first version; [claude-proposal.md](claude-proposal.md)
+drafts it, and this page is updated to match. Tom also added another
+option the same day, [option 0, no failure support](claude-option-no-failures.md),
+compared [below](#recommended-answers).
 
 ## Two questions
 
@@ -26,11 +31,20 @@ hypothetical.
      its handler, and nothing holds the union. This is Kotlin Temper
      today, with no way for generic code to pass a failure through.
    - **The middle ground** (the declared sketch's
-     [refinement](claude-proposal-declared.md#refinement-pass-through-and-capture)):
-     in flight by default, plus *pass-through* (a function fails only
-     when a function it was given fails, as with Swift's `rethrows`)
-     and *explicit capture* into a held `Result<T, E>` only where code
-     asks.
+     [refinement](claude-proposal-declared.md#refinement-generic-failure-parameters)):
+     results stay in flight, and a higher-order function is generic over
+     its callback's failure type (`fn (T): R throws E`, as with Swift 6's
+     typed `throws(E)`), so it fails exactly when its callback does.
+     Code that needs to keep an outcome stores the failure object. An
+     earlier draft also had *explicit capture* into a held
+     `Result<T, E>`; it is left out of the first version and could be
+     added later.
+
+   A further answer drops the question: **option 0, no failure
+   support** ([claude-option-no-failures.md](claude-option-no-failures.md)).
+   Temper keeps only nullables and panics, with no `throws`, `orelse`,
+   or result type in core or std; libraries that want reasons define
+   their own result types.
 2. **Syntax: how much exception-looking sugar sits on top?** Smaller,
    but it should follow the semantics ([below](#recommended-answers)).
 
@@ -56,40 +70,56 @@ internally, lets failure polymorphism fall out of ordinary generics:
   ([#108](https://github.com/temperlang/temper/issues/108),
   [#109](https://github.com/temperlang/temper/issues/109); see
   [review §4](claude-kotlin-result-review.md#4-toms-question-did-mike-deliberately-keep-results-out-of-temper-code)).
-- **Middle ground:** pass-through states that restriction as one keyword
-  with a simple rule, so `map` returns `List<U> throws E` exactly when
-  `f` fails; generic code that must hold a result captures it first, and
-  then uses it unrestricted.
+- **Middle ground:** failure gets its own type parameter instead of
+  riding in `R`:
+  `map<T, R, E>(xs: List<T>, f: fn (T): R throws E): List<R> throws E`.
+  `R` never binds a result, since results aren't `AnyValue`; `E` is
+  bounded by the failure root (`Failure` for now) and is
+  `Never<Failure>` when `f` can't fail, so that call needs no `try`. The
+  body can only propagate or handle `f`'s failure, never hold it, with
+  no effect system beyond "results can't be held". Swift went the same
+  way, from `rethrows` to typed `throws(E)`.
 
-So Kotlin's complexity came from having no pass-through mechanism, not
-from in-flight results as such.
+So Kotlin's complexity came from having no failure polymorphism (its
+`Bubble` type parameters couldn't be bounded), not from in-flight
+results as such.
 
 ## Recommended answers
 
 **Semantics: first-class results or the middle ground; not in-flight
-results without pass-through.** Mike's 2026 work already made `Result`
+results without failure polymorphism.** Mike's 2026 work already made `Result`
 the internal truth, and typing failure through the return type removed
 whole passes ([review](claude-kotlin-result-review.md)).
-Without pass-through, every later generic feature paid a special case: function types, async and
+Without failure polymorphism, every later generic feature paid a special case: function types, async and
 generators' hidden results, the `HACK` in `checkFun`, and libraries'
 own result classes (Argmas's `ParseResult`, Hrefine's `UrlCheck`) that
-don't work with `orelse`. Both strong candidates remove these:
+don't work with `orelse`. The two strong candidates remove these, and
+so does option 0, by having no failures for generic code to carry:
 
-| | First-class results | Middle ground |
-|---|---|---|
-| New rules | none beyond the result type | pass-through and capture |
-| `map` with a fallible `f` | a list of results; stopping at the first failure needs a separate std function | stops at the first failure; collecting every outcome needs `capture` |
-| Async, generators, caches | ordinary value rules | capture, by the runtime or the library |
-| Exception backends | held results wherever one may be held, including adapters where a throwing function meets generic code | held results only at capture sites; today's lowering elsewhere |
-| Reading code | any value may be a result | a result exists only where `capture` says so |
+| | First-class results | Middle ground | Option 0: no failure support |
+|---|---|---|---|
+| New rules | none beyond the result type | failure parameters bounded by the failure root; results can't be held | none; `throws`, `orelse`, and `Bubble` go |
+| `map` with a fallible `f` | a list of results; stopping at the first failure needs a separate std function | stops at the first failure; collecting every outcome stores failure objects | `f` returns `R?` or a library result, which `map` collects; stopping early is a loop or a separate function |
+| Async, generators, caches | ordinary value rules | promises hold failures, and `try await` rethrows; caches store failure objects | promises can't be broken; async work resolves to a domain type (std/net's own status type) |
+| Exception backends | held results wherever one may be held, including adapters where a throwing function meets generic code | no held results; today's lowering | nothing to lower but panics |
+| Host APIs | a result type wherever an exported API holds results | no result types | `null`, `Boolean`, or each library's result types; no host exceptions unless a [decorated-result variant](claude-option-no-failures.md#a-variant-decorated-result-classes) generates them |
+| Reading code | any value may be a result | no value is a result | failure is `null` or a library's own type |
+| Where reasons go | the failure type | the failure type | a field or result type per library; 12 of 289 declarations need one ([audit](claude-option-no-failures-audit.md)) |
 
-Claude leans toward the **middle ground**: it is the smallest step from
-today's code, Tom's surface, and Kotlin's IR that removes the special
-cases, and `capture` gives most of first-class results' benefits.
-First-class results are the better choice if the team prefers one
-mechanism with no new rule, or expects many APIs to store results
-(Swift 6 added typed `throws(E)` with generic error types for cases
-`rethrows` couldn't express). The team decides.
+Claude leaned toward the **middle ground**, and Tom chose it
+(2026-11-18): it is the smallest step from today's code, Tom's surface,
+and Kotlin's IR that removes the special cases, and an ordinary generic
+failure parameter does it with the generic machinery the compiler
+already has. `capture` is left out of the first version: failure objects
+are ordinary values, and promises already hold async failures, so it
+can wait until real code shows the need. First-class results remain the
+main alternative, the better choice if the team expects many APIs to
+store results. Option 0 is the smallest language and compiler, and its
+costs fall on host users (silent `null`s where they expect exceptions)
+and on libraries (one result convention each); it could also serve as a
+first phase, with declared failures added later if libraries miss them
+([as a first phase](claude-option-no-failures.md#as-a-first-phase)).
+The team decides.
 
 **Speed doesn't decide it**
 ([estimates](claude-explore/estimates/README.md)): Kelpto and Wherewith
@@ -97,8 +127,8 @@ never fail on valid input, so the options cost about the same there.
 
 **Syntax follows semantics.** With the middle ground, exception-style
 syntax (`throws`, `try` or `!`, `catch`) is an argument in its favor: it
-signals that results aren't values code can hold, except through
-`capture`, while a caught failure object is an ordinary value. Result-style syntax (`Result<T, E>` return types, `orelse
+signals that results aren't values code can hold, while a caught
+failure object is an ordinary value. Result-style syntax (`Result<T, E>` return types, `orelse
 (e)` on values) would wrongly suggest they can be stored freely. With
 first-class results, result-style syntax fits better, or sugar that
 doesn't hide that results can be held. Either way: `orelse` and `??`,
@@ -126,9 +156,9 @@ Either candidate lowers per backend, with identical behavior checked by
 shared tests
 ([values sketch](claude-proposal-values.md#semantics-and-representation-are-separate-choices)).
 **Java** keeps Kotlin's lightweight exceptions, with stack traces only
-where a failure may escape; a held result is `Ok(value)` or
-`Failed(theSameFailureObject)`, built only at capture sites under the
-middle ground. **C#** keeps exceptions in a first pass (real libraries
+where a failure may escape; under the middle ground no result is ever
+held, so it needs no result class (first-class results would build
+`Ok(value)` or `Failed(theSameFailureObject)` wherever one is held). **C#** keeps exceptions in a first pass (real libraries
 rarely fail on valid input) and can move to value types later if
 failure-heavy uses need it; **C++ and Rust** use value types; **JS,
 Python, and Lua** plain values or exceptions; **Go, C, and Zig** error
@@ -145,24 +175,28 @@ Exported functions follow the
    [what `orelse` catches](claude-common-ground.md#what-orelse-catches).
 2. **The chosen semantics in the compiler.** Either way, a function type
    carries its failure, so the `checkFun` TODO and `forEach`'s inlining
-   go. Middle ground: pass-through as a failure-type parameter inferred
-   from arguments, and `capture` producing a held `Result`. First-class:
+   go. Middle ground: `T throws E` as an ordinary generic `Result<T, E>`
+   inside the compiler, with failure parameters as ordinary type
+   parameters inferred from arguments. First-class:
    drop `anyValueSuper = false` and let held results skip the check
    ([review §5](claude-kotlin-result-review.md#5-relation-to-the-proposals)).
    In tempest, tmpl's `bubbles` flags gain a failure type or become a
    result type.
-3. **Held-result representations,** then **boundary forms**.
+3. **Boundary forms,** plus held-result representations under
+   first-class results.
 4. **Syntax,** as the team decides it.
 5. **Migration of `throws Bubble`** with a rewriting tool.
 
 ## Open questions
 
-- Question 1, and cases that separate the candidates: APIs that store a
-  callback's outcome (lazy values, caches, tasks) favor first-class
-  results; short-circuiting helpers favor the middle ground.
+- Whether real code later needs capture or holdable results: APIs that
+  store a callback's outcome (lazy values, caches, tasks) are the cases
+  to watch.
 - Spelling of the propagation marker (postfix `?` collides with `?.`;
-  postfix `!` reads as a non-null assertion), of pass-through, and of
-  `capture`.
+  postfix `!` reads as a non-null assertion) and of failure parameters.
+  The root is `Failure` for now; `Error`, `Exception`, `Fault`, and
+  `Problem` were considered
+  ([naming the root](claude-proposal.md#naming-the-root)).
 - Whether exported failures must be declared failure types.
 - When `throws Bubble` is deprecated, and how long implicit propagation
   lasts.

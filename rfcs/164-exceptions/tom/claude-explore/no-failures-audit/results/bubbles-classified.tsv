@@ -1,0 +1,199 @@
+library	file	line	class	in	text
+Argmas	argmas/src/values.temper.md	117	a	integerText	bubble();
+Argmas	argmas/src/values.temper.md	120	a	integerText	if (!seenDigit) { bubble() }
+Argmas	argmas/src/values.temper.md	123	a	integerText	if (!atMost(magnitude, if (negative) { mostNegative } else { most })) { bubble() }
+Argmas	argmas/src/values.temper.md	193	a	parse	if (!wholeDigits && !fractionDigits) { bubble() }
+Argmas	argmas/src/values.temper.md	207	a	parse	if (!exponentDigits) { bubble() }
+Argmas	argmas/src/values.temper.md	209	a	parse	if (text.hasIndex(i)) { bubble() }
+Argmas	argmas/src/values.temper.md	211	a	parse	if (value != value || value == Infinity || value == -Infinity) { bubble() }
+Argmas	argmas/src/values.temper.md	266	a	parse	bubble()
+Argmas	argmas/src/values.temper.md	284	a	parseBoolean	bubble()
+Chromarite	chromarite/src/color.temper.md	117	b	alphaAt	if (i < 0 || i >= length) { bubble() }
+Chromarite	chromarite/src/css.temper.md	26	a	parseCssColor	if (lower.isEmpty) { bubble() }
+Chromarite	chromarite/src/css.temper.md	37	a	parseCssColor	if (lower[close] != CLOSE_PAREN) { bubble() }
+Chromarite	chromarite/src/css.temper.md	57	a	parseCssColor	bubble()
+Chromarite	chromarite/src/css.temper.md	153	a	tokenize	bubble();
+Chromarite	chromarite/src/css.temper.md	255	a	parseModernArgs	if (slash >= 0) { bubble() }
+Chromarite	chromarite/src/css.temper.md	264	a	parseModernArgs	if (slash != tokens.length - 2) { bubble() }
+Chromarite	chromarite/src/css.temper.md	270	a	parseLegacyArgs	if (name != "rgb" && name != "rgba" && name != "hsl" && name != "hsla") { bubble() }
+Chromarite	chromarite/src/css.temper.md	276	a	parseLegacyArgs	if (isComma && !shouldBeComma || !isComma && shouldBeComma) { bubble() }
+Chromarite	chromarite/src/css.temper.md	278	a	parseLegacyArgs	bubble()
+Chromarite	chromarite/src/css.temper.md	283	a	parseLegacyArgs	if (tokens.length % 2 == 0 || (count != 3 && count != 4)) { bubble() }
+Chromarite	chromarite/src/css.temper.md	305	a	numberOrPercent	bubble()
+Chromarite	chromarite/src/css.temper.md	326	a	hueValue	bubble()
+Chromarite	chromarite/src/css.temper.md	331	a	hueValue	bubble()
+Chromarite	chromarite/src/css.temper.md	358	a	rgbColor	if (tokens.length != 3) { bubble() }
+Chromarite	chromarite/src/css.temper.md	360	a	rgbColor	bubble()
+Chromarite	chromarite/src/css.temper.md	374	a	hueFirstColor	if (tokens.length != 3) { bubble() }
+Chromarite	chromarite/src/css.temper.md	376	a	hueFirstColor	bubble()
+Chromarite	chromarite/src/css.temper.md	390	a	lchColor	if (tokens.length != 3) { bubble() }
+Chromarite	chromarite/src/css.temper.md	401	a	labColor	if (tokens.length != 3) { bubble() }
+Chromarite	chromarite/src/css.temper.md	412	a	predefinedColor	if (tokens.length != 4 || tokens[0].kind != IDENT) { bubble() }
+Chromarite	chromarite/src/css.temper.md	440	a	predefinedSpace	bubble()
+Chromarite	chromarite/src/css.temper.md	496	a	predefinedName	else -> bubble();
+Chromarite	chromarite/src/matrix.temper.md	51	b	get	if (j >= ncols) { bubble() }
+Chromarite	chromarite/src/matrix.temper.md	91	b	matrixRow	if (i >= m.nrows) { bubble() }
+Chromarite	chromarite/src/matrix.temper.md	147	b	times	if (a.ncols != b.nrows) { bubble() }
+Chromarite	chromarite/src/rgb.temper.md	59	a	parseHex	bubble();
+Chromarite	chromarite/src/rgb.temper.md	91	a	hexDigit	bubble()
+Hrefine	hrefine/src/host.temper.md	108	a	runHostParser	bubble();
+Hrefine	hrefine/src/host.temper.md	173	a	parseDomain	bubble();
+Hrefine	hrefine/src/host.temper.md	187	a	parseDomain	bubble();
+Hrefine	hrefine/src/host.temper.md	204	a	domainToAsciiNoting	bubble()
+Hrefine	hrefine/src/host.temper.md	243	a	parseOpaqueHost	bubble();
+Hrefine	hrefine/src/host.temper.md	319	a	parseIpv4	bubble();
+Hrefine	hrefine/src/host.temper.md	329	a	parseIpv4	bubble();
+Hrefine	hrefine/src/host.temper.md	345	a	parseIpv4	bubble();
+Hrefine	hrefine/src/host.temper.md	352	a	parseIpv4	bubble();
+Hrefine	hrefine/src/host.temper.md	422	a	parseIpv6	bubble();
+Hrefine	hrefine/src/host.temper.md	431	a	parseIpv6	bubble();
+Hrefine	hrefine/src/host.temper.md	436	a	parseIpv6	bubble();
+Hrefine	hrefine/src/host.temper.md	458	a	parseIpv6	bubble();
+Hrefine	hrefine/src/host.temper.md	463	a	parseIpv6	bubble();
+Hrefine	hrefine/src/host.temper.md	473	a	parseIpv6	bubble();
+Hrefine	hrefine/src/host.temper.md	478	a	parseIpv6	bubble();
+Hrefine	hrefine/src/host.temper.md	486	a	parseIpv6	bubble();
+Hrefine	hrefine/src/host.temper.md	492	a	parseIpv6	bubble();
+Hrefine	hrefine/src/host.temper.md	504	a	parseIpv6	bubble();
+Hrefine	hrefine/src/host.temper.md	511	a	parseIpv6	bubble();
+Hrefine	hrefine/src/host.temper.md	515	a	parseIpv6	bubble();
+Hrefine	hrefine/src/host.temper.md	537	a	parseIpv6	bubble();
+Hrefine	hrefine/src/idna.temper.md	31	a	domainToAscii	bubble();
+Hrefine	hrefine/src/idna.temper.md	39	a	internationalToAscii	bubble();
+Hrefine	hrefine/src/idna.temper.md	58	a	internationalToAscii	bubble();
+Hrefine	hrefine/src/policy.temper.md	234	c	withPorts	bubble();
+Hrefine	hrefine/src/policy.temper.md	424	a	allowedHosts	bubble();
+Hrefine	hrefine/src/punycode.temper.md	51	a	punycodeDecode	bubble();
+Hrefine	hrefine/src/punycode.temper.md	56	a	punycodeDecode	bubble();
+Hrefine	hrefine/src/punycode.temper.md	64	a	punycodeDecode	bubble();
+Hrefine	hrefine/src/punycode.temper.md	72	a	punycodeDecode	bubble();
+Hrefine	hrefine/src/punycode.temper.md	77	a	punycodeDecode	bubble();
+Hrefine	hrefine/src/punycode.temper.md	157	f	punycodeEncode	bubble();
+Hrefine	hrefine/src/punycode.temper.md	165	f	punycodeEncode	bubble();
+Hrefine	hrefine/src/url.temper.md	1123	a	basicUrlParse	bubble();
+Hrefine	hrefine/src/url.temper.md	1193	a	basicUrlParse	bubble();
+Hrefine	hrefine/src/url.temper.md	1204	a	basicUrlParse	bubble();
+Hrefine	hrefine/src/url.temper.md	1371	a	basicUrlParse	bubble();
+Hrefine	hrefine/src/url.temper.md	1395	a	basicUrlParse	bubble();
+Hrefine	hrefine/src/url.temper.md	1398	a	basicUrlParse	bubble();
+Hrefine	hrefine/src/url.temper.md	1414	a	basicUrlParse	bubble();
+Hrefine	hrefine/src/url.temper.md	1417	a	basicUrlParse	bubble();
+Hrefine	hrefine/src/url.temper.md	1467	a	basicUrlParse	bubble();
+Hrefine	hrefine/src/url.temper.md	1480	a	basicUrlParse	bubble();
+Hrefine	hrefine/src/url.temper.md	1490	a	basicUrlParse	bubble();
+Hrefine	hrefine/src/url.temper.md	1499	a	basicUrlParse	bubble();
+Kelpto	kelpto/kelpto-core/tree.temper.md	527	a	editAll	if (n > 1) { bubble(); }
+Kelpto	kelpto/kelpto-core/tree.temper.md	528	a	editAll	return redRoot(replacement.replacement as GreenNode orelse bubble());
+Kelpto	kelpto/kelpto-core/tree.temper.md	538	a	editAll	bubble();
+Kelpto	kelpto/kelpto-core/tree.temper.md	585	a	pathTo	if (top.kind.id != root.kind.id || top.width != root.width) { bubble(); }
+Kelpto	kelpto/kelpto-core/tree.temper.md	590	a	pathTo	let node = at as GreenNode orelse bubble();
+Kelpto	kelpto/kelpto-core/tree.temper.md	591	a	pathTo	if (index >= node.children.length) { bubble(); }
+Kelpto	kelpto/kelpto-core/tree.temper.md	594	a	pathTo	if (at.kind.id != expected.kind.id || at.width != expected.width) { bubble(); }
+Kelpto	kelpto/kelpto-core/tree.temper.md	623	a	rebuild	if (edits.tos[edit] > kids.length) { bubble(); }
+Kelpto	kelpto/kelpto-core/tree.temper.md	628	a	rebuild	bubble();
+Kelpto	kelpto/kelpto-core/tree.temper.md	645	a	rebuild	if (d < to && edits.paths[sorted[d]][depth] < skipTo) { bubble(); }
+Kelpto	kelpto/kelpto-core/tree.temper.md	653	a	rebuild	let child = kids[i] as GreenNode orelse bubble();
+Kelpto	kelpto/kelpto-core/tree.temper.md	661	a	rebuild	if (h < hereEnd || d < to) { bubble(); }
+Kelpto	kelpto/kelpto-md/build.temper.md	169	f	heading	if (level < 1 || level > 6) { bubble(); }
+Kelpto	kelpto/kelpto-md/build.temper.md	242	f	orderedList	if (start < 0 || start + items.length - 1 > 999999999) { bubble(); }
+Kelpto	kelpto/kelpto-md/build.temper.md	288	a	markdownBetween	if (delimiter == lastList || delimiter == avoid) { bubble(); }
+Kelpto	kelpto/kelpto-md/build.temper.md	360	a	bulletFor	bubble()
+Kelpto	kelpto/kelpto-md/edit.temper.md	65	a	prefixesOf	bubble();
+Kelpto	kelpto/kelpto-md/edit.temper.md	90	a	itemContentWidth	if (hasTab(kids[i])) { bubble(); }
+Kelpto	kelpto/kelpto-md/edit.temper.md	94	a	itemContentWidth	if (i >= kids.length || kids[i].kind.id != listMarkerKind.id) { bubble(); }
+Kelpto	kelpto/kelpto-md/edit.temper.md	98	a	itemContentWidth	if (hasTab(kids[i])) { bubble(); }
+Kelpto	kelpto/kelpto-md/edit.temper.md	119	a	markerOfWidth	if (digits > 9) { bubble(); }
+Kelpto	kelpto/kelpto-md/edit.temper.md	167	a	parsedInContainer	if (first < 0 || first == last || kids[first].kind.id != headingKind.id) { bubble(); }
+Kelpto	kelpto/kelpto-md/edit.temper.md	184	a	firstNodeOf	bubble()
+Kelpto	kelpto/kelpto-md/edit.temper.md	193	a	paragraphContentEdit	if (text.isEmpty) { bubble(); }
+Kelpto	kelpto/kelpto-md/edit.temper.md	195	a	paragraphContentEdit	if (parsed.length != 1 || parsed[0].kind.id != paragraphKind.id) { bubble(); }
+Kelpto	kelpto/kelpto-md/edit.temper.md	314	f	make	if (removed[p]) { bubble(); }
+Kelpto	kelpto/kelpto-md/edit.temper.md	345	a	positionOf	bubble()
+Kelpto	kelpto/kelpto-md/edit.temper.md	375	f	gap	bubble();
+Kelpto	kelpto/kelpto-md/edit.temper.md	382	f	gap	bubble();
+Kelpto	kelpto/kelpto-md/edit.temper.md	388	f	gap	if (opensToEnd(before) && (!chunkText.isEmpty || after != null)) { bubble(); }
+Kelpto	kelpto/kelpto-md/edit.temper.md	391	f	gap	if (absorbsIndented(before) && startsIndented(next)) { bubble(); }
+Kelpto	kelpto/kelpto-md/edit.temper.md	393	f	gap	if (beforeMarker != 0 && beforeMarker == listMarkerOf(next)) { bubble(); }
+Kelpto	kelpto/kelpto-md/edit.temper.md	396	f	gap	if (after != null && combined.endsWithList && startsIndented(after)) { bubble(); }
+Kelpto	kelpto/kelpto-md/edit.temper.md	634	f	checkDefinitionsKept	if (linkLabel != null && normalizeLabel(linkLabel) == label && !inAny(link.node, removed)) { bubble(); }
+Kelpto	kelpto/kelpto-md/edit.temper.md	650	f	checkDefinitionsKept	bubble();
+Kelpto	kelpto/kelpto-md/views.temper.md	625	a	headingLevelEdit	if (level < 1 || level > 6) { bubble(); }
+Kelpto	kelpto/kelpto-md/views.temper.md	628	a	headingLevelEdit	if (level > 2) { bubble(); }
+Kelpto	kelpto/kelpto-md/views.temper.md	734	a	infoEdit	bubble();
+Kelpto	kelpto/kelpto-md/views.temper.md	878	a	destinationEdit	if (paren == null) { bubble(); }
+Kelpto	kelpto/kelpto-md/views.temper.md	894	a	writeDestination	if (c == char'\n' || c == char'\r') { bubble(); }
+Kelpto	kelpto/kelpto-md/views.temper.md	1181	f	checkFootnoteLabel	if (label.isEmpty) { bubble(); }
+Kelpto	kelpto/kelpto-md/views.temper.md	1188	f	checkFootnoteLabel	bubble();
+Kelpto	kelpto/kelpto-md/views.temper.md	1539	a	linkDestinationEdit	if (linkStyleOf(node) != "inline") { bubble(); }
+Kelpto	kelpto/kelpto-md/walk.temper.md	243	f	setText	else -> bubble();
+Kelpto	kelpto/kelpto-md/walk.temper.md	255	f	setContent	else -> bubble();
+Kelpto	kelpto/kelpto-md/walk.temper.md	279	f	setDestination	else -> bubble();
+Kelpto	kelpto/kelpto-md/walk.temper.md	296	f	setLabel	else -> bubble();
+Kelpto	kelpto/kelpto-md/walk.temper.md	341	a	blockEditOf	if (!isEditableBlock(node)) { bubble(); }
+Wherewith	wherewith/src/common-expressions.temper.md	280	a	parseExpression	bubble()
+Wherewith	wherewith/src/common-expressions.temper.md	357	a	predicate	if (!isKeyword(peek(), "null")) { report("expected NULL", peek()); bubble() }
+Wherewith	wherewith/src/common-expressions.temper.md	363	a	predicate	if (!negatable(peekAt(1))) { report("expected IN, BETWEEN, or LIKE after NOT", peekAt(1)); bubble() }
+Wherewith	wherewith/src/common-expressions.temper.md	373	a	predicate	if (!isKeyword(peek(), "and")) { report("expected AND", peek()); bubble() }
+Wherewith	wherewith/src/common-expressions.temper.md	385	a	predicate	if (s == null || s.kind != tokenString) { report("expected a string after ESCAPE", s); bubble() }
+Wherewith	wherewith/src/common-expressions.temper.md	391	a	predicate	bubble()
+Wherewith	wherewith/src/common-expressions.temper.md	397	a	predicate	if (startsPredicate(after)) { report("comparisons don't chain; add parentheses", after); bubble() }
+Wherewith	wherewith/src/common-expressions.temper.md	447	f	tightBeside	bubble()
+Wherewith	wherewith/src/common-expressions.temper.md	506	a	primary	if (isSymbol(peekAt(1), char'.')) { report("value where a name goes", t); bubble() }
+Wherewith	wherewith/src/common-expressions.temper.md	516	a	primary	bubble()
+Wherewith	wherewith/src/common-expressions.temper.md	544	a	primary	if (!startsQuery(inner)) { report("expected SELECT or a nested query", inner); bubble() }
+Wherewith	wherewith/src/common-expressions.temper.md	550	a	primary	bubble()
+Wherewith	wherewith/src/common-expressions.temper.md	554	a	primary	bubble()
+Wherewith	wherewith/src/common-expressions.temper.md	558	a	primary	bubble()
+Wherewith	wherewith/src/common-expressions.temper.md	577	a	subquery	bubble()
+Wherewith	wherewith/src/common-expressions.temper.md	581	a	subquery	if (e.depth > maxDepth) { report(deepMessage, t); bubble() }
+Wherewith	wherewith/src/common-expressions.temper.md	595	a	column	if (isSymbol(dot, char'.')) { report("name with more than two parts", dot); bubble() }
+Wherewith	wherewith/src/common-expressions.temper.md	611	a	name	bubble()
+Wherewith	wherewith/src/common-expressions.temper.md	615	a	name	bubble()
+Wherewith	wherewith/src/common-expressions.temper.md	626	a	call	bubble()
+Wherewith	wherewith/src/common-expressions.temper.md	638	a	call	if (!CallExpr.isAggregate(callee)) { report("DISTINCT outside an aggregate", d); bubble() }
+Wherewith	wherewith/src/common-expressions.temper.md	655	a	call	bubble()
+Wherewith	wherewith/src/common-expressions.temper.md	669	a	caseExpr	if (!isKeyword(peek(), "when")) { report("expected WHEN", peek()); bubble() }
+Wherewith	wherewith/src/common-expressions.temper.md	675	a	caseExpr	if (!isKeyword(peek(), "then")) { report("expected THEN", peek()); bubble() }
+Wherewith	wherewith/src/common-expressions.temper.md	689	a	caseExpr	if (!isKeyword(peek(), "end")) { report("expected END", peek()); bubble() }
+Wherewith	wherewith/src/common-expressions.temper.md	698	a	castExpr	if (!isKeyword(peek(), "as")) { report("expected AS", peek()); bubble() }
+Wherewith	wherewith/src/common-expressions.temper.md	714	a	castExpr	if (target == 0) { report("expected INTEGER, DOUBLE, or TEXT", named); bubble() }
+Wherewith	wherewith/src/common-expressions.temper.md	730	a	need	bubble()
+Wherewith	wherewith/src/common-expressions.temper.md	816	f	expectSymbol	bubble()
+Wherewith	wherewith/src/common-expressions.temper.md	827	f	enter	bubble()
+Wherewith	wherewith/src/common-expressions.temper.md	834	a	deep	bubble()
+Wherewith	wherewith/src/common-expressions.temper.md	1425	f	fail	bubble()
+Wherewith	wherewith/src/common-statements.temper.md	157	a	whole	bubble()
+Wherewith	wherewith/src/common-statements.temper.md	170	a	statement	bubble()
+Wherewith	wherewith/src/common-statements.temper.md	187	a	nestedSelect	bubble()
+Wherewith	wherewith/src/common-statements.temper.md	198	f	ends	bubble()
+Wherewith	wherewith/src/common-statements.temper.md	238	a	select	bubble()
+Wherewith	wherewith/src/common-statements.temper.md	245	a	select	bubble()
+Wherewith	wherewith/src/common-statements.temper.md	275	a	select	bubble()
+Wherewith	wherewith/src/common-statements.temper.md	306	a	clause	bubble()
+Wherewith	wherewith/src/common-statements.temper.md	343	a	fromSource	bubble()
+Wherewith	wherewith/src/common-statements.temper.md	349	a	fromSource	bubble()
+Wherewith	wherewith/src/common-statements.temper.md	373	a	tableName	bubble()
+Wherewith	wherewith/src/common-statements.temper.md	400	d	joinedAt	bubble()
+Wherewith	wherewith/src/common-statements.temper.md	411	d	joinedAt	bubble()
+Wherewith	wherewith/src/common-statements.temper.md	442	a	orderItem	bubble()
+Wherewith	wherewith/src/common-statements.temper.md	467	a	count	bubble()
+Wherewith	wherewith/src/common-statements.temper.md	504	a	insert	bubble()
+Wherewith	wherewith/src/common-statements.temper.md	516	a	insert	bubble()
+Wherewith	wherewith/src/common-statements.temper.md	519	a	insert	bubble()
+Wherewith	wherewith/src/common-statements.temper.md	536	a	update	bubble()
+Wherewith	wherewith/src/common-statements.temper.md	569	f	expectKeyword	bubble()
+Wherewith	wherewith/src/core.temper.md	134	c	quoteName	if (nameProblem(name) != null) { bubble() }
+Wherewith	wherewith/src/core.temper.md	179	c	quoteString	if (stringProblem(value) != null) { bubble() }
+Wherewith	wherewith/src/core.temper.md	252	c	named	if (identifierProblem(name) != null) { bubble() }
+Wherewith	wherewith/src/query.temper.md	105	c	checked	bubble()
+Wherewith	wherewith/src/query.temper.md	131	c	render	if (w.problem != null) { bubble() }
+Wherewith	wherewith/src/query.temper.md	194	c	renderedParts	if (w.problem != null) { bubble() }
+Wherewith	wherewith/src/query.temper.md	567	c	build	if (templateProblem != null) { bubble() }
+std	tempest/lib/std/json/json.temper.md	497	b	toJsonString	bubble();
+std	tempest/lib/std/json/json.temper.md	692	c	toJsonSyntaxTree	if (stack.length != 1 || error != null) { bubble() }
+std	tempest/lib/std/json/json.temper.md	694	c	toJsonSyntaxTree	if (ls.length != 1) { bubble() }
+std	tempest/lib/std/temporal/temporal.temper.md	124	f	constructor	bubble();
+std	tempest/lib/std/temporal/temporal.temper.md	152	a	fromIsoString	bubble();
+std	tempest/lib/std/temporal/temporal.temper.md	161	a	fromIsoString	bubble();
+std	tempest/lib/std/testing/testing.temper.md	55	b	bail	bubble()
+core	tempest/lib/core/core.temper	1175	d	get	bubble();

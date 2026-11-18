@@ -1,0 +1,293 @@
+library	file	line	name	class	host	note
+Argmas	argmas/src/values.temper.md	25	parse	a	e	ValueType.parse: T? (hosts implement it)
+Argmas	argmas/src/values.temper.md	70	parse	a		T?
+Argmas	argmas/src/values.temper.md	87	parse	a		T?
+Argmas	argmas/src/values.temper.md	101	integerText	a		T?
+Argmas	argmas/src/values.temper.md	158	parse	a		T?
+Argmas	argmas/src/values.temper.md	241	parse	a		T?
+Argmas	argmas/src/values.temper.md	262	parse	a		T?
+Argmas	argmas/src/values.temper.md	280	parseBoolean	a		T?
+Chromarite	chromarite/src/adjust.temper.md	18	adjustLch	b		fails only through indexing or division
+Chromarite	chromarite/src/adjust.temper.md	66	luminanceRows	b		fails only through indexing or division
+Chromarite	chromarite/src/adjust.temper.md	78	contrastRows	b		fails only through indexing or division
+Chromarite	chromarite/src/adjust.temper.md	146	fitContrastRows	b		fails only through indexing or division
+Chromarite	chromarite/src/adjust.temper.md	257	lightnessIn	b		fails only through indexing or division
+Chromarite	chromarite/src/color.temper.md	101	get	b	e	fails only through indexing or division
+Chromarite	chromarite/src/color.temper.md	114	alphaAt	b	e	fails only through indexing or division
+Chromarite	chromarite/src/color.temper.md	278	parse	a	e	CSS parsing: Color?
+Chromarite	chromarite/src/css.temper.md	24	parseCssColor	a		T?
+Chromarite	chromarite/src/css.temper.md	120	tokenize	a		T?
+Chromarite	chromarite/src/css.temper.md	213	toNumber	a		T?
+Chromarite	chromarite/src/css.temper.md	237	parseArgs	a		T?
+Chromarite	chromarite/src/css.temper.md	249	parseModernArgs	a		T?
+Chromarite	chromarite/src/css.temper.md	269	parseLegacyArgs	a		T?
+Chromarite	chromarite/src/css.temper.md	297	numberOrPercent	a		T?
+Chromarite	chromarite/src/css.temper.md	312	hueValue	a		T?
+Chromarite	chromarite/src/css.temper.md	336	alphaValue	a		T?
+Chromarite	chromarite/src/css.temper.md	344	finish	a		T?
+Chromarite	chromarite/src/css.temper.md	356	rgbColor	a		T?
+Chromarite	chromarite/src/css.temper.md	372	hueFirstColor	a		T?
+Chromarite	chromarite/src/css.temper.md	388	lchColor	a		T?
+Chromarite	chromarite/src/css.temper.md	399	labColor	a		T?
+Chromarite	chromarite/src/css.temper.md	410	predefinedColor	a		T?
+Chromarite	chromarite/src/css.temper.md	422	predefinedSpace	a		T?
+Chromarite	chromarite/src/css.temper.md	452	cssStrings	a		T?
+Chromarite	chromarite/src/css.temper.md	486	predefinedName	a		T?
+Chromarite	chromarite/src/gamut.temper.md	34	deltaEOkRows	b		fails only through indexing or division
+Chromarite	chromarite/src/gamut.temper.md	57	inGamutRows	b		fails only through indexing or division
+Chromarite	chromarite/src/gamut.temper.md	78	mapToGamut	b		fails only through indexing or division
+Chromarite	chromarite/src/gamut.temper.md	109	mapRow	b		fails only through indexing or division
+Chromarite	chromarite/src/gamut.temper.md	159	lchIn	b		fails only through indexing or division
+Chromarite	chromarite/src/gamut.temper.md	167	clippedDelta	b		fails only through indexing or division
+Chromarite	chromarite/src/gamut.temper.md	173	rowInUnitCube	b		fails only through indexing or division
+Chromarite	chromarite/src/gamut.temper.md	193	maxChromaRows	b		fails only through indexing or division
+Chromarite	chromarite/src/gamut.temper.md	240	fitChromaRows	b		fails only through indexing or division
+Chromarite	chromarite/src/helpers.temper.md	39	assertConvertColors	b		fails only through indexing or division
+Chromarite	chromarite/src/hsv.temper.md	16	hueDegrees	b		fails only through indexing or division
+Chromarite	chromarite/src/hsv.temper.md	29	wrap	b		fails only through indexing or division
+Chromarite	chromarite/src/lab.temper.md	76	labCurve	b		fails only through indexing or division
+Chromarite	chromarite/src/lab.temper.md	96	labCurveInverse	b		fails only through indexing or division
+Chromarite	chromarite/src/matrix.temper.md	50	get	b		fails only through indexing or division
+Chromarite	chromarite/src/matrix.temper.md	57	at	b		fails only through indexing or division
+Chromarite	chromarite/src/matrix.temper.md	90	matrixRow	b		fails only through indexing or division
+Chromarite	chromarite/src/matrix.temper.md	146	times	b		fails only through indexing or division
+Chromarite	chromarite/src/mix.temper.md	65	hueIsPowerless	b		fails only through indexing or division
+Chromarite	chromarite/src/mix.temper.md	90	mixColors	b		fails only through indexing or division
+Chromarite	chromarite/src/mix.temper.md	114	gradientColors	b		fails only through indexing or division
+Chromarite	chromarite/src/mix.temper.md	161	add	b		fails only through indexing or division
+Chromarite	chromarite/src/mix.temper.md	187	fixHues	b		fails only through indexing or division
+Chromarite	chromarite/src/named.temper.md	7	parseNamed	a		T?
+Chromarite	chromarite/src/rgb.temper.md	46	parseHex	a		T?
+Chromarite	chromarite/src/rgb.temper.md	83	hexDigit	a		T?
+Hrefine	hrefine/src/host.temper.md	21	parseHost	a	e	T?; reasons via checkUrl's log
+Hrefine	hrefine/src/host.temper.md	103	runHostParser	a		T?; reason noted in the ErrorLog
+Hrefine	hrefine/src/host.temper.md	157	parseDomain	a		T?; reason noted in the ErrorLog
+Hrefine	hrefine/src/host.temper.md	200	domainToAsciiNoting	a		T?; reason noted in the ErrorLog
+Hrefine	hrefine/src/host.temper.md	239	parseOpaqueHost	a		T?; reason noted in the ErrorLog
+Hrefine	hrefine/src/host.temper.md	308	parseIpv4	a		T?; reason noted in the ErrorLog
+Hrefine	hrefine/src/host.temper.md	413	parseIpv6	a		T?; reason noted in the ErrorLog
+Hrefine	hrefine/src/idna.temper.md	29	domainToAscii	a	e	T?; reasons via checkUrl's log
+Hrefine	hrefine/src/idna.temper.md	36	internationalToAscii	a		T?; reason noted in the ErrorLog
+Hrefine	hrefine/src/policy.temper.md	200	withHosts	c	e	configuration mistake: the bad entry is the reason (or a panic)
+Hrefine	hrefine/src/policy.temper.md	214	withSubdomainsOf	c	e	configuration mistake: the bad entry is the reason (or a panic)
+Hrefine	hrefine/src/policy.temper.md	229	withPorts	c	e	configuration mistake: the bad entry is the reason (or a panic)
+Hrefine	hrefine/src/policy.temper.md	414	allowedHosts	a		T?; reason noted in the ErrorLog
+Hrefine	hrefine/src/punycode.temper.md	30	punycodeDecode	a		T?; reason noted in the ErrorLog
+Hrefine	hrefine/src/punycode.temper.md	116	punycodeAdapt	b		fails only through division
+Hrefine	hrefine/src/punycode.temper.md	131	punycodeEncode	f		Void: return Boolean
+Hrefine	hrefine/src/source.temper.md	35	parseUrlSource	a	e	T?; reasons via checkUrl's log
+Hrefine	hrefine/src/url.temper.md	24	parseUrl	a	e	T?; reasons via checkUrl's log
+Hrefine	hrefine/src/url.temper.md	28	parseAgainst	a		T?; reason noted in the ErrorLog
+Hrefine	hrefine/src/url.temper.md	41	checkUrl	a	e	T?; reasons via checkUrl's log
+Hrefine	hrefine/src/url.temper.md	377	resolve	a	e	T?; reasons via checkUrl's log
+Hrefine	hrefine/src/url.temper.md	395	withHref	a	e	T?; reasons via checkUrl's log
+Hrefine	hrefine/src/url.temper.md	1043	parseRecord	a		T?; reason noted in the ErrorLog
+Hrefine	hrefine/src/url.temper.md	1057	basicUrlParse	a		T?; reason noted in the ErrorLog
+Kelpto	kelpto/kelpto-core/tree.temper.md	491	replaceAll	a	e	T?
+Kelpto	kelpto/kelpto-core/tree.temper.md	511	editAll	a	e	T?
+Kelpto	kelpto/kelpto-core/tree.temper.md	568	pathTo	a		T?
+Kelpto	kelpto/kelpto-core/tree.temper.md	617	rebuild	a		T?
+Kelpto	kelpto/kelpto-md/build.temper.md	168	heading	f	e	Void: return Boolean
+Kelpto	kelpto/kelpto-md/build.temper.md	241	orderedList	f	e	Void: return Boolean
+Kelpto	kelpto/kelpto-md/build.temper.md	270	markdownBetween	a	e	T?
+Kelpto	kelpto/kelpto-md/build.temper.md	346	bulletFor	a		T?
+Kelpto	kelpto/kelpto-md/edit.temper.md	44	prefixesOf	a		T?
+Kelpto	kelpto/kelpto-md/edit.temper.md	85	itemContentWidth	a		T?
+Kelpto	kelpto/kelpto-md/edit.temper.md	116	markerOfWidth	a		T?
+Kelpto	kelpto/kelpto-md/edit.temper.md	144	parsedInContainer	a		T?
+Kelpto	kelpto/kelpto-md/edit.temper.md	179	firstNodeOf	a		T?
+Kelpto	kelpto/kelpto-md/edit.temper.md	191	paragraphContentEdit	a		T?
+Kelpto	kelpto/kelpto-md/edit.temper.md	230	blockSplices	a		T?
+Kelpto	kelpto/kelpto-md/edit.temper.md	289	make	f		Void: return Boolean
+Kelpto	kelpto/kelpto-md/edit.temper.md	341	positionOf	a		T?
+Kelpto	kelpto/kelpto-md/edit.temper.md	358	gap	f		Void: return Boolean
+Kelpto	kelpto/kelpto-md/edit.temper.md	515	blankInside	f		Void: return Boolean
+Kelpto	kelpto/kelpto-md/edit.temper.md	602	checkDefinitionsKept	f		Void: return Boolean
+Kelpto	kelpto/kelpto-md/views.temper.md	587	withLevel	a	e	T?
+Kelpto	kelpto/kelpto-md/views.temper.md	624	headingLevelEdit	a		T?
+Kelpto	kelpto/kelpto-md/views.temper.md	663	withText	a	e	T?
+Kelpto	kelpto/kelpto-md/views.temper.md	670	withContent	a	e	T?
+Kelpto	kelpto/kelpto-md/views.temper.md	721	withInfo	a	e	T?
+Kelpto	kelpto/kelpto-md/views.temper.md	724	infoEdit	a		T?
+Kelpto	kelpto/kelpto-md/views.temper.md	832	withDestination	a	e	T?
+Kelpto	kelpto/kelpto-md/views.temper.md	870	destinationEdit	a		T?
+Kelpto	kelpto/kelpto-md/views.temper.md	889	writeDestination	a		T?
+Kelpto	kelpto/kelpto-md/views.temper.md	1164	withLabel	a	e	T?
+Kelpto	kelpto/kelpto-md/views.temper.md	1169	footnoteDefinitionLabelEdit	a		T?
+Kelpto	kelpto/kelpto-md/views.temper.md	1180	checkFootnoteLabel	f		Void: return Boolean
+Kelpto	kelpto/kelpto-md/views.temper.md	1507	withDestination	a	e	T?
+Kelpto	kelpto/kelpto-md/views.temper.md	1533	withDestination	a	e	T?
+Kelpto	kelpto/kelpto-md/views.temper.md	1538	linkDestinationEdit	a		T?
+Kelpto	kelpto/kelpto-md/views.temper.md	1746	withLabel	a	e	T?
+Kelpto	kelpto/kelpto-md/views.temper.md	1751	footnoteReferenceLabelEdit	a		T?
+Kelpto	kelpto/kelpto-md/walk.temper.md	238	setText	f	e	Void: return Boolean
+Kelpto	kelpto/kelpto-md/walk.temper.md	250	setContent	f	e	Void: return Boolean
+Kelpto	kelpto/kelpto-md/walk.temper.md	261	setLevel	f	e	Void: return Boolean
+Kelpto	kelpto/kelpto-md/walk.temper.md	267	setInfo	f	e	Void: return Boolean
+Kelpto	kelpto/kelpto-md/walk.temper.md	274	setDestination	f	e	Void: return Boolean
+Kelpto	kelpto/kelpto-md/walk.temper.md	292	setLabel	f	e	Void: return Boolean
+Kelpto	kelpto/kelpto-md/walk.temper.md	305	insertBefore	f	e	Void: return Boolean
+Kelpto	kelpto/kelpto-md/walk.temper.md	309	insertAfter	f	e	Void: return Boolean
+Kelpto	kelpto/kelpto-md/walk.temper.md	315	replace	f	e	Void: return Boolean
+Kelpto	kelpto/kelpto-md/walk.temper.md	322	remove	f	e	Void: return Boolean
+Kelpto	kelpto/kelpto-md/walk.temper.md	333	toDocument	a	e	T?
+Kelpto	kelpto/kelpto-md/walk.temper.md	339	blockEditOf	a		T?
+Wherewith	wherewith/src/common-expressions.temper.md	274	parseExpression	a		T?; message in the problem field
+Wherewith	wherewith/src/common-expressions.temper.md	287	parseStatement	a		T?; message in the problem field
+Wherewith	wherewith/src/common-expressions.temper.md	291	expression	a		T?; message in the problem field
+Wherewith	wherewith/src/common-expressions.temper.md	298	disjunction	a		T?; message in the problem field
+Wherewith	wherewith/src/common-expressions.temper.md	315	conjunction	a		T?; message in the problem field
+Wherewith	wherewith/src/common-expressions.temper.md	332	negation	a		T?; message in the problem field
+Wherewith	wherewith/src/common-expressions.temper.md	343	predicate	a		T?; message in the problem field
+Wherewith	wherewith/src/common-expressions.temper.md	403	inPredicate	a		T?; message in the problem field
+Wherewith	wherewith/src/common-expressions.temper.md	424	concatenation	a		T?; message in the problem field
+Wherewith	wherewith/src/common-expressions.temper.md	443	tightBeside	f		Void: return Boolean; message in the problem field
+Wherewith	wherewith/src/common-expressions.temper.md	451	sum	a		T?; message in the problem field
+Wherewith	wherewith/src/common-expressions.temper.md	466	product	a		T?; message in the problem field
+Wherewith	wherewith/src/common-expressions.temper.md	481	unary	a		T?; message in the problem field
+Wherewith	wherewith/src/common-expressions.temper.md	491	primary	a		T?; message in the problem field
+Wherewith	wherewith/src/common-expressions.temper.md	564	subquery	a		T?; message in the problem field
+Wherewith	wherewith/src/common-expressions.temper.md	589	column	a		T?; message in the problem field
+Wherewith	wherewith/src/common-expressions.temper.md	599	name	a		T?; message in the problem field
+Wherewith	wherewith/src/common-expressions.temper.md	621	call	a		T?; message in the problem field
+Wherewith	wherewith/src/common-expressions.temper.md	660	caseExpr	a		T?; message in the problem field
+Wherewith	wherewith/src/common-expressions.temper.md	694	castExpr	a		T?; message in the problem field
+Wherewith	wherewith/src/common-expressions.temper.md	726	need	a		T?; message in the problem field
+Wherewith	wherewith/src/common-expressions.temper.md	812	expectSymbol	f		Void: return Boolean; message in the problem field
+Wherewith	wherewith/src/common-expressions.temper.md	823	enter	f		Void: return Boolean; message in the problem field
+Wherewith	wherewith/src/common-expressions.temper.md	831	deep	a		T?; message in the problem field
+Wherewith	wherewith/src/common-expressions.temper.md	1004	check	a		T?; message in the problem field
+Wherewith	wherewith/src/common-expressions.temper.md	1081	value	a		T?; message in the problem field
+Wherewith	wherewith/src/common-expressions.temper.md	1134	binary	a		T?; message in the problem field
+Wherewith	wherewith/src/common-expressions.temper.md	1180	chain	a		T?; message in the problem field
+Wherewith	wherewith/src/common-expressions.temper.md	1195	like	a		T?; message in the problem field
+Wherewith	wherewith/src/common-expressions.temper.md	1220	escaped	f		Void: return Boolean; message in the problem field
+Wherewith	wherewith/src/common-expressions.temper.md	1243	caseKind	a		T?; message in the problem field
+Wherewith	wherewith/src/common-expressions.temper.md	1270	cast	a		T?; message in the problem field
+Wherewith	wherewith/src/common-expressions.temper.md	1291	call	a		T?; message in the problem field
+Wherewith	wherewith/src/common-expressions.temper.md	1367	condition	f		Void: return Boolean; message in the problem field
+Wherewith	wherewith/src/common-expressions.temper.md	1373	arithmetic	f		Void: return Boolean; message in the problem field
+Wherewith	wherewith/src/common-expressions.temper.md	1377	numeric	f		Void: return Boolean; message in the problem field
+Wherewith	wherewith/src/common-expressions.temper.md	1381	textual	f		Void: return Boolean; message in the problem field
+Wherewith	wherewith/src/common-expressions.temper.md	1387	compare	f		Void: return Boolean; message in the problem field
+Wherewith	wherewith/src/common-expressions.temper.md	1396	mixed	a		T?; message in the problem field
+Wherewith	wherewith/src/common-expressions.temper.md	1423	fail	f		Void: return Boolean; message in the problem field
+Wherewith	wherewith/src/common-expressions.temper.md	1644	constant	f		Void: return Boolean; message in the problem field
+Wherewith	wherewith/src/common-statements.temper.md	151	whole	a		T?; message in the problem field
+Wherewith	wherewith/src/common-statements.temper.md	162	statement	a		T?; message in the problem field
+Wherewith	wherewith/src/common-statements.temper.md	176	nested	a		T?; message in the problem field
+Wherewith	wherewith/src/common-statements.temper.md	183	nestedSelect	a		T?; message in the problem field
+Wherewith	wherewith/src/common-statements.temper.md	194	ends	f		Void: return Boolean; message in the problem field
+Wherewith	wherewith/src/common-statements.temper.md	205	select	a		T?; message in the problem field
+Wherewith	wherewith/src/common-statements.temper.md	301	clause	a		T?; message in the problem field
+Wherewith	wherewith/src/common-statements.temper.md	312	selectItem	a		T?; message in the problem field
+Wherewith	wherewith/src/common-statements.temper.md	337	fromSource	a		T?; message in the problem field
+Wherewith	wherewith/src/common-statements.temper.md	357	sourceAlias	d		null already means no such clause
+Wherewith	wherewith/src/common-statements.temper.md	365	tableName	a		T?; message in the problem field
+Wherewith	wherewith/src/common-statements.temper.md	380	joined	d		null already means no such clause
+Wherewith	wherewith/src/common-statements.temper.md	385	joinedAt	d		null already means no such clause
+Wherewith	wherewith/src/common-statements.temper.md	420	orderItem	a		T?; message in the problem field
+Wherewith	wherewith/src/common-statements.temper.md	451	count	a		T?; message in the problem field
+Wherewith	wherewith/src/common-statements.temper.md	472	insert	a		T?; message in the problem field
+Wherewith	wherewith/src/common-statements.temper.md	524	update	a		T?; message in the problem field
+Wherewith	wherewith/src/common-statements.temper.md	549	deleteFrom	a		T?; message in the problem field
+Wherewith	wherewith/src/common-statements.temper.md	557	where	d		null already means no such clause
+Wherewith	wherewith/src/common-statements.temper.md	565	expectKeyword	f		Void: return Boolean; message in the problem field
+Wherewith	wherewith/src/common-statements.temper.md	729	statement	f		Void: return Boolean; message in the problem field
+Wherewith	wherewith/src/common-statements.temper.md	750	single	a		T?; message in the problem field
+Wherewith	wherewith/src/common-statements.temper.md	756	subquery	a		T?; message in the problem field
+Wherewith	wherewith/src/common-statements.temper.md	763	scoped	a		T?; message in the problem field
+Wherewith	wherewith/src/common-statements.temper.md	771	inSubquery	f		Void: return Boolean; message in the problem field
+Wherewith	wherewith/src/common-statements.temper.md	780	select	a		T?; message in the problem field
+Wherewith	wherewith/src/common-statements.temper.md	823	sources	f		Void: return Boolean; message in the problem field
+Wherewith	wherewith/src/common-statements.temper.md	838	source	f		Void: return Boolean; message in the problem field
+Wherewith	wherewith/src/common-statements.temper.md	859	joinedLater	f		Void: return Boolean; message in the problem field
+Wherewith	wherewith/src/common-statements.temper.md	882	derived	f		Void: return Boolean; message in the problem field
+Wherewith	wherewith/src/common-statements.temper.md	918	places	f		Void: return Boolean; message in the problem field
+Wherewith	wherewith/src/common-statements.temper.md	948	itemPlace	a		T?; message in the problem field
+Wherewith	wherewith/src/common-statements.temper.md	963	constant	f		Void: return Boolean; message in the problem field
+Wherewith	wherewith/src/common-statements.temper.md	978	count	f		Void: return Boolean; message in the problem field
+Wherewith	wherewith/src/common-statements.temper.md	997	aliases	f		Void: return Boolean; message in the problem field
+Wherewith	wherewith/src/common-statements.temper.md	1034	aliasRefs	f		Void: return Boolean; message in the problem field
+Wherewith	wherewith/src/common-statements.temper.md	1075	orderAlias	f		Void: return Boolean; message in the problem field
+Wherewith	wherewith/src/common-statements.temper.md	1101	outputNames	f		Void: return Boolean; message in the problem field
+Wherewith	wherewith/src/common-statements.temper.md	1140	itemNames	f		Void: return Boolean; message in the problem field
+Wherewith	wherewith/src/common-statements.temper.md	1194	itemNameRefs	f		Void: return Boolean; message in the problem field
+Wherewith	wherewith/src/common-statements.temper.md	1216	grouping	f		Void: return Boolean; message in the problem field
+Wherewith	wherewith/src/common-statements.temper.md	1259	ungrouped	f		Void: return Boolean; message in the problem field
+Wherewith	wherewith/src/common-statements.temper.md	1313	distinctOrder	f		Void: return Boolean; message in the problem field
+Wherewith	wherewith/src/common-statements.temper.md	1341	insert	f		Void: return Boolean; message in the problem field
+Wherewith	wherewith/src/common-statements.temper.md	1368	update	f		Void: return Boolean; message in the problem field
+Wherewith	wherewith/src/common-statements.temper.md	1386	deleteFrom	f		Void: return Boolean; message in the problem field
+Wherewith	wherewith/src/common-statements.temper.md	1394	twice	f		Void: return Boolean; message in the problem field
+Wherewith	wherewith/src/common-statements.temper.md	1409	setEarlier	f		Void: return Boolean; message in the problem field
+Wherewith	wherewith/src/common-statements.temper.md	1429	reads	f		Void: return Boolean; message in the problem field
+Wherewith	wherewith/src/common-statements.temper.md	1521	statement	f		Void: return Boolean; message in the problem field
+Wherewith	wherewith/src/common-statements.temper.md	1546	select	f		Void: return Boolean; message in the problem field
+Wherewith	wherewith/src/common-statements.temper.md	1567	source	f		Void: return Boolean; message in the problem field
+Wherewith	wherewith/src/common-statements.temper.md	1576	table	f		Void: return Boolean; message in the problem field
+Wherewith	wherewith/src/common-statements.temper.md	1582	optional	f		Void: return Boolean; message in the problem field
+Wherewith	wherewith/src/common-statements.temper.md	1586	expr	f		Void: return Boolean; message in the problem field
+Wherewith	wherewith/src/common-statements.temper.md	1601	name	f		Void: return Boolean; message in the problem field
+Wherewith	wherewith/src/core.temper.md	133	quoteName	c	e	callers need the problem text (twins today)
+Wherewith	wherewith/src/core.temper.md	178	quoteString	c	e	callers need the problem text (twins today)
+Wherewith	wherewith/src/core.temper.md	251	named	c	e	callers need the problem text (twins today)
+Wherewith	wherewith/src/query.temper.md	98	checked	c	e	callers need the problem text (twins today)
+Wherewith	wherewith/src/query.temper.md	129	render	c	e	callers need the problem text (twins today)
+Wherewith	wherewith/src/query.temper.md	192	renderedParts	c	e	callers need the problem text (twins today)
+Wherewith	wherewith/src/query.temper.md	561	build	c	e	callers need the problem text (twins today)
+std	tempest/lib/std/json/json.temper.md	212	propertyValueOrBubble	a	e	T?
+std	tempest/lib/std/json/json.temper.md	266	asInt32	a	e	T?
+std	tempest/lib/std/json/json.temper.md	267	asInt64	a	e	T?
+std	tempest/lib/std/json/json.temper.md	268	asFloat64	a	e	T?
+std	tempest/lib/std/json/json.temper.md	284	asInt32	a	e	T?
+std	tempest/lib/std/json/json.temper.md	287	asInt64	a	e	T?
+std	tempest/lib/std/json/json.temper.md	290	asFloat64	a	e	T?
+std	tempest/lib/std/json/json.temper.md	305	asInt32	a	e	T?
+std	tempest/lib/std/json/json.temper.md	307	asInt64	a	e	T?
+std	tempest/lib/std/json/json.temper.md	310	asFloat64	a	e	T?
+std	tempest/lib/std/json/json.temper.md	324	asInt32	a	e	T?
+std	tempest/lib/std/json/json.temper.md	326	asInt64	a	e	T?
+std	tempest/lib/std/json/json.temper.md	328	asFloat64	a	e	T?
+std	tempest/lib/std/json/json.temper.md	343	asInt32	a	e	T?
+std	tempest/lib/std/json/json.temper.md	348	asInt64	a	e	T?
+std	tempest/lib/std/json/json.temper.md	353	asFloat64	a	e	T?
+std	tempest/lib/std/json/json.temper.md	493	toJsonString	b	e	producer used out of order: a bug
+std	tempest/lib/std/json/json.temper.md	691	toJsonSyntaxTree	c	e	callers want the message and offset (jsonError exists)
+std	tempest/lib/std/json/json.temper.md	1259	parseJson	c	e	callers want the message and offset (jsonError exists)
+std	tempest/lib/std/json/json.temper.md	1275	decodeFromJson	d	e	JsonAdapter<T>: T may itself be nullable
+std	tempest/lib/std/json/json.temper.md	1285	decodeFromJson	a		T?
+std	tempest/lib/std/json/json.temper.md	1299	decodeFromJson	a		T?
+std	tempest/lib/std/json/json.temper.md	1313	decodeFromJson	a		T?
+std	tempest/lib/std/json/json.temper.md	1327	decodeFromJson	a		T?
+std	tempest/lib/std/json/json.temper.md	1341	decodeFromJson	a		T?
+std	tempest/lib/std/json/json.temper.md	1361	decodeFromJson	a		T?
+std	tempest/lib/std/json/json.temper.md	1390	decodeFromJson	d	e	OrNullJsonAdapter: null is JSON null
+std	tempest/lib/std/regex/regex.temper.md	68	find	a	e	no match: Match?
+std	tempest/lib/std/regex/regex.temper.md	425	find	a	e	no match: Match?
+std	tempest/lib/std/regex/regex.temper.md	453	compiledFind	a		no match: Match?
+std	tempest/lib/std/temporal/temporal.temper.md	112	constructor	f	e	constructor can't return null: a Date.of factory
+std	tempest/lib/std/temporal/temporal.temper.md	142	fromIsoString	a	e	Date?
+std	tempest/lib/std/temporal/temporal.temper.md	258	decodeFromJson	a	e	Date?
+std	tempest/lib/std/testing/testing.temper.md	28	assertHard	b	e	a hard assertion becomes a panic
+std	tempest/lib/std/testing/testing.temper.md	43	softFailToHard	b	e	a hard assertion becomes a panic
+std	tempest/lib/std/testing/testing.temper.md	54	bail	b		a hard assertion becomes a panic
+std	tempest/lib/std/testing/testing.temper.md	110	TestFun	f		test runner: tests can't fail, so runners must survive panics per test
+std	tempest/lib/std/testing/testing.temper.md	186	runTest	f	e	test runner: tests can't fail, so runners must survive panics per test
+core	tempest/lib/core/core.temper	176	next	f	e	generator step: failure leaves next(); a generator yields its own result values
+core	tempest/lib/core/core.temper	220	next	f	e	generator step: failure leaves next(); a generator yields its own result values
+core	tempest/lib/core/core.temper	257	?	f		generator step: failure leaves next(); a generator yields its own result values
+core	tempest/lib/core/core.temper	260	constructor	f		generator step: failure leaves next(); a generator yields its own result values
+core	tempest/lib/core/core.temper	264	next	f		generator step: failure leaves next(); a generator yields its own result values
+core	tempest/lib/core/core.temper	391	fromCodePoint	b	e	invalid code point is a bug (or String? for decoders)
+core	tempest/lib/core/core.temper	395	fromCodePoints	b	e	invalid code point is a bug (or String? for decoders)
+core	tempest/lib/core/core.temper	631	toFloat64	a	e	number conversion: T?
+core	tempest/lib/core/core.temper	635	toInt32	a	e	number conversion: T?
+core	tempest/lib/core/core.temper	639	toInt64	a	e	number conversion: T?
+core	tempest/lib/core/core.temper	771	appendCodePoint	b	e	invalid code point is a bug (or String? for decoders)
+core	tempest/lib/core/core.temper	1167	get	d	e	V is unbounded, so V? can't tell a missing key from a null value
+core	tempest/lib/core/core.temper	1341	remove	d	e	V is unbounded, so V? can't tell a missing key from a null value
+core	tempest/lib/core/core.temper	1547	toFloat64	a	e	number conversion: T?
+core	tempest/lib/core/core.temper	1559	toInt32	a	e	number conversion: T?
+core	tempest/lib/core/core.temper	1615	toInt32	a	e	number conversion: T?
+core	tempest/lib/core/core.temper	1626	toInt64	a	e	number conversion: T?

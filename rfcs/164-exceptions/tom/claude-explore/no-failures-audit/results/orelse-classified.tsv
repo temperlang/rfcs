@@ -1,0 +1,597 @@
+library	file	line	fallback	operation	class	where	note	text
+Argmas	argmas/src/command.temper.md	267	other	block	f	src	a Void call used as a check: needs a Boolean	do { type.parse(text); true } orelse false
+Argmas	argmas/src/command.temper.md	347	other	library call	a	src	?? fallback	for (let v of found.values) { n += ints.parse(v) orelse 0; }
+Argmas	argmas/src/command.temper.md	361	panic	library call	a	src	?? panic()	type.parse(text) orelse panic()
+Argmas	argmas/src/command.temper.md	375	panic	library call	a	src	?? panic()	if (text != null) { return type.parse(text) orelse panic(); }
+Argmas	argmas/src/command.temper.md	389	panic	library call	a	src	?? panic()	for (let text of found.values) { out.add(type.parse(text) orelse panic()); }
+Argmas	argmas/src/command.temper.md	1017	panic	appendCodePoint	b	src	the panic moves into the operation	sb.appendCodePoint(if (c >= char'a' && c <= char'z') { c - 32 } else { c }) orelse panic();
+Argmas	argmas/src/complete.temper.md	129	panic	appendCodePoint	b	src	the panic moves into the operation	sb.appendCodePoint(if (c == char'\t' || c == char'\n' || c == char'\r') { char' ' } else { c }) orelse panic();
+Argmas	argmas/src/complete.temper.md	175	other	library call	a	src	?? fallback	let index = ints.parse(argv[1]) orelse -1;
+Argmas	argmas/src/messages.temper.md	136	panic	appendCodePoint	b	src	the panic moves into the operation	out.appendCodePoint(c) orelse panic();
+Argmas	argmas/src/parse.temper.md	39	null	library call	a	src	?? null, or nothing	public get(name: String): String? { vars.get(name) orelse null }
+Argmas	argmas/src/parse.temper.md	958	null	library call	a	src	?? null, or nothing	let b = parseBoolean(text) orelse null;
+Argmas	argmas/src/parse.temper.md	965	other	library call	a	src	?? fallback	let n = ints.parse(text) orelse -1;
+Argmas	argmas/src/parse.temper.md	1165	other	block	f	src	a Void call used as a check: needs a Boolean	do { floats.parse(text); true } orelse false
+Argmas	argmas/src/shells.temper.md	79	panic	appendCodePoint	b	src	the panic moves into the operation	sb.appendCodePoint(if (keep) { c } else { char'_' }) orelse panic();
+Argmas	argmas/src/shells.temper.md	93	panic	appendCodePoint	b	src	the panic moves into the operation	sb.appendCodePoint(name[i]) orelse panic();
+Argmas	argmas/src/shells.temper.md	106	panic	appendCodePoint	b	src	the panic moves into the operation	sb.appendCodePoint(c) orelse panic();
+Argmas	argmas/src/style.temper.md	146	panic	appendCodePoint	b	src	the panic moves into the operation	sb.appendCodePoint(if (c >= char'A' && c <= char'Z') { c + 32 } else { c }) orelse panic();
+Argmas	argmas/src/values.temper.md	114	panic	appendCodePoint	b	src	the panic moves into the operation	digits.appendCodePoint(c) orelse panic();
+Argmas	argmas/src/values.temper.md	175	panic	appendCodePoint	b	src	the panic moves into the operation	whole.appendCodePoint(text[i]) orelse panic();
+Argmas	argmas/src/values.temper.md	186	panic	appendCodePoint	b	src	the panic moves into the operation	fraction.appendCodePoint(text[i]) orelse panic();
+Argmas	argmas/src/values.temper.md	203	panic	appendCodePoint	b	src	the panic moves into the operation	json.appendCodePoint(text[i]) orelse panic();
+Argmas	argmas/src/values.temper.md	291	panic	appendCodePoint	b	src	the panic moves into the operation	sb.appendCodePoint(if (c >= char'A' && c <= char'Z') { c + 32 } else { c }) orelse panic();
+Chromarite	chromarite/src/adjust.temper.md	26	panic	bug-like block	b	src	the panic moves into the operation	} orelse panic();
+Chromarite	chromarite/src/color.temper.md	79	panic	division	b	src	the panic moves into the operation	if (((values.length % width) orelse panic()) != 0) { panic() }
+Chromarite	chromarite/src/color.temper.md	84	panic	read	b	src	the panic moves into the operation	channels.add(values[offset + j] orelse panic());
+Chromarite	chromarite/src/color.temper.md	86	panic	read	b	src	the panic moves into the operation	alpha.add(values[offset + ncols] orelse panic());
+Chromarite	chromarite/src/color.temper.md	155	panic	bug-like library call	b	src	the panic moves into the operation	new Color(space, (mapToGamut(this, space) orelse panic()).toList(), alpha)
+Chromarite	chromarite/src/color.temper.md	167	panic	bug-like library call	b	src	the panic moves into the operation	public inGamut(space: Space): List<Boolean> { inGamutRows(this, space) orelse panic() }
+Chromarite	chromarite/src/color.temper.md	173	panic	bug-like library call	b	src	the panic moves into the operation	public maxChroma(space: Space): List<Float64> { maxChromaRows(this, space) orelse panic() }
+Chromarite	chromarite/src/color.temper.md	181	panic	bug-like library call	b	src	the panic moves into the operation	new Color(this.space, (fitChromaRows(this, space) orelse panic()).toList(), alpha)
+Chromarite	chromarite/src/color.temper.md	187	panic	bug-like library call	b	src	the panic moves into the operation	public deltaEOk(other: Color): List<Float64> { deltaEOkRows(this, other) orelse panic() }
+Chromarite	chromarite/src/color.temper.md	197	panic	bug-like library call	b	src	the panic moves into the operation	mixColors(this, other, amount, space, HueMethod.shorter) orelse panic()
+Chromarite	chromarite/src/color.temper.md	205	panic	bug-like library call	b	src	the panic moves into the operation	mixColors(this, other, amount, space, hue) orelse panic()
+Chromarite	chromarite/src/color.temper.md	212	panic	bug-like library call	b	src	the panic moves into the operation	gradientColors(this, count, space, HueMethod.shorter) orelse panic()
+Chromarite	chromarite/src/color.temper.md	216	panic	bug-like library call	b	src	the panic moves into the operation	gradientColors(this, count, space, hue) orelse panic()
+Chromarite	chromarite/src/color.temper.md	229	panic	bug-like library call	b	src	the panic moves into the operation	new Color(space, (adjustLch(this, amount, 1.0, 0.0) orelse panic()).toList(), alpha)
+Chromarite	chromarite/src/color.temper.md	235	panic	bug-like library call	b	src	the panic moves into the operation	new Color(space, (adjustLch(this, 0.0, factor, 0.0) orelse panic()).toList(), alpha)
+Chromarite	chromarite/src/color.temper.md	241	panic	bug-like library call	b	src	the panic moves into the operation	new Color(space, (adjustLch(this, 0.0, 1.0, degrees) orelse panic()).toList(), alpha)
+Chromarite	chromarite/src/color.temper.md	252	panic	bug-like library call	b	src	the panic moves into the operation	public luminance(): List<Float64> { luminanceRows(this) orelse panic() }
+Chromarite	chromarite/src/color.temper.md	258	panic	bug-like library call	b	src	the panic moves into the operation	contrastRows(this, other) orelse panic()
+Chromarite	chromarite/src/color.temper.md	269	panic	bug-like library call	b	src	the panic moves into the operation	new Color(this.space, (fitContrastRows(this, against, ratio, space) orelse panic()).toList(), alpha)
+Chromarite	chromarite/src/color.temper.md	282	panic	library call	a	src	?? panic()	public toCss(): List<String> { cssStrings(this) orelse panic() }
+Chromarite	chromarite/src/color.temper.md	317	panic	read	b	src	the panic moves into the operation	builder.add(rows[i, j] orelse panic());
+Chromarite	chromarite/src/color.temper.md	319	panic	bug-like library call	b	src	the panic moves into the operation	builder.add(alphaAt(i) orelse panic());
+Chromarite	chromarite/src/color.temper.md	363	other	block	f	test	a Void call used as a check: needs a Boolean	assert(do { opaque.alphaAt(1); false } orelse true);
+Chromarite	chromarite/src/css.temper.md	514	panic	division	b	src	the panic moves into the operation	let whole = ((magnitude / scale) orelse panic()).floor();
+Chromarite	chromarite/src/css.temper.md	517	panic	division	b	src	the panic moves into the operation	while (digits > 0 && fraction - ((fraction / 10.0) orelse panic()).floor() * 10.0 == 0.0) {
+Chromarite	chromarite/src/css.temper.md	518	panic	division	b	src	the panic moves into the operation	fraction = ((fraction / 10.0) orelse panic()).floor();
+Chromarite	chromarite/src/css.temper.md	575	other	block	f	test	a Void call used as a check: needs a Boolean	assert(do { Color.parse(bad); false } orelse true) { "should fail: ${bad}" }
+Chromarite	chromarite/src/generic.temper.md	32	panic	bug-like block	b	src	the panic moves into the operation	} orelse panic(),
+Chromarite	chromarite/src/generic.temper.md	40	panic	read	b	src	the panic moves into the operation	let x = clampToIntByte(row[0] orelse panic());
+Chromarite	chromarite/src/generic.temper.md	41	panic	read	b	src	the panic moves into the operation	let y = clampToIntByte(row[1] orelse panic());
+Chromarite	chromarite/src/generic.temper.md	42	panic	read	b	src	the panic moves into the operation	let z = clampToIntByte(row[2] orelse panic());
+Chromarite	chromarite/src/generic.temper.md	78	panic	division	b	src	the panic moves into the operation	rows.map { x => (x / 255.0) orelse panic() }
+Chromarite	chromarite/src/helpers.temper.md	32	panic	library call	a	src	?? panic()	assertNear(test, label, actual[i, j], expected[i, j]) orelse panic();
+Chromarite	chromarite/src/hsv.temper.md	62	panic	bug-like block	b	src	the panic moves into the operation	} orelse panic();
+Chromarite	chromarite/src/hsv.temper.md	78	panic	bug-like block	b	src	the panic moves into the operation	} orelse panic();
+Chromarite	chromarite/src/hsv.temper.md	97	panic	bug-like block	b	src	the panic moves into the operation	} orelse panic();
+Chromarite	chromarite/src/hsv.temper.md	112	panic	bug-like block	b	src	the panic moves into the operation	} orelse panic();
+Chromarite	chromarite/src/hsv.temper.md	130	panic	bug-like block	b	src	the panic moves into the operation	} orelse panic();
+Chromarite	chromarite/src/hsv.temper.md	148	panic	bug-like block	b	src	the panic moves into the operation	} orelse panic();
+Chromarite	chromarite/src/lab.temper.md	13	panic	bug-like library call	b	src	the panic moves into the operation	times(rgb, srgbLinearToXyzD65Matrix) orelse panic()
+Chromarite	chromarite/src/lab.temper.md	17	panic	bug-like library call	b	src	the panic moves into the operation	times(xyz, xyzD65ToSrgbLinearMatrix) orelse panic()
+Chromarite	chromarite/src/lab.temper.md	21	panic	bug-like library call	b	src	the panic moves into the operation	times(xyz, xyzD65ToXyzD50Matrix) orelse panic()
+Chromarite	chromarite/src/lab.temper.md	25	panic	bug-like library call	b	src	the panic moves into the operation	times(xyz, xyzD50ToXyzD65Matrix) orelse panic()
+Chromarite	chromarite/src/lab.temper.md	72	panic	bug-like block	b	src	the panic moves into the operation	} orelse panic();
+Chromarite	chromarite/src/lab.temper.md	92	panic	bug-like block	b	src	the panic moves into the operation	} orelse panic();
+Chromarite	chromarite/src/matrix.temper.md	34	panic	division	b	src	the panic moves into the operation	if (((values.length % ncols) orelse panic()) != 0) { panic() }
+Chromarite	chromarite/src/matrix.temper.md	35	panic	division	b	src	the panic moves into the operation	(values.length / ncols) orelse panic()
+Chromarite	chromarite/src/matrix.temper.md	123	panic	bug-like library call	b	src	the panic moves into the operation	build(matrixRow(m, i, buffer) orelse panic(), builder);
+Chromarite	chromarite/src/matrix.temper.md	139	panic	bug-like library call	b	src	the panic moves into the operation	builder.add(transform(matrixRow(m, i, buffer) orelse panic()));
+Chromarite	chromarite/src/matrix.temper.md	152	panic	read	b	src	the panic moves into the operation	sum += (row[j] * b[j, k]) orelse panic();
+Chromarite	chromarite/src/matrix.temper.md	167	panic	read	b	src	the panic moves into the operation	builder.add(m[i, j] orelse panic());
+Chromarite	chromarite/src/named.temper.md	22	panic	fromCodePoint	b	src	the panic moves into the operation	builder.append(String.fromCodePoint(lowered) orelse panic());
+Chromarite	chromarite/src/named.temper.md	189	other	block	f	test	a Void call used as a check: needs a Boolean	assert(do { parseNamed("notacolor"); false } orelse true);
+Chromarite	chromarite/src/oklab.temper.md	19	panic	bug-like block	b	src	the panic moves into the operation	} orelse panic()
+Chromarite	chromarite/src/oklab.temper.md	49	panic	bug-like block	b	src	the panic moves into the operation	} orelse panic()
+Chromarite	chromarite/src/oklab.temper.md	147	panic	bug-like block	b	src	the panic moves into the operation	} orelse panic();
+Chromarite	chromarite/src/oklab.temper.md	163	panic	bug-like block	b	src	the panic moves into the operation	} orelse panic();
+Chromarite	chromarite/src/rgb.temper.md	25	panic	read	b	src	the panic moves into the operation	let alphaByte = clampToIntByte((alpha[i] orelse panic()) * 255.0);
+Chromarite	chromarite/src/rgb.temper.md	27	panic	read	b	src	the panic moves into the operation	builder.add("#${hexes[i] orelse panic()}${alphaHex}");
+Chromarite	chromarite/src/rgb.temper.md	104	other	block	f	test	a Void call used as a check: needs a Boolean	assert(do { parseHex("#12"); false } orelse true);
+Chromarite	chromarite/src/rgb.temper.md	105	other	block	f	test	a Void call used as a check: needs a Boolean	assert(do { parseHex("#ggg"); false } orelse true);
+Chromarite	chromarite/src/rgb.temper.md	106	other	block	f	test	a Void call used as a check: needs a Boolean	assert(do { parseHex("#-12"); false } orelse true);
+Chromarite	chromarite/src/rgb.temper.md	107	other	block	f	test	a Void call used as a check: needs a Boolean	assert(do { parseHex(""); false } orelse true);
+Chromarite	chromarite/src/rgb.temper.md	134	panic	division	b	src	the panic moves into the operation	x.sign() * (((magnitude + 0.055) / 1.055) orelse panic()) ** 2.4
+Chromarite	chromarite/src/rgb.temper.md	136	panic	division	b	src	the panic moves into the operation	(x / 12.92) orelse panic()
+Chromarite	chromarite/src/wide.temper.md	21	panic	bug-like library call	b	src	the panic moves into the operation	times(srgbGammaToLinear(rgb), displayP3ToSrgbLinearMatrix) orelse panic()
+Chromarite	chromarite/src/wide.temper.md	25	panic	bug-like library call	b	src	the panic moves into the operation	srgbLinearToGamma(times(rgb, srgbLinearToDisplayP3Matrix) orelse panic())
+Chromarite	chromarite/src/wide.temper.md	43	panic	bug-like library call	b	src	the panic moves into the operation	times(rgb.map { x => signedPow(x, 563.0 / 256.0) }, a98RgbToSrgbLinearMatrix) orelse panic()
+Chromarite	chromarite/src/wide.temper.md	47	panic	bug-like library call	b	src	the panic moves into the operation	(times(rgb, srgbLinearToA98RgbMatrix) orelse panic()).map { x => signedPow(x, 256.0 / 563.0) }
+Chromarite	chromarite/src/wide.temper.md	68	panic	division	b	src	the panic moves into the operation	if (x.abs() <= 16.0 / 512.0) { (x / 16.0) orelse panic() } else { signedPow(x, 1.8) }
+Chromarite	chromarite/src/wide.temper.md	70	panic	bug-like library call	b	src	the panic moves into the operation	times(linear, prophotoRgbToSrgbLinearMatrix) orelse panic()
+Chromarite	chromarite/src/wide.temper.md	74	panic	bug-like library call	b	src	the panic moves into the operation	(times(rgb, srgbLinearToProphotoRgbMatrix) orelse panic()).map { x =>
+Chromarite	chromarite/src/wide.temper.md	96	panic	bug-like library call	b	src	the panic moves into the operation	times(rgb.map { x => signedPow(x, 2.4) }, rec2020ToSrgbLinearMatrix) orelse panic()
+Chromarite	chromarite/src/wide.temper.md	100	panic	bug-like library call	b	src	the panic moves into the operation	(times(rgb, srgbLinearToRec2020Matrix) orelse panic()).map { x => signedPow(x, 1.0 / 2.4) }
+Hrefine	hrefine/src/display.temper.md	370	other	library call	a	src	?? fallback	let ascii = domainToAscii(domain) orelse asciiLowercase(domain);
+Hrefine	hrefine/src/display.temper.md	386	other	library call	a	src	?? fallback	let back = domainToAscii(unicode) orelse "";
+Hrefine	hrefine/src/display.temper.md	791	panic	library call	a	test	?? panic()	let lower = domainToUnicode(domainToAscii(shown[k]) orelse panic());
+Hrefine	hrefine/src/display.temper.md	794	panic	library call	a	test	?? panic()	assert(domainToDisplay(domainToAscii(shown[k]) orelse panic()) == lower) { shown[k] };
+Hrefine	hrefine/src/display.temper.md	823	panic	library call	a	test	?? panic()	let ascii = domainToAscii(kept[k]) orelse panic();
+Hrefine	hrefine/src/display.temper.md	831	panic	library call	a	test	?? panic()	punycodeEncode([0x63, 0x61, 0x66, 0x65, 0x301], decomposed) orelse panic();
+Hrefine	hrefine/src/display.temper.md	853	panic	library call	a	test	?? panic()	let lower = domainToUnicode(domainToAscii(shown[k]) orelse panic());
+Hrefine	hrefine/src/display.temper.md	873	panic	library call	a	test	?? panic()	let ascii = domainToAscii(kept[k]) orelse panic();
+Hrefine	hrefine/src/display.temper.md	877	panic	library call	a	test	?? panic()	let digits = domainToAscii("\u{9EA}\u{9ED}") orelse panic();
+Hrefine	hrefine/src/display.temper.md	914	panic	library call	a	test	?? panic()	let url = parseUrl(cases[k]) orelse panic();
+Hrefine	hrefine/src/display.temper.md	917	panic	library call	a	test	?? panic()	let back = parseUrl(got) orelse panic();
+Hrefine	hrefine/src/display.temper.md	920	panic	library call	a	test	?? panic()	let withAll = parseUrl("https://user:pw@xn--bcher-kva.example/?#top") orelse panic();
+Hrefine	hrefine/src/display.temper.md	921	panic	library call	a	test	?? panic()	let bare = parseUrl("https://xn--bcher-kva.example/#top") orelse panic();
+Hrefine	hrefine/src/display.temper.md	927	panic	library call	a	test	?? panic()	let root = parseUrl("https://example.com") orelse panic();
+Hrefine	hrefine/src/display.temper.md	931	panic	library call	a	test	?? panic()	let encoded = parseUrl("https://xn--bcher-kva.example/caf%C3%A9") orelse panic();
+Hrefine	hrefine/src/display.temper.md	933	panic	library call	a	test	?? panic()	let opaque = parseUrl("foo:x") orelse panic();
+Hrefine	hrefine/src/display.temper.md	950	panic	library call	a	test	?? panic()	let url = parseUrl(cases[k]) orelse panic();
+Hrefine	hrefine/src/display.temper.md	967	panic	library call	a	test	?? panic()	let url = parseUrl("https://user@xn--bcher-kva.example/") orelse panic();
+Hrefine	hrefine/src/display.temper.md	970	panic	library call	a	test	?? panic()	let page = parseUrl("https://user@EXAMPLE.com:443/a/../b?q=1#top") orelse panic();
+Hrefine	hrefine/src/display.temper.md	973	panic	library call	a	test	?? panic()	assert(page.sameDocument(parseUrl("https://user@example.com/b?q=1") orelse panic()));
+Hrefine	hrefine/src/display.temper.md	974	panic	library call	a	test	?? panic()	assert(!page.sameDocument(parseUrl("https://user@example.com/b?q=2") orelse panic()));
+Hrefine	hrefine/src/display.temper.md	975	panic	library call	a	test	?? panic()	let source = parseUrlSource(" https://EXAMPLE.com/a\tb") orelse panic();
+Hrefine	hrefine/src/display.temper.md	981	panic	library call	a	test	?? panic()	let policy = UrlPolicy.fetch.withSubdomainsOf(["example.com"]) orelse panic();
+Hrefine	hrefine/src/host.temper.md	201	null	library call	a	src	?? null, or nothing	let ascii: String? = domainToAscii(domain) orelse null;
+Hrefine	hrefine/src/idna.temper.md	163	null	library call	a	src	?? null, or nothing	punycodeDecode(label, 4) orelse null
+Hrefine	hrefine/src/idna.temper.md	801	other	library call	a	test	?? fallback	let ascii(domain: String): String { domainToAscii(domain) orelse "(fails)" }
+Hrefine	hrefine/src/idna.temper.md	832	panic	fromCodePoint	b	test	the panic moves into the operation	String.fromCodePoints(toNfc(codes)) orelse panic()
+Hrefine	hrefine/src/percent.temper.md	172	panic	appendCodePoint	b	src	the panic moves into the operation	out.appendCodePoint(c) orelse panic();
+Hrefine	hrefine/src/policy.temper.md	284	null	library call	a	src	?? null, or nothing	let found: UrlCheck? = checkUrl(input, baseText) orelse null;
+Hrefine	hrefine/src/policy.temper.md	317	null	library call	a	src	?? null, or nothing	let parsed: Host? = parseHost(host) orelse null;
+Hrefine	hrefine/src/policy.temper.md	657	panic	library call	a	src	?? panic()	parseIpv6(address, null, 0) orelse panic()
+Hrefine	hrefine/src/policy.temper.md	659	panic	library call	a	src	?? panic()	ipv4Pieces(parseIpv4(address, null, 0) orelse panic())
+Hrefine	hrefine/src/policy.temper.md	661	panic	conversion	a	src	?? panic()	out.add(new SpecialHost(text, table[k + 1], pieces, parts[1].toInt32() orelse panic()));
+Hrefine	hrefine/src/policy.temper.md	693	panic	library call	a	src	?? panic()	ipv4Pieces(parseIpv4(host, null, 0) orelse panic())
+Hrefine	hrefine/src/policy.temper.md	695	panic	library call	a	src	?? panic()	parseIpv6(host.slice(host.next(String.begin), host.prev(host.end)), null, 0) orelse panic()
+Hrefine	hrefine/src/policy.temper.md	756	panic	library call	a	test	?? panic()	let check = checkUrl(cases[k]) orelse panic();
+Hrefine	hrefine/src/policy.temper.md	763	panic	library call	a	test	?? panic()	let check = checkUrl(" https://example.com/a b") orelse panic();
+Hrefine	hrefine/src/policy.temper.md	953	panic	library call	a	test	?? panic()	let exact = UrlPolicy.any.withHosts(["Good.Example", "bücher.example", "10.0.0.1", "[::1]"]) orelse panic();
+Hrefine	hrefine/src/policy.temper.md	981	panic	library call	a	test	?? panic()	let under = UrlPolicy.any.withSubdomainsOf(["good.example"]) orelse panic();
+Hrefine	hrefine/src/policy.temper.md	993	panic	library call	a	test	?? panic()	expectPolicy(UrlPolicy.any.withSubdomainsOf([]) orelse panic(), ["https://good.example/", "host"]);
+Hrefine	hrefine/src/policy.temper.md	994	panic	library call	a	test	?? panic()	expectPolicy(UrlPolicy.any.withHosts([]) orelse panic(), ["https://good.example/", "host"]);
+Hrefine	hrefine/src/policy.temper.md	996	panic	library call	a	test	?? panic()	let both = (UrlPolicy.any.withHosts(["10.0.0.1", "api.other.example"]) orelse panic())
+Hrefine	hrefine/src/policy.temper.md	997	panic	library call	a	test	?? panic()	.withSubdomainsOf(["good.example"]) orelse panic();
+Hrefine	hrefine/src/policy.temper.md	1007	panic	library call	a	test	?? panic()	let replaced = (UrlPolicy.any.withHosts(["a.example"]) orelse panic()).withHosts(["b.example"]) orelse panic();
+Hrefine	hrefine/src/policy.temper.md	1007	panic	library call	a	test	?? panic()	let replaced = (UrlPolicy.any.withHosts(["a.example"]) orelse panic()).withHosts(["b.example"]) orelse panic();
+Hrefine	hrefine/src/policy.temper.md	1012	panic	library call	a	test	?? panic()	let replacedDomains = (UrlPolicy.any.withSubdomainsOf(["a.example"]) orelse panic())
+Hrefine	hrefine/src/policy.temper.md	1013	panic	library call	a	test	?? panic()	.withSubdomainsOf(["b.example"]) orelse panic();
+Hrefine	hrefine/src/policy.temper.md	1030	null	library call	a	test	?? null, or nothing	let alone: UrlPolicy? = UrlPolicy.any.withHosts([entry]) orelse null;
+Hrefine	hrefine/src/policy.temper.md	1032	null	library call	a	test	?? null, or nothing	let after: UrlPolicy? = UrlPolicy.any.withHosts(["good.example", entry]) orelse null;
+Hrefine	hrefine/src/policy.temper.md	1034	null	library call	a	test	?? null, or nothing	let under: UrlPolicy? = UrlPolicy.any.withSubdomainsOf([entry]) orelse null;
+Hrefine	hrefine/src/policy.temper.md	1039	null	library call	a	test	?? null, or nothing	let exact: UrlPolicy? = UrlPolicy.any.withHosts([entry]) orelse null;
+Hrefine	hrefine/src/policy.temper.md	1041	null	library call	a	test	?? null, or nothing	let under: UrlPolicy? = UrlPolicy.any.withSubdomainsOf([entry]) orelse null;
+Hrefine	hrefine/src/policy.temper.md	1046	null	library call	a	test	?? null, or nothing	let exact: UrlPolicy? = UrlPolicy.any.withHosts([entry]) orelse null;
+Hrefine	hrefine/src/policy.temper.md	1047	null	library call	a	test	?? null, or nothing	let under: UrlPolicy? = UrlPolicy.any.withSubdomainsOf([entry]) orelse null;
+Hrefine	hrefine/src/policy.temper.md	1051	null	library call	a	test	?? null, or nothing	let refused: UrlPolicy? = UrlPolicy.any.withPorts([443, port]) orelse null;
+Hrefine	hrefine/src/policy.temper.md	1054	null	library call	a	test	?? null, or nothing	let edges: UrlPolicy? = UrlPolicy.any.withPorts([0, 65535]) orelse null;
+Hrefine	hrefine/src/policy.temper.md	1083	panic	library call	a	test	?? panic()	let more = UrlPolicy.fetch.withPorts([8443, 9443]) orelse panic();
+Hrefine	hrefine/src/policy.temper.md	1091	panic	library call	a	test	?? panic()	let replaced = more.withPorts([9443]) orelse panic();
+Hrefine	hrefine/src/policy.temper.md	1100	panic	library call	a	test	?? panic()	let defaults = UrlPolicy.any.withPorts([]) orelse panic();
+Hrefine	hrefine/src/policy.temper.md	1129	panic	library call	a	test	?? panic()	let site = parseUrl("https://good.example/app/") orelse panic();
+Hrefine	hrefine/src/policy.temper.md	1176	panic	library call	a	test	?? panic()	let signedIn = parseUrl("https://user:pw@good.example/app/") orelse panic();
+Hrefine	hrefine/src/policy.temper.md	1205	panic	library call	a	test	?? panic()	let site = parseUrl("https://good.example/") orelse panic();
+Hrefine	hrefine/src/policy.temper.md	1206	panic	library call	a	test	?? panic()	let policy = UrlPolicy.fetch.withSubdomainsOf(["good.example"]) orelse panic();
+Hrefine	hrefine/src/punycode.temper.md	207	panic	library call	a	test	?? panic()	punycodeEncode(codes.toList(), out) orelse panic();
+Hrefine	hrefine/src/punycode.temper.md	213	panic	library call	a	test	?? panic()	let decoded = punycodeDecode(ascii.toList(), 0) orelse panic();
+Hrefine	hrefine/src/punycode.temper.md	214	panic	fromCodePoint	b	test	the panic moves into the operation	let back = String.fromCodePoints(decoded) orelse panic();
+Hrefine	hrefine/src/punycode.temper.md	231	null	library call	a	test	?? null, or nothing	let valid: List<Int>? = punycodeDecode(codes("a"), 0) orelse null;
+Hrefine	hrefine/src/punycode.temper.md	233	null	library call	a	test	?? null, or nothing	let truncated: List<Int>? = punycodeDecode(codes("z"), 0) orelse null;
+Hrefine	hrefine/src/punycode.temper.md	235	null	library call	a	test	?? null, or nothing	let notDigit: List<Int>? = punycodeDecode(codes("a!"), 0) orelse null;
+Hrefine	hrefine/src/punycode.temper.md	237	null	library call	a	test	?? null, or nothing	let tooBig: List<Int>? = punycodeDecode(codes("zzzzzzzzzzzzzz"), 0) orelse null;
+Hrefine	hrefine/src/search-params.temper.md	359	panic	library call	a	test	?? panic()	let url = parseUrl("http://www.example.com/?a=b,c") orelse panic();
+Hrefine	hrefine/src/search-params.temper.md	364	panic	library call	a	test	?? panic()	let file = parseUrl("http://example.org/file?a=b&c=d") orelse panic();
+Hrefine	hrefine/src/search-params.temper.md	372	panic	library call	a	test	?? panic()	let doubled = parseUrl("http://example.org/file??a=b&c=d") orelse panic();
+Hrefine	hrefine/src/search-params.temper.md	376	panic	library call	a	test	?? panic()	let both = parseUrl("http://example.com/?param1&param2") orelse panic();
+Hrefine	hrefine/src/search-params.temper.md	382	panic	library call	a	test	?? panic()	let opaque = parseUrl("data:space    ?test#test") orelse panic();
+Hrefine	hrefine/src/source.temper.md	238	panic	library call	a	test	?? panic()	let got = spansOf(parseUrlSource(cases[k]) orelse panic());
+Hrefine	hrefine/src/source.temper.md	256	panic	library call	a	test	?? panic()	let source = parseUrlSource(cases[k], base) orelse panic();
+Hrefine	hrefine/src/source.temper.md	259	panic	library call	a	test	?? panic()	let relative = parseUrlSource("../c", base) orelse panic();
+Hrefine	hrefine/src/source.temper.md	263	null	library call	a	test	?? null, or nothing	let rejected: UrlSource? = parseUrlSource("https://exa mple.com") orelse null;
+Hrefine	hrefine/src/source.temper.md	281	panic	library call	a	test	?? panic()	let check = checkUrl(cases[k]) orelse panic();
+Hrefine	hrefine/src/strict.temper.md	334	panic	library call	a	test	?? panic()	let url = parseUrl(cases[k]) orelse panic();
+Hrefine	hrefine/src/strict.temper.md	339	panic	library call	a	test	?? panic()	let user = parseUrl("https://u%zz:p|q@example.com/a|b") orelse panic();
+Hrefine	hrefine/src/strict.temper.md	367	panic	library call	a	test	?? panic()	let url = parseUrl("https://doesnotmatter.invalid/?${cases[k]}#${cases[k]}") orelse panic();
+Hrefine	hrefine/src/url.temper.md	44	null	library call	a	src	?? null, or nothing	let record: UrlRecord? = parseRecord(input, baseRecord, base != null, log) orelse null;
+Hrefine	hrefine/src/url.temper.md	149	null	library call	a	src	?? null, or nothing	parseUrl(input, base) orelse null
+Hrefine	hrefine/src/url.temper.md	156	null	library call	a	src	?? null, or nothing	let record: UrlRecord? = parseAgainst(input, base) orelse null;
+Hrefine	hrefine/src/url.temper.md	381	null	library call	a	src	?? null, or nothing	public tryResolve(ref: String): Url? { resolve(ref) orelse null }
+Hrefine	hrefine/src/url.temper.md	576	null	library call	a	src	?? null, or nothing	let ignored: UrlRecord? = basicUrlParse(input, noBase, false, null, record, override) orelse null;
+Hrefine	hrefine/src/url.temper.md	1978	null	library call	a	src	?? null, or nothing	let inner: UrlRecord? = parseRecord(path, noBase, false, null) orelse null;
+Hrefine	hrefine/src/url.temper.md	2006	panic	library call	a	test	?? panic()	let url = parseUrl("https://user@EXAMPLE.com:443/a/../b?q=1#top") orelse panic();
+Hrefine	hrefine/src/url.temper.md	2012	panic	library call	a	test	?? panic()	let relative = parseUrl("../c", "https://example.com/a/b") orelse panic();
+Hrefine	hrefine/src/url.temper.md	2016	null	library call	a	test	?? null, or nothing	let bad: Url? = parseUrl("https://exa mple.com") orelse null;
+Hrefine	hrefine/src/url.temper.md	2018	panic	library call	a	test	?? panic()	let check = checkUrl("https://exa mple.com") orelse panic();
+Hrefine	hrefine/src/url.temper.md	2021	panic	library call	a	test	?? panic()	let base = parseUrl("https://example.com/a/b") orelse panic();
+Hrefine	hrefine/src/url.temper.md	2022	panic	library call	a	test	?? panic()	assert((base.resolve("../c") orelse panic()).href == "https://example.com/c");
+Hrefine	hrefine/src/url.temper.md	2026	panic	library call	a	test	?? panic()	assert((parseUrl("http://0x7f.1/") orelse panic()).hostKind == HostKind.ipv4);
+Hrefine	hrefine/src/url.temper.md	2028	panic	library call	a	test	?? panic()	let host = parseHost("0x7f.1") orelse panic();
+Hrefine	hrefine/src/url.temper.md	2030	panic	library call	a	test	?? panic()	let international = parseUrl("https://Bücher.example") orelse panic();
+Hrefine	hrefine/src/url.temper.md	2055	null	library call	a	test	?? null, or nothing	let rejected: UrlCheck? = checkUrl("a", "not a base") orelse null;
+Hrefine	hrefine/src/url.temper.md	2082	panic	library call	a	test	?? panic()	let base = parseUrl(cases[k]) orelse panic();
+Hrefine	hrefine/src/url.temper.md	2083	null	library call	a	test	?? null, or nothing	let expected: Url? = parseUrl(cases[k + 1], cases[k]) orelse null;
+Hrefine	hrefine/src/url.temper.md	2093	panic	library call	a	test	?? panic()	let mailto = parseUrl("mailto:someone@example.com") orelse panic();
+Hrefine	hrefine/src/url.temper.md	2107	panic	library call	a	test	?? panic()	let url = parseUrl(kinds[k]) orelse panic();
+Hrefine	hrefine/src/url.temper.md	2112	panic	library call	a	test	?? panic()	let url = parseUrl("HTTPS://example.com:8080/") orelse panic();
+Hrefine	hrefine/src/url.temper.md	2115	panic	library call	a	test	?? panic()	assert((parseUrl("https://example.com:443/") orelse panic()).portNumber == null);
+Hrefine	hrefine/src/url.temper.md	2116	panic	library call	a	test	?? panic()	assert((parseUrl("foo://h:0/") orelse panic()).portNumber == 0);
+Hrefine	hrefine/src/url.temper.md	2120	panic	library call	a	test	?? panic()	assert((parseUrl("file:///a") orelse panic()).withPortNumber(80).port == "");
+Hrefine	hrefine/src/url.temper.md	2122	panic	library call	a	test	?? panic()	(parseUrl(a) orelse panic()).sameOrigin(parseUrl(b) orelse panic())
+Hrefine	hrefine/src/url.temper.md	2122	panic	library call	a	test	?? panic()	(parseUrl(a) orelse panic()).sameOrigin(parseUrl(b) orelse panic())
+Hrefine	hrefine/src/url.temper.md	2131	panic	library call	a	test	?? panic()	let data = parseUrl("data:,a") orelse panic();
+Hrefine	hrefine/src/url.temper.md	2133	panic	library call	a	test	?? panic()	let a = parseUrl("HTTP://Example.com/./a") orelse panic();
+Hrefine	hrefine/src/url.temper.md	2134	panic	library call	a	test	?? panic()	let b = parseUrl("http://example.com/a") orelse panic();
+Hrefine	hrefine/src/url.temper.md	2136	panic	library call	a	test	?? panic()	assert(a != (parseUrl("http://example.com/a#") orelse panic()));
+Hrefine	hrefine/src/url.temper.md	2167	panic	library call	a	test	?? panic()	let url = parseUrl(cases[k]) orelse panic();
+Hrefine	hrefine/src/url.temper.md	2174	panic	library call	a	test	?? panic()	let secret = parseUrl("https://alice:hunter2@example.com/") orelse panic();
+Hrefine	hrefine/src/url.temper.md	2181	panic	library call	a	test	?? panic()	assert(secret == (parseUrl("https://alice:hunter2@example.com/") orelse panic()));
+Hrefine	hrefine/src/url.temper.md	2188	panic	library call	a	test	?? panic()	let resolved = secret.resolve("/b") orelse panic();
+Hrefine	hrefine/src/url.temper.md	2192	panic	library call	a	test	?? panic()	let set = secret.withHref("https://bob:pw@example.org/") orelse panic();
+Hrefine	hrefine/src/url.temper.md	2196	panic	library call	a	test	?? panic()	let plain = parseUrl("https://example.com/?token=abc") orelse panic();
+Hrefine	hrefine/src/url.temper.md	2236	panic	library call	a	test	?? panic()	let host = parseHost(good[k]) orelse panic();
+Hrefine	hrefine/src/url.temper.md	2243	null	library call	a	test	?? null, or nothing	let host: Host? = parseHost(input) orelse null;
+Hrefine	hrefine/src/url.temper.md	2312	panic	library call	a	test	?? panic()	let check = checkUrl(input, base) orelse panic();
+Kelpto	kelpto/kelpto/kelpto.temper.md	126	panic	as	b	src	the panic moves into the operation	var red = origin as RedNode orelse panic();
+Kelpto	kelpto/kelpto/kelpto.temper.md	130	panic	as	b	src	the panic moves into the operation	red = up as RedNode orelse panic();
+Kelpto	kelpto/kelpto/kelpto.temper.md	255	panic	as	b	test	the panic moves into the operation	let node = raws[0].htmlNode as RedNode orelse panic();
+Kelpto	kelpto/kelpto/kelpto.temper.md	260	panic	as	b	test	the panic moves into the operation	assert((b.attribute("class") as Attribute orelse panic()).value == "x") { "attribute" };
+Kelpto	kelpto/kelpto/kelpto.temper.md	272	panic	as	b	test	the panic moves into the operation	let top = (code.attribute("lang") as Attribute orelse panic()).withValue("rust");
+Kelpto	kelpto/kelpto/kelpto.temper.md	300	panic	as	b	test	the panic moves into the operation	let link = safe.removals[2].origin as RedNode orelse panic();
+Kelpto	kelpto/kelpto/kelpto.temper.md	554	panic	as	b	test	the panic moves into the operation	let div = built.children[0] as Element orelse panic();
+Kelpto	kelpto/kelpto/kelpto.temper.md	555	panic	as	b	test	the panic moves into the operation	let tag = div.startTag as StartTag orelse panic();
+Kelpto	kelpto/kelpto/kelpto.temper.md	558	panic	as	b	test	the panic moves into the operation	let p = div.children[1] as Element orelse panic();
+Kelpto	kelpto/kelpto/kelpto.temper.md	560	panic	as	b	test	the panic moves into the operation	let em = p.children[0] as Element orelse panic();
+Kelpto	kelpto/kelpto/kelpto.temper.md	562	panic	as	b	test	the panic moves into the operation	let b = p.children[2] as Element orelse panic();
+Kelpto	kelpto/kelpto/kelpto.temper.md	564	panic	as	b	test	the panic moves into the operation	let table = built.children[2] as Element orelse panic();
+Kelpto	kelpto/kelpto/kelpto.temper.md	565	panic	as	b	test	the panic moves into the operation	let tbody = table.children[0] as Element orelse panic();
+Kelpto	kelpto/kelpto-core/character-references.temper.md	84	panic	fromCodePoint	b	src	the panic moves into the operation	String.fromCodePoint(c) orelse panic()
+Kelpto	kelpto/kelpto-core/source.temper.md	74	panic	appendCodePoint	b	src	the panic moves into the operation	out.appendCodePoint(c + 32) orelse panic();
+Kelpto	kelpto/kelpto-core/tree.temper.md	281	panic	as	b	src	the panic moves into the operation	children[0] as GreenNode orelse panic()
+Kelpto	kelpto/kelpto-core/tree.temper.md	456	panic	as	b	src	the panic moves into the operation	redRoot(replacement as GreenNode orelse panic())
+Kelpto	kelpto/kelpto-core/tree.temper.md	474	panic	as	b	src	the panic moves into the operation	redRoot(replacement as GreenNode orelse panic())
+Kelpto	kelpto/kelpto-core/tree.temper.md	528	other	as	a	src	an `is` check, then return null	return redRoot(replacement.replacement as GreenNode orelse bubble());
+Kelpto	kelpto/kelpto-core/tree.temper.md	530	panic	as	b	src	the panic moves into the operation	paths.add(pathTo(root.green, parent as RedNode orelse panic()));
+Kelpto	kelpto/kelpto-core/tree.temper.md	578	panic	as	b	src	the panic moves into the operation	let node = parent as RedNode orelse panic();
+Kelpto	kelpto/kelpto-core/tree.temper.md	590	other	as	a	src	an `is` check, then return null	let node = at as GreenNode orelse bubble();
+Kelpto	kelpto/kelpto-core/tree.temper.md	653	other	as	a	src	an `is` check, then return null	let child = kids[i] as GreenNode orelse bubble();
+Kelpto	kelpto/kelpto-core/tree.temper.md	703	panic	as	b	test	the panic moves into the operation	let inner = green.children[1] as GreenNode orelse panic();
+Kelpto	kelpto/kelpto-core/tree.temper.md	762	panic	as	b	test	the panic moves into the operation	let token = newRoot.children[2] as RedToken orelse panic();
+Kelpto	kelpto/kelpto-core/tree.temper.md	771	panic	as	b	test	the panic moves into the operation	let a = root.children[0] as RedToken orelse panic();
+Kelpto	kelpto/kelpto-core/tree.temper.md	772	panic	as	b	test	the panic moves into the operation	let c = inner.children[1] as RedToken orelse panic();
+Kelpto	kelpto/kelpto-core/tree.temper.md	773	panic	as	b	test	the panic moves into the operation	let d = root.children[2] as RedToken orelse panic();
+Kelpto	kelpto/kelpto-core/tree.temper.md	779	panic	library call	a	test	?? panic()	let edited = replaceAll(root, edits) orelse panic();
+Kelpto	kelpto/kelpto-core/tree.temper.md	783	panic	library call	a	test	?? panic()	assert((replaceAll(root, none) orelse panic()).asWritten == "abécd") { "no edits" };
+Kelpto	kelpto/kelpto-core/tree.temper.md	788	other	block	a	test	?? fallback	} orelse "bubbled";
+Kelpto	kelpto/kelpto-core/tree.temper.md	790	other	block	a	test	?? fallback	let twice = do { replaceAll(root, [edits[0], edits[0]]); "accepted" } orelse "bubbled";
+Kelpto	kelpto/kelpto-core/tree.temper.md	794	other	block	a	test	?? fallback	let stranger = do { replaceAll(root, [foreign]); "accepted" } orelse "bubbled";
+Kelpto	kelpto/kelpto-core/tree.temper.md	801	panic	as	b	test	the panic moves into the operation	let a = root.children[0] as RedToken orelse panic();
+Kelpto	kelpto/kelpto-core/tree.temper.md	802	panic	as	b	test	the panic moves into the operation	let c = inner.children[1] as RedToken orelse panic();
+Kelpto	kelpto/kelpto-core/tree.temper.md	812	panic	library call	a	test	?? panic()	) orelse panic();
+Kelpto	kelpto/kelpto-core/tree.temper.md	814	panic	library call	a	test	?? panic()	let removed = editAll(root, [], [new Splice(root, 0, 2, none)]) orelse panic();
+Kelpto	kelpto/kelpto-core/tree.temper.md	820	other	block	a	test	?? fallback	} orelse "bubbled";
+Kelpto	kelpto/kelpto-core/tree.temper.md	825	other	block	a	test	?? fallback	} orelse "bubbled";
+Kelpto	kelpto/kelpto-core/tree.temper.md	830	other	block	a	test	?? fallback	} orelse "bubbled";
+Kelpto	kelpto/kelpto-core/tree.temper.md	835	other	block	a	test	?? fallback	} orelse "bubbled";
+Kelpto	kelpto/kelpto-core/tree.temper.md	837	panic	library call	a	test	?? panic()	let beside = editAll(root, [new Replacement(a, x)], [new Splice(root, 1, 1, [y])]) orelse panic();
+Kelpto	kelpto/kelpto-core/tree.temper.md	839	other	block	a	test	?? fallback	let past = do { editAll(root, noReplacements, [new Splice(root, 4, 4, [x])]); "accepted" } orelse "bubbled";
+Kelpto	kelpto/kelpto-core/unicode.temper.md	60	panic	appendCodePoint	b	src	the panic moves into the operation	out.appendCodePoint(c + 32) orelse panic();
+Kelpto	kelpto/kelpto-core/unicode.temper.md	87	panic	appendCodePoint	b	src	the panic moves into the operation	out.appendCodePoint(c + 32) orelse panic();
+Kelpto	kelpto/kelpto-core/unicode.temper.md	170	panic	appendCodePoint	b	src	the panic moves into the operation	out.appendCodePoint(start + unzigzag(numbers[j])) orelse panic();
+Kelpto	kelpto/kelpto-core/unicode.temper.md	184	panic	appendCodePoint	b	src	the panic moves into the operation	out.appendCodePoint(c + unzigzag(numbers[3])) orelse panic();
+Kelpto	kelpto/kelpto-html/build.temper.md	273	panic	as	b	src	the panic moves into the operation	let text = (kids[i] as GreenToken orelse panic()).text;
+Kelpto	kelpto/kelpto-html/build.temper.md	474	panic	as	b	src	the panic moves into the operation	t.text = normalizeText((kids[0] as GreenToken orelse panic()).text, false);
+Kelpto	kelpto/kelpto-html/build.temper.md	486	panic	as	b	src	the panic moves into the operation	name = htmlName((kid as GreenToken orelse panic()).text);
+Kelpto	kelpto/kelpto-html/build.temper.md	493	panic	as	b	src	the panic moves into the operation	let attribute = kid as GreenNode orelse panic();
+Kelpto	kelpto/kelpto-html/build.temper.md	1350	panic	as	b	src	the panic moves into the operation	let doctype = t.doctype as Doctype orelse panic();
+Kelpto	kelpto/kelpto-html/build.temper.md	2740	panic	as	b	src	the panic moves into the operation	let green = tokens.node.green.children[index] as GreenNode orelse panic();
+Kelpto	kelpto/kelpto-html/build.temper.md	3151	panic	as	b	test	the panic moves into the operation	let body = doc.body as Element orelse panic();
+Kelpto	kelpto/kelpto-html/build.temper.md	3152	panic	as	b	test	the panic moves into the operation	let p = body.children[1] as Element orelse panic();
+Kelpto	kelpto/kelpto-html/build.temper.md	3153	panic	as	b	test	the panic moves into the operation	assert((p.startTag as StartTag orelse panic()).asWritten == "<p>") { "start tag" };
+Kelpto	kelpto/kelpto-html/build.temper.md	3174	panic	as	b	test	the panic moves into the operation	let td = cells.children[0] as Element orelse panic();
+Kelpto	kelpto/kelpto-html/build.temper.md	3175	panic	as	b	test	the panic moves into the operation	assert((td.startTag as StartTag orelse panic()).asWritten == "<td>") { "start tag" };
+Kelpto	kelpto/kelpto-html/build.temper.md	3188	panic	as	b	test	the panic moves into the operation	let body = doc.body as Element orelse panic();
+Kelpto	kelpto/kelpto-html/build.temper.md	3189	panic	as	b	test	the panic moves into the operation	let div = (body.child("form") as Element orelse panic()).child("div") as Element orelse panic();
+Kelpto	kelpto/kelpto-html/build.temper.md	3189	panic	as	b	test	the panic moves into the operation	let div = (body.child("form") as Element orelse panic()).child("div") as Element orelse panic();
+Kelpto	kelpto/kelpto-html/build.temper.md	3194	panic	as	b	test	the panic moves into the operation	let tr = (body.child("table") as Element orelse panic()).child("tbody")?.child("tr") as Element orelse panic();
+Kelpto	kelpto/kelpto-html/build.temper.md	3194	panic	as	b	test	the panic moves into the operation	let tr = (body.child("table") as Element orelse panic()).child("tbody")?.child("tr") as Element orelse panic();
+Kelpto	kelpto/kelpto-html/build.temper.md	3204	panic	as	b	src	the panic moves into the operation	let select = (parseHtml(text).body as Element orelse panic()).child("select") as Element orelse panic();
+Kelpto	kelpto/kelpto-html/build.temper.md	3204	panic	as	b	src	the panic moves into the operation	let select = (parseHtml(text).body as Element orelse panic()).child("select") as Element orelse panic();
+Kelpto	kelpto/kelpto-html/build.temper.md	3205	panic	as	b	src	the panic moves into the operation	(select.child("button") as Element orelse panic()).child("selectedcontent") as Element orelse panic()
+Kelpto	kelpto/kelpto-html/build.temper.md	3205	panic	as	b	src	the panic moves into the operation	(select.child("button") as Element orelse panic()).child("selectedcontent") as Element orelse panic()
+Kelpto	kelpto/kelpto-html/build.temper.md	3212	panic	as	b	test	the panic moves into the operation	let select = (doc.body as Element orelse panic()).child("select") as Element orelse panic();
+Kelpto	kelpto/kelpto-html/build.temper.md	3212	panic	as	b	test	the panic moves into the operation	let select = (doc.body as Element orelse panic()).child("select") as Element orelse panic();
+Kelpto	kelpto/kelpto-html/build.temper.md	3213	panic	as	b	test	the panic moves into the operation	let content = (select.child("button") as Element orelse panic()).child("selectedcontent") as Element orelse panic();
+Kelpto	kelpto/kelpto-html/build.temper.md	3213	panic	as	b	test	the panic moves into the operation	let content = (select.child("button") as Element orelse panic()).child("selectedcontent") as Element orelse panic();
+Kelpto	kelpto/kelpto-html/build.temper.md	3217	panic	as	b	test	the panic moves into the operation	let chosen = options[options.length - 1] as Element orelse panic();
+Kelpto	kelpto/kelpto-html/build.temper.md	3225	panic	as	b	test	the panic moves into the operation	let from = copy.clonedFrom as BuiltNode orelse panic();
+Kelpto	kelpto/kelpto-html/build.temper.md	3229	panic	as	b	test	the panic moves into the operation	let b = copies[1] as Element orelse panic();
+Kelpto	kelpto/kelpto-html/build.temper.md	3230	panic	as	b	test	the panic moves into the operation	assert((b.startTag as StartTag orelse panic()).asWritten == "<b class=c>") { "start tag shared" };
+Kelpto	kelpto/kelpto-html/sanitize.temper.md	207	panic	appendCodePoint	b	src	the panic moves into the operation	scheme.appendCodePoint(if (c >= char'A' && c <= char'Z') { c + 32 } else { c }) orelse panic();
+Kelpto	kelpto/kelpto-html/stream.temper.md	296	panic	as	b	src	the panic moves into the operation	let token = last as GreenNode orelse panic();
+Kelpto	kelpto/kelpto-html/stream.temper.md	332	panic	as	b	src	the panic moves into the operation	let red = origin as RedNode orelse panic();
+Kelpto	kelpto/kelpto-html/stream.temper.md	406	panic	as	b	test	the panic moves into the operation	let p = stream.children[0] as Element orelse panic();
+Kelpto	kelpto/kelpto-html/stream.temper.md	407	panic	as	b	test	the panic moves into the operation	let b = p.children[0] as Element orelse panic();
+Kelpto	kelpto/kelpto-html/stream.temper.md	408	panic	as	b	test	the panic moves into the operation	let tag = b.startTag as StartTag orelse panic();
+Kelpto	kelpto/kelpto-html/stream.temper.md	409	panic	as	b	test	the panic moves into the operation	let tokens = tag.node.parent as RedNode orelse panic();
+Kelpto	kelpto/kelpto-html/stream.temper.md	413	panic	as	b	test	the panic moves into the operation	let remade = (stream.children[1] as Element orelse panic()).children[0] as Element orelse panic();
+Kelpto	kelpto/kelpto-html/stream.temper.md	413	panic	as	b	test	the panic moves into the operation	let remade = (stream.children[1] as Element orelse panic()).children[0] as Element orelse panic();
+Kelpto	kelpto/kelpto-html/tokenize.temper.md	377	panic	as	b	src	the panic moves into the operation	let green = builder.childAt(delivered) as GreenNode orelse panic();
+Kelpto	kelpto/kelpto-html/tokenize.temper.md	1840	panic	fromCodePoint	b	src	the panic moves into the operation	String.fromCodePoint(c) orelse panic()
+Kelpto	kelpto/kelpto-html/views.temper.md	298	panic	as	b	test	the panic moves into the operation	let a = children[0] as StartTag orelse panic();
+Kelpto	kelpto/kelpto-html/views.temper.md	302	panic	as	b	test	the panic moves into the operation	assert(!(a.attribute("hidden") as Attribute orelse panic()).hasValue) { "bare attribute" };
+Kelpto	kelpto/kelpto-html/views.temper.md	305	panic	as	b	test	the panic moves into the operation	let text = children[1] as Text orelse panic();
+Kelpto	kelpto/kelpto-html/views.temper.md	308	panic	as	b	test	the panic moves into the operation	let end = children[2] as EndTag orelse panic();
+Kelpto	kelpto/kelpto-html/views.temper.md	310	panic	as	b	test	the panic moves into the operation	let comment = children[3] as Comment orelse panic();
+Kelpto	kelpto/kelpto-html/views.temper.md	312	panic	as	b	test	the panic moves into the operation	assert((children[4] as StartTag orelse panic()).selfClosing) { "self-closing" };
+Kelpto	kelpto/kelpto-html/views.temper.md	318	panic	as	b	test	the panic moves into the operation	let href = tokens.startTags[1].attribute("href") as Attribute orelse panic();
+Kelpto	kelpto/kelpto-html/views.temper.md	333	panic	as	b	test	the panic moves into the operation	let doctype = children[0] as Doctype orelse panic();
+Kelpto	kelpto/kelpto-html/views.temper.md	336	panic	as	b	test	the panic moves into the operation	let a = children[1] as StartTag orelse panic();
+Kelpto	kelpto/kelpto-html/views.temper.md	339	panic	as	b	test	the panic moves into the operation	let text = children[2] as Text orelse panic();
+Kelpto	kelpto/kelpto-html/views.temper.md	341	panic	as	b	test	the panic moves into the operation	let comment = children[4] as Comment orelse panic();
+Kelpto	kelpto/kelpto-html/views.temper.md	343	panic	as	b	test	the panic moves into the operation	let dropped = children[5] as DroppedTag orelse panic();
+Kelpto	kelpto/kelpto-html/views.temper.md	344	panic	as	b	test	the panic moves into the operation	assert((dropped.tag as StartTag orelse panic()).name == "div") { "dropped" };
+Kelpto	kelpto/kelpto-html/views.temper.md	346	panic	as	b	test	the panic moves into the operation	assert((tokenizeHtml("<!doctype>").children[0] as Doctype orelse panic()).forceQuirks) { "quirks" };
+Kelpto	kelpto/kelpto-html/views.temper.md	354	panic	as	b	test	the panic moves into the operation	let php = children[0] as ProcessingInstruction orelse panic();
+Kelpto	kelpto/kelpto-html/views.temper.md	356	panic	as	b	test	the panic moves into the operation	let foo = children[1] as ProcessingInstruction orelse panic();
+Kelpto	kelpto/kelpto-html/views.temper.md	358	panic	as	b	test	the panic moves into the operation	assert((children[2] as Comment orelse panic()).text == "?xml version=1?") { "xml" };
+Kelpto	kelpto/kelpto-html/views.temper.md	359	panic	as	b	test	the panic moves into the operation	assert((children[3] as Comment orelse panic()).text == "?1") { "digit" };
+Kelpto	kelpto/kelpto-html/views.temper.md	360	panic	as	b	test	the panic moves into the operation	let dropped = children[4] as DroppedTag orelse panic();
+Kelpto	kelpto/kelpto-html/views.temper.md	361	panic	as	b	test	the panic moves into the operation	assert((dropped.tag as ProcessingInstruction orelse panic()).target == "a") { "dropped" };
+Kelpto	kelpto/kelpto-md/blocks.temper.md	386	panic	as	b	src	the panic moves into the operation	let last = maybeLast as BlockData orelse panic();
+Kelpto	kelpto/kelpto-md/blocks.temper.md	677	panic	as	b	src	the panic moves into the operation	let parent = paragraph.parent as BlockData orelse panic();
+Kelpto	kelpto/kelpto-md/blocks.temper.md	896	panic	as	b	src	the panic moves into the operation	let parent = paragraph.parent as BlockData orelse panic();
+Kelpto	kelpto/kelpto-md/blocks.temper.md	920	panic	as	b	src	the panic moves into the operation	let parent = block.parent as BlockData orelse panic();
+Kelpto	kelpto/kelpto-md/blocks.temper.md	928	panic	as	b	src	the panic moves into the operation	let parent = code.parent as BlockData orelse panic();
+Kelpto	kelpto/kelpto-md/blocks.temper.md	965	panic	as	b	src	the panic moves into the operation	let b = at as BlockData orelse panic();
+Kelpto	kelpto/kelpto-md/blocks.temper.md	975	panic	as	b	src	the panic moves into the operation	let b = at as BlockData orelse panic();
+Kelpto	kelpto/kelpto-md/build.temper.md	248	panic	library call	a	src	?? panic()	public toMarkdown(): String { markdownBetween(0, 0, false) orelse panic() }
+Kelpto	kelpto/kelpto-md/build.temper.md	806	panic	library call	a	src	?? panic()	out.append(writeDestination(encodedLines(piece.target.url)) orelse panic());
+Kelpto	kelpto/kelpto-md/build.temper.md	873	panic	as	b	src	the panic moves into the operation	let first = pieces[i] as DelimitedPiece orelse panic();
+Kelpto	kelpto/kelpto-md/build.temper.md	1062	panic	library call	a	test	?? panic()	b.heading(1, Inlines.empty.text("Release *notes*")) orelse panic();
+Kelpto	kelpto/kelpto-md/build.temper.md	1079	panic	library call	a	test	?? panic()	b.orderedList(9, [item, item]) orelse panic();
+Kelpto	kelpto/kelpto-md/build.temper.md	1091	panic	as	b	test	the panic moves into the operation	let paragraph = doc.children[2] as Paragraph orelse panic();
+Kelpto	kelpto/kelpto-md/build.temper.md	1098	panic	as	b	test	the panic moves into the operation	let ordered = lists[2] as ListBlock orelse panic();
+Kelpto	kelpto/kelpto-md/build.temper.md	1100	panic	as	b	test	the panic moves into the operation	assert(!(lists[0] as ListBlock orelse panic()).tight) { "a block quote after a paragraph" };
+Kelpto	kelpto/kelpto-md/build.temper.md	1105	other	library call	a	test	?? fallback	b.heading(7, Inlines.empty) orelse do { bubbled = true; };
+Kelpto	kelpto/kelpto-md/build.temper.md	1127	panic	library call	a	test	?? panic()	b.heading(2, Inlines.empty.text(s)) orelse panic();
+Kelpto	kelpto/kelpto-md/build.temper.md	1152	panic	as	b	test	the panic moves into the operation	let breaks = blocks[4] as Paragraph orelse panic();
+Kelpto	kelpto/kelpto-md/build.temper.md	1154	panic	as	b	test	the panic moves into the operation	let code = blocks[5] as Paragraph orelse panic();
+Kelpto	kelpto/kelpto-md/build.temper.md	1155	panic	as	b	test	the panic moves into the operation	assert((code.children[0] as CodeSpan orelse panic()).code == want) { what };
+Kelpto	kelpto/kelpto-md/build.temper.md	1161	panic	as	b	test	the panic moves into the operation	let linked = blocks[6] as Paragraph orelse panic();
+Kelpto	kelpto/kelpto-md/build.temper.md	1163	panic	as	b	test	the panic moves into the operation	let image = (blocks[7] as Paragraph orelse panic()).children[0] as Image orelse panic();
+Kelpto	kelpto/kelpto-md/build.temper.md	1163	panic	as	b	test	the panic moves into the operation	let image = (blocks[7] as Paragraph orelse panic()).children[0] as Image orelse panic();
+Kelpto	kelpto/kelpto-md/build.temper.md	1185	panic	division	b	src	the panic moves into the operation	let r = seed % n orelse panic();
+Kelpto	kelpto/kelpto-md/build.temper.md	1243	panic	as	b	test	the panic moves into the operation	shapeOfViews((blocks[0] as Paragraph orelse panic()).children, got);
+Kelpto	kelpto/kelpto-md/edit.temper.md	67	panic	as	b	src	the panic moves into the operation	node = node.parent as RedNode orelse panic();
+Kelpto	kelpto/kelpto-md/edit.temper.md	194	panic	as	b	src	the panic moves into the operation	let parsed = parsedInContainer(node.parent as RedNode orelse panic(), "${text}\n", true, false);
+Kelpto	kelpto/kelpto-md/edit.temper.md	196	panic	as	b	src	the panic moves into the operation	let made = (parsed[0] as GreenNode orelse panic()).children;
+Kelpto	kelpto/kelpto-md/edit.temper.md	222	panic	as	b	src	the panic moves into the operation	let parent = node.parent as RedNode orelse panic();
+Kelpto	kelpto/kelpto-md/edit.temper.md	236	panic	as	b	src	the panic moves into the operation	let key = pathKey(edit.node.parent as RedNode orelse panic());
+Kelpto	kelpto/kelpto-md/edit.temper.md	241	panic	read	b	src	the panic moves into the operation	(groups[key] orelse panic()).add(edit);
+Kelpto	kelpto/kelpto-md/edit.temper.md	245	panic	read	b	src	the panic moves into the operation	let group = (groups[keys[k]] orelse panic()).toList();
+Kelpto	kelpto/kelpto-md/edit.temper.md	246	panic	as	b	src	the panic moves into the operation	new ContainerEdits(root, group[0].node.parent as RedNode orelse panic(), group, splices, removed).make();
+Kelpto	kelpto/kelpto-md/edit.temper.md	258	panic	as	b	src	the panic moves into the operation	at = at.parent as RedNode orelse panic();
+Kelpto	kelpto/kelpto-md/edit.temper.md	310	panic	as	b	src	the panic moves into the operation	befores[p].add(content as MarkdownBuilder orelse panic());
+Kelpto	kelpto/kelpto-md/edit.temper.md	312	panic	as	b	src	the panic moves into the operation	afters[p].add(content as MarkdownBuilder orelse panic());
+Kelpto	kelpto/kelpto-md/edit.temper.md	351	panic	as	b	src	the panic moves into the operation	new RedNode(kids[index] as GreenNode orelse panic(), container, at, index)
+Kelpto	kelpto/kelpto-md/edit.temper.md	390	panic	as	b	src	the panic moves into the operation	let next = after as RedNode orelse panic();
+Kelpto	kelpto/kelpto-md/edit.temper.md	429	panic	as	b	src	the panic moves into the operation	blankInside(before as RedNode orelse panic(), trailingBlanks);
+Kelpto	kelpto/kelpto-md/edit.temper.md	470	panic	as	b	src	the panic moves into the operation	let parent = node.parent as RedNode orelse panic();
+Kelpto	kelpto/kelpto-md/edit.temper.md	543	panic	as	b	src	the panic moves into the operation	let list = node as RedNode orelse panic();
+Kelpto	kelpto/kelpto-md/edit.temper.md	714	panic	library call	a	src	?? panic()	let edited = editor.toDocument() orelse panic();
+Kelpto	kelpto/kelpto-md/edit.temper.md	750	panic	as	b	test	the panic moves into the operation	let quote = doc.children[2] as BlockQuote orelse panic();
+Kelpto	kelpto/kelpto-md/edit.temper.md	751	panic	as	b	test	the panic moves into the operation	let paragraph = quote.children[0] as Paragraph orelse panic();
+Kelpto	kelpto/kelpto-md/edit.temper.md	753	panic	block	a	test	?? panic()	orelse panic();
+Kelpto	kelpto/kelpto-md/edit.temper.md	757	panic	library call	a	test	?? panic()	let plain = paragraph.withText("- not a list") orelse panic();
+Kelpto	kelpto/kelpto-md/edit.temper.md	763	other	block	a	test	?? fallback	let empty = do { paragraph.withContent(Inlines.empty); "accepted" } orelse "bubbled";
+Kelpto	kelpto/kelpto-md/edit.temper.md	766	panic	library call	a	test	?? panic()	editor.setContent(doc.headings[0], Inlines.empty.text("H")) orelse panic();
+Kelpto	kelpto/kelpto-md/edit.temper.md	767	panic	library call	a	test	?? panic()	editor.setText(paragraph, "P") orelse panic();
+Kelpto	kelpto/kelpto-md/edit.temper.md	768	panic	library call	a	test	?? panic()	editor.setContent(doc.tables[0].header.cells[0], Inlines.empty.strong(Inlines.empty.text("A"))) orelse panic();
+Kelpto	kelpto/kelpto-md/edit.temper.md	771	other	block	a	test	?? fallback	let wrong = do { doc.editor().setContent(quote, Inlines.empty); "accepted" } orelse "bubbled";
+Kelpto	kelpto/kelpto-md/edit.temper.md	787	panic	library call	a	test	?? panic()	note.heading(2, Inlines.empty.text("Note")) orelse panic();
+Kelpto	kelpto/kelpto-md/edit.temper.md	789	panic	library call	a	test	?? panic()	editor.insertBefore(heading, note) orelse panic();
+Kelpto	kelpto/kelpto-md/edit.temper.md	790	panic	library call	a	test	?? panic()	editor.insertAfter(last, paragraphOf("The end")) orelse panic();
+Kelpto	kelpto/kelpto-md/edit.temper.md	794	panic	library call	a	test	?? panic()	editor.insertAfter(heading, paragraphOf("Between")) orelse panic();
+Kelpto	kelpto/kelpto-md/edit.temper.md	795	panic	library call	a	test	?? panic()	editor.remove(code) orelse panic();
+Kelpto	kelpto/kelpto-md/edit.temper.md	801	panic	library call	a	test	?? panic()	editor.insertAfter(list, bullets) orelse panic();
+Kelpto	kelpto/kelpto-md/edit.temper.md	802	panic	library call	a	test	?? panic()	editor.replace(intro, bullets) orelse panic();
+Kelpto	kelpto/kelpto-md/edit.temper.md	806	panic	library call	a	test	?? panic()	editor.remove(heading) orelse panic();
+Kelpto	kelpto/kelpto-md/edit.temper.md	807	panic	library call	a	test	?? panic()	editor.remove(list) orelse panic();
+Kelpto	kelpto/kelpto-md/edit.temper.md	808	panic	library call	a	test	?? panic()	editor.remove(last) orelse panic();
+Kelpto	kelpto/kelpto-md/edit.temper.md	818	panic	as	b	test	the panic moves into the operation	let quote = blocks[0] as BlockQuote orelse panic();
+Kelpto	kelpto/kelpto-md/edit.temper.md	819	panic	as	b	test	the panic moves into the operation	let list = blocks[2] as ListBlock orelse panic();
+Kelpto	kelpto/kelpto-md/edit.temper.md	820	panic	as	b	test	the panic moves into the operation	let ordered = blocks[3] as ListBlock orelse panic();
+Kelpto	kelpto/kelpto-md/edit.temper.md	823	panic	library call	a	test	?? panic()	editor.insertAfter(quote.children[1], paragraphOf("q2")) orelse panic();
+Kelpto	kelpto/kelpto-md/edit.temper.md	824	panic	library call	a	test	?? panic()	editor.insertBefore(list.items[0].children[0], paragraphOf("first")) orelse panic();
+Kelpto	kelpto/kelpto-md/edit.temper.md	825	panic	library call	a	test	?? panic()	editor.remove(list.items[1].children[2]) orelse panic();
+Kelpto	kelpto/kelpto-md/edit.temper.md	826	panic	as	b	test	the panic moves into the operation	let inner = (ordered.items[0].children[0] as BlockQuote orelse panic()).children[0];
+Kelpto	kelpto/kelpto-md/edit.temper.md	829	panic	library call	a	test	?? panic()	editor.insertAfter(inner, quoted) orelse panic();
+Kelpto	kelpto/kelpto-md/edit.temper.md	830	panic	library call	a	test	?? panic()	editor.insertAfter(note.children[0], paragraphOf("More.")) orelse panic();
+Kelpto	kelpto/kelpto-md/edit.temper.md	845	other	block	a	test	?? fallback	} orelse "bubbled";
+Kelpto	kelpto/kelpto-md/edit.temper.md	848	panic	library call	a	test	?? panic()	lazy.remove(quote.children[1]) orelse panic();
+Kelpto	kelpto/kelpto-md/edit.temper.md	868	panic	as	b	test	the panic moves into the operation	3 -> editor.remove((blocks[2] as ListBlock orelse panic()).items[0]);
+Kelpto	kelpto/kelpto-md/edit.temper.md	871	panic	as	b	test	the panic moves into the operation	6 -> do { editor.remove(blocks[3]); editor.setLevel(blocks[3] as Heading orelse panic(), 2); };
+Kelpto	kelpto/kelpto-md/edit.temper.md	876	other	block	a	test	?? fallback	} orelse "bubbled";
+Kelpto	kelpto/kelpto-md/edit.temper.md	880	panic	library call	a	test	?? panic()	both.remove(blocks[0]) orelse panic();
+Kelpto	kelpto/kelpto-md/edit.temper.md	881	panic	library call	a	test	?? panic()	both.remove(blocks[1]) orelse panic();
+Kelpto	kelpto/kelpto-md/edit.temper.md	893	panic	library call	a	test	?? panic()	editor.setLevel(headings[i], headings[i].level + 1) orelse panic();
+Kelpto	kelpto/kelpto-md/edit.temper.md	895	panic	library call	a	test	?? panic()	editor.setDestination(doc.links[0], new LinkTarget("/b")) orelse panic();
+Kelpto	kelpto/kelpto-md/edit.temper.md	896	panic	library call	a	test	?? panic()	editor.setContent(doc.tables[0].rows[0].cells[0], Inlines.empty.emphasis(Inlines.empty.text("z"))) orelse panic();
+Kelpto	kelpto/kelpto-md/edit.temper.md	897	panic	as	b	test	the panic moves into the operation	let quote = blocksOf(doc)[2] as BlockQuote orelse panic();
+Kelpto	kelpto/kelpto-md/edit.temper.md	898	panic	library call	a	test	?? panic()	editor.setText(quote.children[1], "Changed") orelse panic();
+Kelpto	kelpto/kelpto-md/edit.temper.md	899	panic	library call	a	test	?? panic()	editor.insertBefore(quote.children[1], paragraphOf("Added")) orelse panic();
+Kelpto	kelpto/kelpto-md/edit.temper.md	902	panic	library call	a	test	?? panic()	editor.insertAfter(blocksOf(doc)[1], rule) orelse panic();
+Kelpto	kelpto/kelpto-md/edit.temper.md	903	panic	library call	a	test	?? panic()	editor.remove(blocksOf(doc)[4]) orelse panic();
+Kelpto	kelpto/kelpto-md/edit.temper.md	932	panic	library call	a	src	?? panic()	b.heading(1 + random.below(6), Inlines.empty.text("h")) orelse panic();
+Kelpto	kelpto/kelpto-md/edit.temper.md	942	panic	library call	a	src	?? panic()	b.orderedList(random.below(3), [paragraphOf("o")]) orelse panic();
+Kelpto	kelpto/kelpto-md/edit.temper.md	1004	panic	library call	a	test	?? panic()	editor.insertBefore(block, content) orelse panic();
+Kelpto	kelpto/kelpto-md/edit.temper.md	1006	panic	library call	a	test	?? panic()	editor.insertAfter(block, content) orelse panic();
+Kelpto	kelpto/kelpto-md/edit.temper.md	1008	panic	library call	a	test	?? panic()	editor.replace(block, content) orelse panic();
+Kelpto	kelpto/kelpto-md/edit.temper.md	1011	panic	library call	a	test	?? panic()	editor.remove(block) orelse panic();
+Kelpto	kelpto/kelpto-md/edit.temper.md	1016	null	library call	a	test	?? null, or nothing	let maybe: MarkdownDocument? = editor.toDocument() orelse null;
+Kelpto	kelpto/kelpto-md/edit.temper.md	1018	panic	as	b	test	the panic moves into the operation	let edited = maybe as MarkdownDocument orelse panic();
+Kelpto	kelpto/kelpto-md/edit.temper.md	1032	panic	as	b	test	the panic moves into the operation	up = up.parent as RedNode orelse panic();
+Kelpto	kelpto/kelpto-md/edit.temper.md	1035	panic	as	b	test	the panic moves into the operation	node = new RedNode(node.green.children[path[i]] as GreenNode orelse panic(), node, 0, path[i]);
+Kelpto	kelpto/kelpto-md/inlines.temper.md	1548	panic	as	b	test	the panic moves into the operation	let paragraph = doc.children[0] as Paragraph orelse panic();
+Kelpto	kelpto/kelpto-md/inlines.temper.md	1550	panic	as	b	test	the panic moves into the operation	let em = inlines[0] as Emphasis orelse panic();
+Kelpto	kelpto/kelpto-md/inlines.temper.md	1552	panic	as	b	test	the panic moves into the operation	let strong = em.children[0] as Strong orelse panic();
+Kelpto	kelpto/kelpto-md/inlines.temper.md	1554	panic	as	b	test	the panic moves into the operation	let link = inlines[2] as Link orelse panic();
+Kelpto	kelpto/kelpto-md/inlines.temper.md	1558	panic	as	b	test	the panic moves into the operation	let image = inlines[4] as Image orelse panic();
+Kelpto	kelpto/kelpto-md/inlines.temper.md	1561	panic	as	b	test	the panic moves into the operation	let autolink = inlines[6] as Autolink orelse panic();
+Kelpto	kelpto/kelpto-md/inlines.temper.md	1563	panic	as	b	test	the panic moves into the operation	let reference = inlines[8] as CharacterReference orelse panic();
+Kelpto	kelpto/kelpto-md/inlines.temper.md	1565	panic	as	b	test	the panic moves into the operation	let hardBreak = inlines[9] as HardBreak orelse panic();
+Kelpto	kelpto/kelpto-md/inlines.temper.md	1582	panic	as	b	test	the panic moves into the operation	let inlines = (doc.children[0] as Paragraph orelse panic()).children;
+Kelpto	kelpto/kelpto-md/inlines.temper.md	1583	panic	as	b	test	the panic moves into the operation	let em = inlines[0] as Emphasis orelse panic();
+Kelpto	kelpto/kelpto-md/inlines.temper.md	1585	panic	as	b	test	the panic moves into the operation	let leftover = parseMarkdown("***a**\n").blocks[0] as Paragraph orelse panic();
+Kelpto	kelpto/kelpto-md/inlines.temper.md	1586	panic	as	b	test	the panic moves into the operation	let first = leftover.children[0] as Text orelse panic();
+Kelpto	kelpto/kelpto-md/inlines.temper.md	1589	panic	as	b	test	the panic moves into the operation	let collapsed = links[3] as Link orelse panic();
+Kelpto	kelpto/kelpto-md/inlines.temper.md	1591	panic	as	b	test	the panic moves into the operation	let shortcut = links[5] as Link orelse panic();
+Kelpto	kelpto/kelpto-md/inlines.temper.md	1606	panic	as	b	test	the panic moves into the operation	let inlines = (doc.children[0] as Paragraph orelse panic()).children;
+Kelpto	kelpto/kelpto-md/inlines.temper.md	1611	panic	library call	a	test	?? panic()	let edited = links[0].withDestination(new LinkTarget("/new path")) orelse panic();
+Kelpto	kelpto/kelpto-md/inlines.temper.md	1613	panic	library call	a	test	?? panic()	let filled = links[1].withDestination(new LinkTarget("/c")) orelse panic();
+Kelpto	kelpto/kelpto-md/inlines.temper.md	1616	panic	as	b	test	the panic moves into the operation	let reference = parseMarkdown("[r]\n\n[r]: /r\n").blocks[0] as Paragraph orelse panic();
+Kelpto	kelpto/kelpto-md/inlines.temper.md	1617	panic	as	b	test	the panic moves into the operation	let bad = do { (reference.children[0] as Link orelse panic()).withDestination(new LinkTarget("/x")); "accepted" } orelse "bubbled";
+Kelpto	kelpto/kelpto-md/inlines.temper.md	1617	other	block	a	test	?? fallback	let bad = do { (reference.children[0] as Link orelse panic()).withDestination(new LinkTarget("/x")); "accepted" } orelse "bubbled";
+Kelpto	kelpto/kelpto-md/inlines.temper.md	1624	panic	as	b	test	the panic moves into the operation	let target = (parseMarkdown("[a](<b c'ö&amp;\\>>)\n").children[0] as Paragraph orelse panic()).children[0] as Link orelse panic();
+Kelpto	kelpto/kelpto-md/inlines.temper.md	1624	panic	as	b	test	the panic moves into the operation	let target = (parseMarkdown("[a](<b c'ö&amp;\\>>)\n").children[0] as Paragraph orelse panic()).children[0] as Link orelse panic();
+Kelpto	kelpto/kelpto-md/parse.temper.md	541	panic	as	b	src	the panic moves into the operation	at = at.parent as BlockData orelse panic();
+Kelpto	kelpto/kelpto-md/parse.temper.md	1510	panic	as	b	test	the panic moves into the operation	let quote = doc.children[2] as BlockQuote orelse panic();
+Kelpto	kelpto/kelpto-md/parse.temper.md	1511	panic	as	b	test	the panic moves into the operation	let note = quote.children[0] as FootnoteDefinition orelse panic();
+Kelpto	kelpto/kelpto-md/parse.temper.md	1603	panic	library call	a	test	?? panic()	let renamed = doc.footnoteDefinitions[0].withLabel("note") orelse panic();
+Kelpto	kelpto/kelpto-md/parse.temper.md	1608	panic	library call	a	test	?? panic()	let pointed = doc.footnoteReferences[1].withLabel("Other") orelse panic();
+Kelpto	kelpto/kelpto-md/parse.temper.md	1615	other	block	a	test	?? fallback	let bad = do { doc.footnoteDefinitions[0].withLabel("a b"); "accepted" } orelse "bubbled";
+Kelpto	kelpto/kelpto-md/parse.temper.md	1617	other	block	a	test	?? fallback	let empty = do { doc.footnoteReferences[0].withLabel(""); "accepted" } orelse "bubbled";
+Kelpto	kelpto/kelpto-md/parse.temper.md	1620	panic	library call	a	test	?? panic()	let cellEdit = cell.withLabel("r") orelse panic();
+Kelpto	kelpto/kelpto-md/render.temper.md	281	panic	as	b	src	the panic moves into the operation	let alert = alertOf(block as BlockQuote orelse panic());
+Kelpto	kelpto/kelpto-md/render.temper.md	323	panic	as	b	src	the panic moves into the operation	renderInlines((kid as Paragraph orelse panic()).children, out);
+Kelpto	kelpto/kelpto-md/render.temper.md	384	panic	as	b	src	the panic moves into the operation	let first = kids[0] as Paragraph orelse panic();
+Kelpto	kelpto/kelpto-md/render.temper.md	679	panic	as	b	src	the panic moves into the operation	out.characters((kids[0] as GreenToken orelse panic()).text, view);
+Kelpto	kelpto/kelpto-md/render.temper.md	820	panic	as	b	src	the panic moves into the operation	let inlines = (kids[0] as Paragraph orelse panic()).children;
+Kelpto	kelpto/kelpto-md/render.temper.md	831	panic	as	b	src	the panic moves into the operation	let text = (inline as Text orelse panic()).text;
+Kelpto	kelpto/kelpto-md/render.temper.md	988	panic	appendCodePoint	b	src	the panic moves into the operation	out.appendCodePoint(hexDigit(b >> 4)) orelse panic();
+Kelpto	kelpto/kelpto-md/render.temper.md	989	panic	appendCodePoint	b	src	the panic moves into the operation	out.appendCodePoint(hexDigit(b & 15)) orelse panic();
+Kelpto	kelpto/kelpto-md/render.temper.md	1137	panic	as	b	test	the panic moves into the operation	let outer = gfm.blocks[0] as Paragraph orelse panic();
+Kelpto	kelpto/kelpto-md/render.temper.md	1138	panic	as	b	test	the panic moves into the operation	let strong = outer.children[0] as Strong orelse panic();
+Kelpto	kelpto/kelpto-md/views.temper.md	414	panic	as	b	src	the panic moves into the operation	node.childOfKind(inlineContentKind) as RedNode orelse panic()
+Kelpto	kelpto/kelpto-md/views.temper.md	488	panic	as	b	src	the panic moves into the operation	out.append((kid as GreenToken orelse panic()).text);
+Kelpto	kelpto/kelpto-md/views.temper.md	559	panic	as	b	src	the panic moves into the operation	(node.childOfKind(atxMarkerKind) as RedToken orelse panic()).span.length
+Kelpto	kelpto/kelpto-md/views.temper.md	629	panic	as	b	src	the panic moves into the operation	let token = underline as RedToken orelse panic();
+Kelpto	kelpto/kelpto-md/views.temper.md	635	panic	as	b	src	the panic moves into the operation	let marker = node.childOfKind(atxMarkerKind) as RedToken orelse panic();
+Kelpto	kelpto/kelpto-md/views.temper.md	749	panic	as	b	src	the panic moves into the operation	var at = (opening.childOfKind(fenceKind) as RedToken orelse panic()).index + 1;
+Kelpto	kelpto/kelpto-md/views.temper.md	814	panic	as	b	src	the panic moves into the operation	let label = node.childOfKind(linkLabelKind) as RedNode orelse panic();
+Kelpto	kelpto/kelpto-md/views.temper.md	849	panic	as	b	src	the panic moves into the operation	resolveText(withoutEnds(lineTextOf(title as RedNode orelse panic(), titleTextKind)))
+Kelpto	kelpto/kelpto-md/views.temper.md	879	panic	as	b	src	the panic moves into the operation	var at = (paren as RedElement orelse panic()).index + 1;
+Kelpto	kelpto/kelpto-md/views.temper.md	967	panic	as	b	src	the panic moves into the operation	new ListItem(node.childOfKind(listItemKind) as RedNode orelse panic())
+Kelpto	kelpto/kelpto-md/views.temper.md	1125	panic	as	b	src	the panic moves into the operation	let marker = node.childOfKind(taskMarkerKind) as RedToken orelse panic();
+Kelpto	kelpto/kelpto-md/views.temper.md	1171	panic	as	b	src	the panic moves into the operation	let token = node.childOfKind(labelTextKind) as RedToken orelse panic();
+Kelpto	kelpto/kelpto-md/views.temper.md	1204	panic	as	b	src	the panic moves into the operation	public get header(): TableRow { new TableRow(node.childOfKind(tableHeaderRowKind) as RedNode orelse panic()) }
+Kelpto	kelpto/kelpto-md/views.temper.md	1230	panic	as	b	src	the panic moves into the operation	let row = table.childOfKind(tableDelimiterRowKind) as RedNode orelse panic();
+Kelpto	kelpto/kelpto-md/views.temper.md	1283	panic	as	b	src	the panic moves into the operation	let row = node.parent as RedNode orelse panic();
+Kelpto	kelpto/kelpto-md/views.temper.md	1295	panic	as	b	src	the panic moves into the operation	let table = (node.parent as RedNode orelse panic()).parent as RedNode orelse panic();
+Kelpto	kelpto/kelpto-md/views.temper.md	1295	panic	as	b	src	the panic moves into the operation	let table = (node.parent as RedNode orelse panic()).parent as RedNode orelse panic();
+Kelpto	kelpto/kelpto-md/views.temper.md	1556	panic	as	b	src	the panic moves into the operation	return withoutEnds(lineTextOf(node.childOfKind(linkLabelKind) as RedNode orelse panic(), labelTextKind));
+Kelpto	kelpto/kelpto-md/views.temper.md	1597	panic	read	b	src	the panic moves into the operation	return definitions[label] orelse panic();
+Kelpto	kelpto/kelpto-md/views.temper.md	1867	panic	read	b	src	the panic moves into the operation	if (byLabel.has(normalized)) { byLabel[normalized] orelse panic() } else { null }
+Kelpto	kelpto/kelpto-md/views.temper.md	1935	panic	as	b	test	the panic moves into the operation	let paragraph = blocks[2] as Paragraph orelse panic();
+Kelpto	kelpto/kelpto-md/views.temper.md	1938	panic	as	b	test	the panic moves into the operation	let code = inlines[1] as CodeSpan orelse panic();
+Kelpto	kelpto/kelpto-md/views.temper.md	1940	panic	as	b	test	the panic moves into the operation	let raw = inlines[3] as RawHtml orelse panic();
+Kelpto	kelpto/kelpto-md/views.temper.md	1954	panic	as	b	test	the panic moves into the operation	let paragraph = doc.children[1] as Paragraph orelse panic();
+Kelpto	kelpto/kelpto-md/views.temper.md	1977	panic	library call	a	test	?? panic()	let edited = block.withInfo("rust") orelse panic();
+Kelpto	kelpto/kelpto-md/views.temper.md	1979	panic	library call	a	test	?? panic()	let added = (parseMarkdown("~~~\nx\n~~~").codeBlocks[0].withInfo(" js ") orelse panic());
+Kelpto	kelpto/kelpto-md/views.temper.md	1981	panic	library call	a	test	?? panic()	let removed = block.withInfo("") orelse panic();
+Kelpto	kelpto/kelpto-md/views.temper.md	1983	other	block	a	test	?? fallback	let bad = do { block.withInfo("a`b"); "accepted" } orelse "bubbled";
+Kelpto	kelpto/kelpto-md/views.temper.md	1991	panic	as	b	test	the panic moves into the operation	let quote = doc.children[0] as BlockQuote orelse panic();
+Kelpto	kelpto/kelpto-md/views.temper.md	1994	panic	as	b	test	the panic moves into the operation	let paragraph = inQuote[1] as Paragraph orelse panic();
+Kelpto	kelpto/kelpto-md/views.temper.md	1997	panic	as	b	test	the panic moves into the operation	let list = doc.children[2] as ListBlock orelse panic();
+Kelpto	kelpto/kelpto-md/views.temper.md	2004	panic	as	b	test	the panic moves into the operation	let bullets = doc.children[3] as ListBlock orelse panic();
+Kelpto	kelpto/kelpto-md/views.temper.md	2006	panic	as	b	test	the panic moves into the operation	let definition = bullets.items[0].children[0] as LinkReferenceDefinition orelse panic();
+Kelpto	kelpto/kelpto-md/views.temper.md	2010	panic	as	b	test	the panic moves into the operation	let rule = doc.children[4] as ThematicBreak orelse panic();
+Kelpto	kelpto/kelpto-md/views.temper.md	2020	panic	as	b	test	the panic moves into the operation	let code = doc.children[2] as IndentedCode orelse panic();
+Kelpto	kelpto/kelpto-md/views.temper.md	2026	panic	as	b	test	the panic moves into the operation	let quotedCode = quoted[1] as IndentedCode orelse panic();
+Kelpto	kelpto/kelpto-md/views.temper.md	2028	panic	as	b	test	the panic moves into the operation	let quotedHtml = quoted[2] as HtmlBlock orelse panic();
+Kelpto	kelpto/kelpto-md/views.temper.md	2044	panic	library call	a	test	?? panic()	let atx = doc.headings[0].withLevel(4) orelse panic();
+Kelpto	kelpto/kelpto-md/views.temper.md	2047	panic	library call	a	test	?? panic()	let setext = doc.headings[1].withLevel(1) orelse panic();
+Kelpto	kelpto/kelpto-md/views.temper.md	2049	other	block	a	test	?? fallback	let tooDeep = do { doc.headings[1].withLevel(3); "accepted" } orelse "bubbled";
+Kelpto	kelpto/kelpto-md/views.temper.md	2051	other	block	a	test	?? fallback	let bad = do { doc.headings[0].withLevel(7); "accepted" } orelse "bubbled";
+Kelpto	kelpto/kelpto-md/views.temper.md	2061	panic	library call	a	test	?? panic()	let edited = definition.withDestination(new LinkTarget("/new path")) orelse panic();
+Kelpto	kelpto/kelpto-md/views.temper.md	2067	panic	library call	a	test	?? panic()	let plain = definition.withDestination(new LinkTarget("https://x.test/a(b)")) orelse panic();
+Kelpto	kelpto/kelpto-md/views.temper.md	2069	other	block	a	test	?? fallback	let bad = do { definition.withDestination(new LinkTarget("a\nb")); "accepted" } orelse "bubbled";
+Kelpto	kelpto/kelpto-md/views.temper.md	2108	panic	library call	a	test	?? panic()	let a = links[0].withDestination(new LinkTarget("/new a")) orelse panic();
+Kelpto	kelpto/kelpto-md/views.temper.md	2110	panic	library call	a	test	?? panic()	let e = links[1].withDestination(new LinkTarget("/x")) orelse panic();
+Kelpto	kelpto/kelpto-md/views.temper.md	2112	panic	library call	a	test	?? panic()	let d = links[2].withDestination(new LinkTarget("/y")) orelse panic();
+Kelpto	kelpto/kelpto-md/views.temper.md	2114	panic	library call	a	test	?? panic()	let g = links[4].withDestination(new LinkTarget("/z")) orelse panic();
+Kelpto	kelpto/kelpto-md/views.temper.md	2125	other	block	a	test	?? fallback	let bad = do { links[3].withDestination(new LinkTarget("/x")); "accepted" } orelse "bubbled";
+Kelpto	kelpto/kelpto-md/views.temper.md	2156	panic	as	b	test	the panic moves into the operation	let strike = cells[0].children[0] as Strikethrough orelse panic();
+Kelpto	kelpto/kelpto-md/views.temper.md	2158	panic	as	b	test	the panic moves into the operation	let www = cells[1].children[0] as Autolink orelse panic();
+Kelpto	kelpto/kelpto-md/views.temper.md	2160	panic	as	b	test	the panic moves into the operation	let email = cells[2].children[0] as Autolink orelse panic();
+Kelpto	kelpto/kelpto-md/views.temper.md	2167	panic	as	b	test	the panic moves into the operation	let paragraph = tasks[0].item.children[0] as Paragraph orelse panic();
+Kelpto	kelpto/kelpto-md/views.temper.md	2169	panic	as	b	test	the panic moves into the operation	let url = (MarkdownParser.gfm.parse("See https://x.test/a.").children[0] as Paragraph orelse panic()).children[1] as Autolink orelse panic();
+Kelpto	kelpto/kelpto-md/views.temper.md	2169	panic	as	b	test	the panic moves into the operation	let url = (MarkdownParser.gfm.parse("See https://x.test/a.").children[0] as Paragraph orelse panic()).children[1] as Autolink orelse panic();
+Kelpto	kelpto/kelpto-md/views.temper.md	2171	panic	as	b	test	the panic moves into the operation	let angle = (parseMarkdown("<https://x.test>").children[0] as Paragraph orelse panic()).children[0] as Autolink orelse panic();
+Kelpto	kelpto/kelpto-md/views.temper.md	2171	panic	as	b	test	the panic moves into the operation	let angle = (parseMarkdown("<https://x.test>").children[0] as Paragraph orelse panic()).children[0] as Autolink orelse panic();
+Kelpto	kelpto/kelpto-md/walk.temper.md	130	panic	as	b	src	the panic moves into the operation	let red = up as RedNode orelse panic();
+Kelpto	kelpto/kelpto-md/walk.temper.md	142	panic	as	b	src	the panic moves into the operation	let red = up as RedNode orelse panic();
+Kelpto	kelpto/kelpto-md/walk.temper.md	190	panic	as	b	src	the panic moves into the operation	view as MarkdownNode orelse panic()
+Kelpto	kelpto/kelpto-md/walk.temper.md	369	panic	as	b	test	the panic moves into the operation	let parent = view.parent as MarkdownNode orelse panic();
+Kelpto	kelpto/kelpto-md/walk.temper.md	375	panic	as	b	test	the panic moves into the operation	let link = all[10] as Link orelse panic();
+Kelpto	kelpto/kelpto-md/walk.temper.md	376	panic	as	b	test	the panic moves into the operation	assert(link.text == "l" && (link.parent as Paragraph orelse panic()).text == "x l") { link.text };
+Kelpto	kelpto/kelpto-md/walk.temper.md	395	panic	library call	a	test	?? panic()	editor.setLevel(headings[i], headings[i].level + 1) orelse panic();
+Kelpto	kelpto/kelpto-md/walk.temper.md	397	panic	library call	a	test	?? panic()	editor.setDestination(doc.links[0], new LinkTarget("/b")) orelse panic();
+Kelpto	kelpto/kelpto-md/walk.temper.md	398	panic	library call	a	test	?? panic()	editor.setDestination(doc.linkReferenceDefinitions[0], new LinkTarget("/s")) orelse panic();
+Kelpto	kelpto/kelpto-md/walk.temper.md	401	panic	library call	a	test	?? panic()	editor.setText(doc.tables[0].rows[0].cells[0], "w|v") orelse panic();
+Kelpto	kelpto/kelpto-md/walk.temper.md	402	panic	library call	a	test	?? panic()	editor.setInfo(doc.codeBlocks[0], "ts") orelse panic();
+Kelpto	kelpto/kelpto-md/walk.temper.md	403	panic	library call	a	test	?? panic()	editor.setLabel(doc.footnoteDefinitions[0], "m") orelse panic();
+Kelpto	kelpto/kelpto-md/walk.temper.md	404	panic	library call	a	test	?? panic()	editor.setLabel(doc.footnoteReferences[0], "m") orelse panic();
+Kelpto	kelpto/kelpto-md/walk.temper.md	406	panic	library call	a	test	?? panic()	let edited = editor.toDocument() orelse panic();
+Kelpto	kelpto/kelpto-md/walk.temper.md	411	other	block	a	test	?? fallback	let again = do { editor.setText(headings[0], "x"); editor.toDocument(); "accepted" } orelse "bubbled";
+Kelpto	kelpto/kelpto-md/walk.temper.md	413	other	block	a	test	?? fallback	let wrong = do { editor.setText(doc.links[0], "x"); "accepted" } orelse "bubbled";
+Kelpto	kelpto/kelpto-md/walk.temper.md	416	other	block	a	test	?? fallback	let foreign = do { other.editor().setLevel(headings[1], 1); "accepted" } orelse "bubbled";
+Kelpto	kelpto/kelpto-md/walk.temper.md	419	panic	library call	a	test	?? panic()	mixed.setLevel(headings[1], 1) orelse panic();
+Kelpto	kelpto/kelpto-md/walk.temper.md	420	other	block	a	test	?? fallback	let caught = do { mixed.toDocument(); "accepted" } orelse "bubbled";
+Kelpto	kelpto/kelpto-md/walk.temper.md	422	panic	library call	a	test	?? panic()	assert((doc.editor().toDocument() orelse panic()).asWritten == text) { "no edits" };
+Kelpto	kelpto/kelpto-md/walk.temper.md	432	panic	library call	a	test	?? panic()	is Heading -> editor.setLevel(view, view.level + 1) orelse panic();
+Kelpto	kelpto/kelpto-md/walk.temper.md	434	panic	library call	a	test	?? panic()	editor.setDestination(view, new LinkTarget("https://x.test/${view.destination?.url ?? ""}")) orelse panic();
+Kelpto	kelpto/kelpto-md/walk.temper.md	436	panic	library call	a	test	?? panic()	is LinkReferenceDefinition -> editor.setDestination(view, new LinkTarget("https://x.test${view.destination.url}")) orelse panic();
+Kelpto	kelpto/kelpto-md/walk.temper.md	440	panic	library call	a	test	?? panic()	let written = (editor.toDocument() orelse panic()).asWritten;
+Ordable	ordable/src/key.temper.md	181	panic	appendCodePoint	b	src	the panic moves into the operation	key.appendCodePoint(keyFormat) orelse panic();
+Ordable	ordable/src/key.temper.md	182	panic	appendCodePoint	b	src	the panic moves into the operation	key.appendCodePoint(optionsCode(order)) orelse panic();
+Ordable	ordable/src/key.temper.md	192	panic	appendCodePoint	b	src	the panic moves into the operation	key.appendCodePoint(separator) orelse panic();
+Ordable	ordable/src/key.temper.md	238	panic	appendCodePoint	b	src	the panic moves into the operation	builder.appendCodePoint(shifted) orelse panic();
+Ordable	ordable/src/key.temper.md	241	panic	appendCodePoint	b	src	the panic moves into the operation	builder.appendCodePoint(0xD7FF) orelse panic();
+Ordable	ordable/src/key.temper.md	242	panic	division	b	src	the panic moves into the operation	builder.appendCodePoint(0x100 + (past / 0x7F00 orelse panic())) orelse panic();
+Ordable	ordable/src/key.temper.md	242	panic	appendCodePoint	b	src	the panic moves into the operation	builder.appendCodePoint(0x100 + (past / 0x7F00 orelse panic())) orelse panic();
+Ordable	ordable/src/key.temper.md	243	panic	division	b	src	the panic moves into the operation	builder.appendCodePoint(0x100 + (past % 0x7F00 orelse panic())) orelse panic();
+Ordable	ordable/src/key.temper.md	243	panic	appendCodePoint	b	src	the panic moves into the operation	builder.appendCodePoint(0x100 + (past % 0x7F00 orelse panic())) orelse panic();
+Ordable	ordable/src/properties.temper.md	25	panic	appendCodePoint	b	src	the panic moves into the operation	builder.appendCodePoint(alphabet[pick(alphabet.length)]) orelse panic();
+Ordable	ordable/src/properties.temper.md	32	panic	division	b	src	the panic moves into the operation	(state % n) orelse panic()
+Ordable	ordable/src/smart.temper.md	330	panic	division	b	src	the panic moves into the operation	if (((at + 1) % 4 orelse panic()) != 0 && fullFolds[at + 1] != 0) { at + 1 } else { -1 }
+Ordable	ordable/src/unicode.temper.md	175	panic	division	b	src	the panic moves into the operation	var high = (table.length / width) orelse panic();
+Wherewith	wherewith/src/common-expressions.temper.md	1551	null	division	b	src	divisor already checked: the orelse goes	(a / b) orelse null
+Wherewith	wherewith/src/common-expressions.temper.md	1798	other	division	b	src	divisor already checked: the orelse goes	integerConstant((a % b) orelse 0i64, bound)
+Wherewith	wherewith/src/common-expressions.temper.md	1805	other	division	b	src	divisor already checked: the orelse goes	if (b > 0i64) { a > ((maxInt64 / b) orelse 0i64) } else { b < ((minInt64 / a) orelse 0i64) }
+Wherewith	wherewith/src/common-expressions.temper.md	1805	other	division	b	src	divisor already checked: the orelse goes	if (b > 0i64) { a > ((maxInt64 / b) orelse 0i64) } else { b < ((minInt64 / a) orelse 0i64) }
+Wherewith	wherewith/src/common-expressions.temper.md	1807	other	division	b	src	divisor already checked: the orelse goes	a < ((minInt64 / b) orelse 0i64)
+Wherewith	wherewith/src/common-expressions.temper.md	1809	other	division	b	src	divisor already checked: the orelse goes	b < ((maxInt64 / a) orelse 0i64)
+Wherewith	wherewith/src/common-expressions.temper.md	2448	other	library call	a	src	?? fallback	out.append(t.dialect.quoteString(value) orelse "");
+Wherewith	wherewith/src/common-expressions.temper.md	2483	other	library call	a	src	?? fallback	out.append(t.dialect.quoteName(value) orelse "");
+Wherewith	wherewith/src/common-statements.temper.md	639	panic	appendCodePoint	b	src	the panic moves into the operation	out.appendCodePoint(if (c >= char'a' && c <= char'z') { c - 32 } else { c }) orelse panic();
+Wherewith	wherewith/src/common-statements.temper.md	1712	panic	appendCodePoint	b	src	the panic moves into the operation	out.appendCodePoint(lowercased(name[i])) orelse panic();
+Wherewith	wherewith/src/common-statements.temper.md	2020	panic	appendCodePoint	b	src	the panic moves into the operation	out.appendCodePoint(lowercased(ch)) orelse panic();
+Wherewith	wherewith/src/common-statements.temper.md	2023	panic	appendCodePoint	b	src	the panic moves into the operation	out.appendCodePoint(ch) orelse panic();
+Wherewith	wherewith/src/common-statements.temper.md	2327	null	library call	a	src	?? null, or nothing	let tree: CommonStatement? = parser.parseStatement() orelse null;
+Wherewith	wherewith/src/common-statements.temper.md	2333	other	block	f	src	a Void call used as a check: needs a Boolean	} orelse false;
+Wherewith	wherewith/src/common-statements.temper.md	2379	panic	library call	a	src	?? panic()	text.append(if (common) { canonicalName(name) } else { dialect.quoteName(name) orelse panic() });
+Wherewith	wherewith/src/common-statements.temper.md	2418	null	library call	a	src	?? null, or nothing	let parsed: CommonStatement? = parser.parseStatement() orelse null;
+Wherewith	wherewith/src/common.temper.md	585	panic	appendCodePoint	b	src	the panic moves into the operation	key.appendCodePoint(lowercased(text[j])) orelse panic();
+Wherewith	wherewith/src/common.temper.md	781	other	fromCodePoint	a	src	?? fallback	let shown(c: Int): String { String.fromCodePoint(c) orelse "?" }
+Wherewith	wherewith/src/core.temper.md	135	panic	fromCodePoint	b	src	the panic moves into the operation	let quote = String.fromCodePoint(nameQuote) orelse panic();
+Wherewith	wherewith/src/query.temper.md	157	panic	library call	a	src	?? panic()	is QueryName -> style.text(dialect.quoteName(part.name.name) orelse panic());
+Wherewith	wherewith/src/query.temper.md	273	null	library call	a	src	?? null, or nothing	let built: Query? = b.build() orelse null;
+Wherewith	wherewith/src/query.temper.md	505	null	library call	a	src	?? null, or nothing	let rendered: List<QueryPart>? = x.renderedParts(dialect) orelse null;
+Wherewith	wherewith/src/query.temper.md	574	panic	library call	a	src	?? panic()	public get accumulated(): Query { build() orelse panic() }
+std	tempest/lib/std/json/json.temper.md	345	other	conversion	a	src	?? fallback	content.toInt32() orelse content.toFloat64().toInt32()
+std	tempest/lib/std/json/json.temper.md	350	other	conversion	a	src	?? fallback	content.toInt64() orelse content.toFloat64().toInt64()
+std	tempest/lib/std/json/json.temper.md	620	panic	as	b	src	the panic moves into the operation	let key = (keyTree as JsonString orelse panic()).content;
+std	tempest/lib/std/json/json.temper.md	627	panic	as	b	src	the panic moves into the operation	let mb = multis as MapBuilder<String, ListBuilder<JsonSyntaxTree>> orelse panic();
+std	tempest/lib/std/json/json.temper.md	629	panic	read	b	src	the panic moves into the operation	mb[key] = (m[key] orelse panic()).toListBuilder();
+std	tempest/lib/std/json/json.temper.md	631	panic	read	b	src	the panic moves into the operation	(mb[key] orelse panic()).add(value);
+std	tempest/lib/std/json/json.temper.md	803	panic	as	b	src	the panic moves into the operation	i = skipJsonSpaces(sourceText, afterKey as StringIndex orelse panic());
+std	tempest/lib/std/json/json.temper.md	833	panic	bug-like block	b	src	the panic moves into the operation	} orelse panic() } // See https://github.com/temperlang/temper/issues/203
+std	tempest/lib/std/json/json.temper.md	873	panic	bug-like block	b	src	the panic moves into the operation	} orelse panic() } // See https://github.com/temperlang/temper/issues/203
+std	tempest/lib/std/json/json.temper.md	988	panic	appendCodePoint	b	src	the panic moves into the operation	sb.appendCodePoint(leadSurrogate) orelse panic();
+std	tempest/lib/std/json/json.temper.md	994	panic	appendCodePoint	b	src	the panic moves into the operation	sb.appendCodePoint(decodedCp) orelse panic();
+std	tempest/lib/std/json/json.temper.md	1007	panic	appendCodePoint	b	src	the panic moves into the operation	sb.appendCodePoint(leadSurrogate) orelse panic();
+std	tempest/lib/std/json/json.temper.md	1238	other	block	a	src	?? fallback	} orelse do {
+std	tempest/lib/std/json/json.temper.md	1251	panic	bug-like block	b	src	the panic moves into the operation	} orelse panic() } // See https://github.com/temperlang/temper/issues/203
+std	tempest/lib/std/regex/regex.temper.md	596	panic	bug-like block	b	src	the panic moves into the operation	} orelse panic() } // fromCodePoint bubbles
+std	tempest/lib/std/testing/testing.temper.md	121	other	library call	f	src	test runner	fun(test) orelse do { hadBubble = true };
+std	tempest/lib/std/testing/testing.temper.md	188	other	library call	f	src	test runner	testFun(test) orelse test.assert(false) { "bubble during test running" };
+core	tempest/lib/core/core.temper	794	panic	appendCodePoint	b	src	the panic moves into the operation	appendCodePoint(source[index]) orelse panic();
+core	tempest/lib/core/core.temper	1187	other	read	d	src	getOr/has built on get: needs a separate presence test	return this[key] orelse fallback;
+core	tempest/lib/core/core.temper	1195	other	block	d	src	getOr/has built on get: needs a separate presence test	return do { this[key]; true } orelse false;

@@ -25,6 +25,17 @@ boundary that each backend's **representation** must present
 ([host-facing failure types](#host-facing-failure-types),
 [compatibility](#compatibility-of-failure-changes)).
 
+Much of it also holds for
+[option 0, no failure support](claude-option-no-failures.md), where
+Temper keeps only nullables and panics:
+[which builtins panic](#which-builtins-panic),
+[`return` as an expression](#return-break-and-continue-as-expressions)
+(there, the only propagation), [precedence](#precedence) (for `??`),
+[panics per backend](#panics-per-backend), and
+[panics in test runners](#panics-in-test-runners). Propagation markers,
+what `orelse` catches, host-facing failure types, and lowering apply
+only if Temper keeps failures.
+
 ## `return`, `break`, and `continue` as expressions
 
 Today `f() ?? return null` and `f() orelse return null` don't parse, so
@@ -84,9 +95,10 @@ five of seven backends: everything in C#, JS, and Lua, any
 `RuntimeException` in Java, and any `Exception` in Python, so a host bug
 inside a callback becomes the fallback value
 ([findings §1](claude-findings.md#host-exceptions-inside-callbacks)).
-That needs one Temper failure type per backend that host code can also
-catch selectively, and builtins raising it rather than `ValueError`,
-`NumberFormatException`, or Lua strings.
+That needs declared failure types that host code can also catch
+selectively, builtins raising them rather than `ValueError`,
+`NumberFormatException`, or Lua strings, and generated handlers that
+catch only those types ([below](#panics-per-backend)).
 
 ## Host-facing failure types
 
@@ -132,7 +144,11 @@ the [translations](claude-translations/README.md) show each one.
   `InnerException`, `__cause__`, `cause`, `source()`, `Unwrap()`).
 - **Generic failure types** can't become JVM exceptions (Java and Kotlin
   forbid generic `Throwable` subclasses), so a failure type that
-  becomes an exception class must be non-generic.
+  becomes an exception class must be non-generic. A function that is
+  generic over its callback's failure type (`throws E`, as in Swift 6)
+  is a different matter: each use instantiates `E` with a concrete
+  declared failure type or a "can't fail" type, so every failure a host
+  sees is still of a concrete, non-generic type.
 - **Failure types are sealed (closed).** Languages without exceptions need
   every variant known when the library is compiled: Zig turns the kinds
   into an error set and the fields into a tagged union carried in a
@@ -263,6 +279,34 @@ guarantee that one is recoverable, so library code must not rely on
 catching one. What the RFC pins down: `orelse` never catches a panic
 (today it does on JS and Lua), and a panic's message reaches the user
 (C++ prints none today and can lose earlier output).
+
+**The key rule: generated handlers catch only declared failure types.**
+A handler (`orelse`, `catch`) catches the failure types declared by the
+expression it covers, which are the library's own types; in a host
+without typed catch, it tests for the library base or a tag and rethrows
+anything else. So a panic can be any idiomatic signal that isn't a
+failure, and it passes every Temper handler untouched, as does any host
+exception:
+
+| Backend | Failures | Panics | How handlers tell them apart |
+|---|---|---|---|
+| Java | library `RuntimeException` subclasses (`Exception` subclasses if the library opts into checked) | an `Error` subclass or `IllegalStateException` | typed `catch` of the declared type; never caught |
+| C# | library failure classes | `InvalidOperationException`, or `Environment.FailFast` if preferred | typed `catch` |
+| Python | library exception classes | `AssertionError` or another builtin | typed `except` |
+| JS | library `Error` subclasses | a plain `Error` | `instanceof` the declared type or library base; rethrow anything else |
+| Lua | tagged failure tables, or `nil, failure` returns | `error()` with a string | check the tag; rethrow anything else |
+| C++ | `std::expected` errors, or library exception types in a throwing build | the panic hook, `std::terminate` or `abort` by default | values are checked; typed `catch` in a throwing build |
+| Rust | `Result` errors | `panic!` | values are checked; panics unwind past |
+| Go | `error` values | `panic` | values are checked; no `recover` |
+| Zig, C | error sets or status codes | `@panic`, or an abort hook | values are checked |
+
+This fixes today's catch-alls: everything in C#, JS, and Lua, any
+`RuntimeException` in Java, and any `Exception` in Python, including JS
+and Lua's `orelse` catching `panic()` (bugs 1, 3, and 12
+[below](#bugs-to-fix-as-part-of-the-rfc-work)). A handler inside code
+that is generic over a callback's failure type can't name one library's
+type; how it recognizes a Temper failure there (a marker every library
+base carries, or a type witness) is open.
 
 ## Panics in test runners
 

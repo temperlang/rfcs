@@ -21,9 +21,12 @@ what this sketch adds is holding the union. Typing a fallible call as
 returning `Result<T, E>`, as Kotlin already does internally, lets failure
 polymorphism fall out of ordinary generics: `map<T, R>(xs, f: fn (T): R)`
 given a fallible `f` instantiates `R` as `Result<U, E>`, and `map` may
-collect its `R`s into a `List<R>`, unchanged. A middle ground keeps
-results in flight, with pass-through and explicit capture
-([declared sketch](claude-proposal-declared.md#refinement-pass-through-and-capture)).
+collect its `R`s into a `List<R>`, unchanged. The middle ground, which
+[the proposal](claude-proposal.md) adopts, keeps results in flight and
+makes a higher-order function generic over its callback's failure type
+(`fn (T): R throws E`); code that needs to keep an outcome stores the
+failure object, and capture is deferred
+([declared sketch](claude-proposal-declared.md#refinement-generic-failure-parameters)).
 On **syntax**, it
 shows the least sugar (`orelse`, `??`, and `return` as an expression, with
 a propagation operator later); exception-looking sugar such as `T throws E`

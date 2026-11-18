@@ -23,8 +23,10 @@ In flight only, that is safe only where generic code uses `R` linearly,
 returning or propagating it at once; checking that is a hidden effect
 system, which is where Kotlin's special cases come from
 ([review §4](claude-kotlin-result-review.md#4-toms-question-did-mike-deliberately-keep-results-out-of-temper-code)).
-The [refinement](#refinement-pass-through-and-capture) below makes that
-check one keyword and adds explicit capture: the middle ground. On
+The [refinement](#refinement-generic-failure-parameters) below replaces
+that check with an ordinary generic failure parameter: the middle
+ground, which Tom chose on 2026-11-18 and
+[claude-proposal.md](claude-proposal.md) drafts. On
 **syntax**, it shows the most exception-looking sugar: `throws`, `throw`,
 a propagation marker, `catch`, and `error case`.
 **Representation** is still each backend's choice: Rust, Go, Zig, and C
@@ -144,51 +146,55 @@ with the same generated API as under
 [failures as values](claude-proposal-values.md). Each of these names is
 API, so a changed failure type is a compatibility change everywhere.
 
-## Refinement: pass-through and capture
+<a id="refinement-pass-through-and-capture"></a>
+
+## Refinement: generic failure parameters
 
 A middle ground between this sketch and
 [first-class results](claude-proposal-values.md), and the third answer to
 the [semantics question](claude-recommendation.md#two-questions).
 Failure objects stay ordinary values throughout: a caught `SqlProblem`
 with its fields, message, and cause can be bound, stored, passed, put in
-lists, compared by its fields, and thrown again. What stays in flight by
-default is the result, the success-or-failure union, with two additions.
+lists, compared by its fields, and thrown again. What can't be held is
+the result, the success-or-failure union. Inside the compiler,
+`T throws E` is an ordinary generic `Result<T, E>`, so generic machinery
+handles it uniformly, but Temper source can't name or hold one.
 
-**Pass-through.** As with Swift's `rethrows`, a function declares that it
-fails only when a function it was given fails, and passes that failure
-straight through. Its body may call the given function and propagate, but
-not store the failure. One keyword and that rule cover `map`, `forEach`,
-`filter`, and `sort`'s comparator. (Swift 6 later added typed
-`throws(E)` with generic error types for more precise cases.)
+**Failure parameters.** A higher-order function is generic over its
+callback's failure type, as with Swift 6's typed `throws(E)`, instead of
+a special `rethrows` keyword. `E` is bounded by a root interface every
+declared failure type extends (`Failure` for now), and a function type
+without `throws` means `throws Never<Failure>`, a failure that can't
+happen. Inference fills `E` at each call: a callback that can't fail
+needs no `try` and propagates nothing. The body can only propagate or
+handle the callback's failure, never hold it as a result. One rule
+covers `map`, `forEach`, `filter`, and `sort`'s comparator.
 
-**Explicit capture.** `capture { … }` turns an in-flight failure into a
-held `Result<T, E>` value, only where code asks. Ordinary generics then
-work on captured results with no restriction.
+**No capture in the first version.** Code that needs to keep an outcome
+stores the failure object, and promises already hold async failures. An
+earlier draft had `capture { … }` turning a failure into a held
+`Result<T, E>`; it could be added later if real code shows the need.
 
 ```temper
-// HYPOTHETICAL: `throws passed` for pass-through and `capture`; both
-// spellings are illustrative.
-public map<T, U>(xs: List<T>, f: fn (T): U throws passed): List<U> throws passed {
-  let out = new ListBuilder<U>();
+// HYPOTHETICAL: failure parameter `E`, bounded by `Failure`.
+public map<T, R, E>(xs: List<T>, f: fn (T): R throws E): List<R> throws E {
+  let out = new ListBuilder<R>();
   for (let x of xs) { out.add(f(x)!); }
   out.toList()
 }
 
-let sizes = map(words, fn (w: String): Int { w.length });   // can't fail
+let doubled = map(xs, fn (x: Int): Int { x * 2 });   // E = Never<Failure>: no marker
 let ids = map(texts, fn (t: String): Int throws SqlProblem { parseId(t)! })!;
-let each = map(texts, fn (t: String): Result<Int, SqlProblem> { capture { parseId(t) } });
+var problem: SqlProblem? = null;                      // keep the outcome
+let node = parse(s) catch (e) { problem = e; null };
 ```
 
-This gets most of first-class results' benefits (generic helpers,
-collected outcomes, async through capture) while the default stays
-simple: a result exists only where a `capture` says so, which this
-sketch's exception-style syntax signals. Kotlin's complexity came from
-having no pass-through mechanism at all, not from in-flight results as
-such. On the JVM, `Ok` and `Failed(sameObject)` are materialized only at
-capture sites, the held-result rule of the
-[values sketch](claude-proposal-values.md#semantics-and-representation-are-separate-choices);
-pass-through itself needs nothing on exception backends
-([details](claude-proposal-declared-details.md#pass-through-and-capture)).
+Exception-style syntax then tells the truth: no value is ever a result.
+Kotlin's complexity came from having no failure polymorphism at all, not
+from in-flight results as such. On exception backends, failure
+parameters need nothing, since the failure propagates through the
+generic function; value backends make `E` a generic error parameter
+([details](claude-proposal-declared-details.md#generic-failure-parameters)).
 
 ## Migration from `throws Bubble`
 
@@ -205,7 +211,7 @@ The success path is free on every backend but Lua (a closure and `pcall`
 per `orelse`). Each failure costs an exception where it is one today, so
 failure-heavy loops on C++, C#, Java, and JS take 2 to 107 times as long
 as a nullable version; lowering local failures to branches, trace-free
-throws, and capture narrow that. On real libraries, valid input costs
+throws, and value representations narrow that. On real libraries, valid input costs
 about nothing, and one failure in an invalid Wherewith query adds an
 estimated 15 to 300% to it on C++, C#, and Java
 ([details](claude-proposal-declared-details.md#cost-in-detail)).
@@ -217,8 +223,8 @@ estimated 15 to 300% to it on C++, C#, and Java
   ([details](claude-proposal-declared-details.md#other-open-questions)).
 - How long `throws Bubble` may keep implicit propagation, and whether
   that warns.
-- Whether to adopt the refinement, and its open points
-  ([details](claude-proposal-declared-details.md#pass-through-and-capture));
+- Whether to adopt the refinement (Tom chose it), and its open points
+  ([details](claude-proposal-declared-details.md#generic-failure-parameters));
   whether an override may declare less failure (std's `asInt64Safe` twin).
 
 ## Pros and cons
@@ -231,4 +237,4 @@ estimated 15 to 300% to it on C++, C#, and Java
 | Fields travel with the failure, so Wherewith's twins and std JSON's dropped messages go | Each backend needs its own failure machinery, including across `await` and generators |
 | Rust, Go, Zig, and C map it to their native patterns | Those four implement it as values anyway, so it needs both machineries; accumulated errors (Hrefine's `UrlCheck`, Kelpto's lists) stay values too |
 | Explicit propagation marks every call that can fail | Every implicitly propagating call needs a marker: about 630 in the surveyed code |
-| With the refinement, generic helpers pass failures through with one keyword, and `capture` gives held results where wanted | Without it, generics, function types, `await`, and generators need special cases, as in Kotlin today; with it, two more rules to learn |
+| With the refinement, generic helpers pass failures through with an ordinary generic failure parameter | Without it, generics, function types, `await`, and generators need special cases, as in Kotlin today; with it, one more rule to learn (failure parameters bounded by the root) |
