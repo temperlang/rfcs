@@ -84,3 +84,22 @@ at a time, each with its own tests and review), so the general pass
 never becomes one enormous diff. Core's cleanup already has its own RFC
 ([671](../../671-core-cleanup/tom/claude-core-cleanup.md)) and can
 proceed independently.
+
+## From earlier design notes
+
+Added by Claude, 2026-11-19, from the team's earlier design notes.
+Background only; nothing here is decided.
+
+
+- **Seeds that grow.** An early-stage macro could leave a call to a
+  later-stage macro in place of itself; a macro expanding to a call of
+  its own name wasn't re-expanded in the same stage (the Bash alias
+  rule). A single loop needs some equivalent for multi-stage macros.
+- **When a call is ready.** Calls were run when "satisfied" (callee
+  known, arguments values or the trees the macro wants) or "going out of
+  style" (the callee disappears after this stage), with unsatisfied
+  arguments replaced by error nodes so the macro could still report
+  something.
+- **Scheduling.** One coroutine per module turned out not to make things
+  easier; a module graph that hands out small tasks that are ready now
+  was easier to test and visualize.

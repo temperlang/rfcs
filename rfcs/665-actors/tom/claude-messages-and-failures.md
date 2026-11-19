@@ -24,3 +24,30 @@ messages (the failure object is an ordinary value), not as exceptions
 thrown across actor boundaries. That keeps each actor's `try` and
 `catch` local and avoids a host-specific way of rethrowing in another
 thread or process.
+
+## From earlier design notes
+
+Added by Claude, 2026-11-19, from the team's earlier design notes.
+Background only; nothing here is decided.
+
+- **Actors as blocks.** An actor was a block with a per-instance
+  preface (its state) and a per-call body, wired by a controller to
+  shared ring buffers; it returned whether it had more work. Blocking
+  APIs were macros over non-blocking ones that `pause` when they can't
+  make progress.
+- **Which code can pause** should be decidable from syntax alone: a
+  `pause` affects the innermost actor block, not whatever function a
+  block happens to be inlined into.
+- **Lowering `pause`.** On hosts with generators (JS, Python, C#, C++20,
+  Lua), `pause` becomes `yield`; elsewhere a function body becomes a
+  state machine: hoist locals into the closure, split the control-flow
+  graph into maximal paths with each `pause` on its own, and run a
+  `switch` on a state variable in a loop. Resumption costs a constant;
+  no `goto` needed. A scheduler can drive such agents without promises.
+- **Avoid async poisoning:** actors should be plain generators, not
+  async ones, so asynchrony doesn't spread into every public API.
+- **Host threads.** For host threads calling into Temper, the notes
+  rejected vats and event loops in favor of immutable globals and a rule
+  that Temper calls a host callback only on the thread that passed it
+  in. Isolates and workers for actors are a separate question, but the
+  callback rule may still hold.

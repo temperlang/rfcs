@@ -510,3 +510,37 @@ These are suggestions drawn from the evidence above, not decisions.
   functional test so the RFC can state current semantics as tested
   facts. The probe sources, host harnesses, and benchmark programs are
   small and could be checked in with that test.
+
+## From earlier design notes
+
+Added by Claude, 2026-11-19, from the team's earlier design notes.
+Background only; nothing here is decided.
+
+- **Why failures first carried nothing.** Failure began as a bit: each
+  call that could fail set a flag, and handlers joined on it. That
+  worked even on backends without catchable exceptions (C++ in
+  practice, Go, Rust); hosts with exceptions caught a single runtime
+  failure type and broke to the handler. Sealed, non-generic failure
+  types keep that reach while adding detail.
+- **Inference was always the plan.** The notes wanted each function
+  type to say whether it can fail in itself, and on which callbacks its
+  failure depends ("`f` fails when `g` fails"), so the typer could drop
+  failure branches for calls that can't fail. That branch removal later
+  shrank generated code a lot. A generic `E` covers the contingent case;
+  the notes' "nice to have", failing exactly when a callback *succeeds*,
+  isn't expressible, and no real use was recorded.
+- **Several dependencies.** A function's failure could depend on more
+  than one callback; that is the open "two callbacks with different
+  failure types" question, and the notes didn't settle it.
+- **Naming.** Identifiers could end in `?` or `!`; a `?` suffix meant
+  "may fail as a matter of course" (a non-blocking read), as opposed to
+  failure that means "don't retry". Worth weighing with the `tryX` and
+  postfix-`?` questions.
+- **Rollback on failure.** Output buffers were to be truncated back
+  automatically when a strategy failed and another was tried, a
+  transactional reading of `orelse` that this proposal doesn't need but
+  might enable later.
+- **Inferred public signatures** were seen as a compatibility hazard
+  (other languages regretted inferring the types of public globals and
+  properties), which supports inferring failure labels only for private
+  functions and requiring them on exports.

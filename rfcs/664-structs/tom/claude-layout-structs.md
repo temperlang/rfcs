@@ -43,3 +43,4 @@ either built on them or kept separate as views or codecs over blobs.
 - Endianness and alignment defaults for layout structs.
 - Whether layout structs require value semantics, or whether mutable
   views over blobs are a separate feature.
+

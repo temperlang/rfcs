@@ -655,3 +655,25 @@ Notes:
 - TypeScript: [function type expressions](https://www.typescriptlang.org/docs/handbook/2/functions.html#function-type-expressions)
 - C++: [`std::function`](https://en.cppreference.com/w/cpp/utility/functional/function)
 - Dart: [typedefs](https://dart.dev/language/typedefs)
+
+## From earlier design notes
+
+Added by Claude, 2026-11-19, from the team's earlier design notes.
+Background only; nothing here is decided.
+
+- **Naming the function's interface.** An early full signature grammar
+  let a function declare the interface its value implements (`fn:
+  Actor`), alongside type parameters, decorations, an explicit `this:`
+  receiver, "may fail", and contracts. That is a precedent for nominal
+  fun interfaces: the name was part of the declaration, not inferred.
+- **Blocks weren't general functions.** Trailing blocks were to have a
+  type distinct from general function types, couldn't be stored in
+  fields or non-local variables, and their receivers declared how often
+  they call them. Escaping and non-escaping functions might deserve
+  different treatment here too.
+- **Failure on the function type.** Function types were to carry
+  whether they can fail and on which callbacks that depends; see the
+  [failure labels note](claude-failure-labels.md).
+- **Functions as metadata.** Comparators and hashers were proposed as
+  decorations on a class (`@Comparator((a, b) => …)`), one more place
+  where named function types would show intent.

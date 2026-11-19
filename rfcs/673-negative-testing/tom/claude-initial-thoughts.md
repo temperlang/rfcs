@@ -66,3 +66,21 @@ thread or process elsewhere).
 - Pluggable effects ([#674](https://github.com/temperlang/temper/issues/674))
   would let many of these be tested in-process (a fake network that
   fails if called), complementing sandboxes.
+
+## From earlier design notes
+
+Added by Claude, 2026-11-19, from the team's earlier design notes.
+Background only; nothing here is decided.
+
+- **Leak checks were on the early roadmap:** once a library builds its
+  external API, each backend's test suite checks that no internals leak
+  into it, the same promise as "no Temper names in host APIs".
+- **Grammar fuzzing.** A generative grammar for a stable subset of the
+  language, fed through the lexer and parser, found several real parser
+  bugs quickly; the same kind of fuzzing could check that the compiler
+  never crashes or emits code that doesn't compile.
+- **Auditing macros.** The notes wanted to record which macros used
+  their extra powers (reading ancestors, evaluating arguments out of
+  order), so a critical module could list what it depends on.
+- **Negative-testing infrastructure** was listed as part of the exit
+  criteria for merging an initiative to main.

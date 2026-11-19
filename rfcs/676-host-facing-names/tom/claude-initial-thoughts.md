@@ -113,3 +113,28 @@ temper.keep ([#677](../../677-temper-keep/tom/claude-initial-thoughts.md)).
 - [#667](../../667-fun-types/README.md): host names for fun interfaces.
 - [#671](https://github.com/temperlang/temper/issues/671): core names, which also reach
   host code through the runtime.
+
+## From earlier design notes
+
+Added by Claude, 2026-11-19, from the team's earlier design notes.
+Background only; nothing here is decided.
+
+- **A periphery.** Host code enters Temper code only through exported
+  functions, members of exported types, and exported top-level values.
+  The notes proposed pairs of members: a host-facing one that converts
+  host values (and has an idiomatic name), and an internal one that
+  generated code calls, whose name can be mangled or hidden (`private`,
+  `friend`, or a parameter of a type only Temper can make). Conversion
+  then happens once at the boundary, not inside loops. A Temper type
+  passed in should come back out as the same host type.
+- **APIs as feature sets.** Rather than one exported API, a library
+  exports features, and each backend exports at least one form of each
+  (a namespaced function, a static method, …). Names are split into
+  words and rejoined per host style and reserved words; an experiment
+  generated names from a grammar with style and part of speech.
+- **Stable names.** Generated names must depend only on what the author
+  puts in the API, and stay stable across declaration order and
+  additive changes.
+- **Declaring the API apart from `export`.** An `API.declare` /
+  `expose` idea separated what a library publishes from how its
+  modules import each other.

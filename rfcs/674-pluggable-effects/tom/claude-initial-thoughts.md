@@ -68,3 +68,26 @@ in std's testing helpers. Then clock and console the same way.
 - [RFC 665](../../665-actors/README.md) (actors): effects per actor.
 - [#673](https://github.com/temperlang/temper/issues/673) (negative
   testing).
+
+## From earlier design notes
+
+Added by Claude, 2026-11-19, from the team's earlier design notes.
+Background only; nothing here is decided.
+
+- **Service discovery as a fifth option.** `import` could name an
+  interface rather than a module (`import(MarkdownConverter)`), and the
+  project's or organization's configuration chooses which library
+  provides it, even for imports inside third-party libraries. Effects
+  could be provided the same way, swapped per build rather than per
+  call. The notes also wanted it structural enough that a new interface
+  could be satisfied by modules written before it.
+- **Capabilities at the entry point.** A design for runnable entry
+  points (`main(argv, env)`) suggested later adding typed parameters
+  for a file system or network abstraction, so a program receives its
+  effects instead of reaching for globals.
+- **Native types with Temper fallbacks.** Backends were to map Temper
+  types such as dates to host types, with a Temper implementation as
+  the default where no mapping exists: the same shape as "host default,
+  swappable", one level down.
+- **Thread affinity.** Temper calls a host-supplied function only on the
+  thread that supplied it, which matters for host-provided effects.

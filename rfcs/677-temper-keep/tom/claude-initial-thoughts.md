@@ -86,3 +86,23 @@ changes are deliberate:
   host-facing names, the first use case.
 - [#283](https://github.com/temperlang/temper/issues/283): the spam that
   keeps it gitignored today.
+
+## From earlier design notes
+
+Added by Claude, 2026-11-19, from the team's earlier design notes.
+Background only; nothing here is decided.
+
+- **A snapshot in version control.** The notes wanted configuration to
+  be dynamic but analyzable, and proposed that compiling a library emit
+  a declarative snapshot kept in version control beside the
+  configuration, like a lock file. temper.keep is that idea for names.
+- **Stable by construction.** Generated names must be a pure function of
+  what the author puts in the API, unaffected by declaration order or
+  additive changes; a keep file records the exceptions.
+- **Compatible evolution.** An example: a property becomes a computed
+  getter, and clients keep
+  working. A keep file that records the shape of public members, not
+  just names, could check changes like that.
+- **Old sources keep compiling:** newer tools should accept older
+  language versions where sources exist, a goal that a version-aware
+  keep file can support.

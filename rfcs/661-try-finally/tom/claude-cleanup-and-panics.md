@@ -31,3 +31,26 @@ per request or task (web servers, job runners), which would otherwise
 leak locks or handles. Either way, code shouldn't rely on cleanup after
 a panic. Worth exploring with a shared test program that records which
 backends run it.
+
+## From earlier design notes
+
+Added by Claude, 2026-11-19, from the team's earlier design notes.
+Background only; nothing here is decided.
+
+- **`finally` must be able to veto.** A cleanup block can change the
+  outcome: return a different result, or `break` out of an enclosing
+  loop. That's why a plain closure called on each exit isn't enough, and
+  why "as if a nested function" needs an answer for `return` and
+  `break` inside `finally`: either forbid them, or have the nested
+  function return a code that each call site acts on.
+- **Copying blows up.** Java's compilers copy the `finally` body onto
+  every exit path, which grows super-linearly when `finally`s nest, and
+  is especially bad in source-to-source translation. The subroutine
+  shape this RFC prefers avoids it.
+- **Labeled blocks lower failure joins.** `orelse` already compiles to
+  structured code with labeled blocks and breaks; `finally` can reuse
+  that shape on hosts without native `try`/`finally`.
+- **Reify scope exits early.** An early compiler design kept scope
+  boundaries explicit in the control-flow graph, so cleanup was attached
+  once and inlined late, instead of inlining early and having to
+  remember it on every new exit.

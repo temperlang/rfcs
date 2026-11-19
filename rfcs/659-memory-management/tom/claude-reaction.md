@@ -264,3 +264,41 @@ Immutable value types ([RFC 668](../../668-value-types/tom/claude-value-types.md
 can't form cycles, since a value can't be changed to point back at
 itself, so the checker can skip them. Held by value in C++ and Rust, they
 need no reference counting at all.
+
+## From earlier design notes
+
+Added by Claude, 2026-11-19, from the team's earlier design notes.
+Background only; nothing here is decided.
+
+- **Lineage.** The checker's ideas date back several years: `readonly
+  early` properties (written once, before `this` is used), negative
+  bounds written `-List<E>` or "does not contain" (today's `forbids`),
+  `closed` (today's sealed), and `concrete`. Approaches tried, in order:
+  one containment graph per type (rejected: one node for `List` can't
+  tell `List<List<T>>` apart), a constraint solver looking for a cycle,
+  then simpler rules, ending with one graph per concrete type, expressed
+  in that type's own type parameters. Variance was handled by
+  substituting the union of supertypes.
+- **Co-recursive closures without cycles.** For nested functions that
+  call each other and share a closure record (the `isEven`/`isOdd`
+  example), the notes separate a function's external name from its
+  internal uses: a function's references to itself or its siblings
+  inside the shared record can be weak (not counted), because something
+  outside must hold the function strongly for it to be called at all.
+  That avoids the cycle that closure conversion would otherwise create,
+  and isn't yet in the "Implicit cycles via closure conversion" section.
+- **Closure records as a builtin** let backends with real closures
+  rebuild them instead of emitting record objects.
+- **Young and mature variants.** One idea paired each type with a
+  mutable ("young") variant and a deeply immutable ("mature") one,
+  converted by copying; immutable values can't form cycles, so only the
+  young side needs checking.
+- **Sharing hints.** Annotations like "lives on one stack" vs "shared
+  across stacks" were considered for choosing non-atomic vs atomic
+  reference counting per allocation.
+- **Usability stance.** Hide negative bounds from casual users; library
+  authors carry that complexity, and most user code should be concrete
+  enough not to need it.
+- **Reading:** Chang et al., "Cyclic reference counting by typed
+  reference fields", classifies objects as cyclic, linking, or
+  terminating, which may help phrase error messages.

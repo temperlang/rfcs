@@ -170,3 +170,25 @@ identity, construct only through the type's own constructors.
 - Size limits or hints for by-value representation.
 - Whether value types may be map keys (Temper's `MapKey` is closed
   today); if so, runtimes without host hashing (Lua, PHP) must supply it.
+
+## From earlier design notes
+
+Added by Claude, 2026-11-19, from the team's earlier design notes.
+Background only; nothing here is decided.
+
+- **No reference types in the language.** The notes decided early not
+  to distinguish `T` from a reference to `T` (most hosts can't force
+  stack allocation, and lifetime reasoning would dominate the checker),
+  and to avoid identity checks so that each backend can choose when to
+  copy or share values.
+- **Identity as opt-in.** `===` was only for types declaring
+  `Identifiable`, and `Identifiable` was incompatible with
+  `Copyable`. That bears on the marking question: an `@imu` type with
+  no identity use could be a value type by default.
+- **Identity blocks unboxing.** The notes saw identity as the main
+  obstacle to unpacking tuples or records and repacking them later;
+  without it, deeply immutable instances could also be pooled and
+  shared across modules at code generation.
+- **Hashing differs by host.** Hash codes were to be opaque, with widths
+  and collisions varying by backend, so code mustn't depend on them;
+  relevant if value types become map keys.
