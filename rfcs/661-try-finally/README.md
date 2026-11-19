@@ -18,6 +18,8 @@ Explore TmpL having an option to produce a try/finally construct or producing a 
 
 This will capture lots of test cases to ensure that we can produce control-flow that passes different target languages initialized-before-use and let declarations are not multiply assigned compiler checks that often have worst-case assumptions around try/finally. And it will explore what TmpL translation switches allow for passing those static checks.
 
+> [!NOTE]
+> Tom: For RFC 164 on exception handling, I'm working through matters like `sum += ys[i] ?? continue;`, which overlap try/finally needs somewhat. I'm currently trying to keep the related scope there bounded, though, instead of sucking up all try/finally requirements.
 
 ## Background
 
