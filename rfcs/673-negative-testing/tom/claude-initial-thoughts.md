@@ -47,6 +47,16 @@ library users:
 - Some belong in the nightly rather than every push (slower, or
   needing services).
 
+## Test timeouts
+
+A hang is a failure a negative test should catch, but today only
+JavaScript has a per-test timeout, and by accident: mocha's 2 s default,
+which makes slow tests flake on JS alone. The compiler plans to drop it, so
+every backend waits. Real timeouts would be opt-in and the same on every
+backend (set from Temper, by a decorator or a `temper test` flag), each
+runner enforcing it its own way (JUnit's `assertTimeout`, a watchdog
+thread or process elsewhere).
+
 ## Open questions
 
 - Which properties are promises worth documenting (and so enforcing),
