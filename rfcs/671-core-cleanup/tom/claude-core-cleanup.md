@@ -97,6 +97,53 @@ let match: rx.Match? = …;
   not at first); how the language server shows aliases (hover as the
   module, go to definition opens it).
 
+## Counterarguments
+
+The largest concerns first; none argues against the goals.
+
+1. **Renamed imports may already cover aliasing.** Temper has
+   destructuring imports with renames, so a module defining its own
+   `String` could write `let { String as CoreString } = import("core");`
+   once `import("core")` works, with no new kind of name. Module aliases
+   add a namespace that isn't a value, with its own typing rules,
+   language-server support, and errors, for a case that's rare by
+   design. "When in doubt, leave it out" suggests starting with renamed
+   destructuring imports from `"core"` and adding namespace aliases only
+   if real code wants them, though aliases read better for std modules
+   with many exports, so it's a real tradeoff.
+2. **Code generators and future macros need a name for core that user
+   code can't shadow.** The compiler refers to core through resolved
+   symbols, so dropping `builtins.` doesn't affect it. But user-written
+   macros or decorators that generate source (the direction of
+   [RFC 662](../../662-clear-call-inlining/README.md) toward user-space
+   macros) need a hygienic way to say "core's `List`" whatever the
+   user's scope defines. With no default `core` or `builtins` name, a
+   macro must inject an import or rely on hygiene machinery Temper
+   doesn't have yet. This argues for some unshadowable path, perhaps
+   compiler-internal and producible only by macro expansion, even if
+   it's never user-facing. Decide early how macro hygiene names core. One option (Tom): macro hygiene could refer to core directly in a non-syntactic way, such as a resolved symbol a macro attaches to the code it generates, so no name in source is ever needed.
+3. **Declaring macros in core can mislead.** Documentation-only
+   declarations for `if`, `while`, `orelse`, or `await` give hover docs
+   and a definition target, but look like functions users might pass or
+   call. They need a clear marker and docs, and a check (for example, a
+   test that every builtin has exactly one declaration) so they don't
+   drift from the compiler's built-in list.
+4. **Splitting core and converting it to `.temper.md`** makes `git
+   blame` and history harder to follow, causes merge conflicts for open
+   work touching core, and risks prose duplicating doc comments. These
+   are one-time or manageable; doing the split alone keeps it reviewable.
+5. **Requiring an explicit import to qualify** is less discoverable than
+   a predefined `core`. A good error message answers it: "`String` here
+   is your class; to use core's, `let { String as CoreString } =
+   import("core")`."
+6. **The extension methods change a few host-visible shapes** (static
+   functions where host code might have seen methods); small, since
+   `List` and `Map` mostly map to host collections.
+
+**Suggested adjustments:** start with renamed destructuring imports
+from `"core"` rather than namespace aliases, and settle how macro
+hygiene names core before removing `builtins.` syntax entirely.
+
 ## Related issues
 
 - [#30](https://github.com/temperlang/temper/issues/30): move `Deque` and
