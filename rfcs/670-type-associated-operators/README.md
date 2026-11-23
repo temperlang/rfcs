@@ -35,11 +35,46 @@ could lead to.
 
 ## Background
 
-TODO: talk about traits and how they allow for layering on behavior, and allowing for conditional behaviour: a list type that can stringify itself if it has a way to stringify an element.
+*Traits* are a way of dispatching method calls based on types.
+Unlike virtual tables, there's no choosing which function body to execute
+at runtime; the decision is made at compile time based on type information,
+possibly including the actual types of type parameters.
 
-TODO: recall Temper extension functions
+Trait-based dispatch gets complicated when it happens from a generic function.
+For example, a generic list stringification function has a type parameter
+for the list element type, but stringifying boolean elements requires dispatching differently than stringifying integer elements even if both are represented as words.
 
+Typically, that kind of dispatch based on an type parameters actual type binding requires *monomorphization*: making a copy of each generic function for each actual type parameterization in the program.  For example, if there were calls to stringify an int list and a boolean list in the program, the compiler generates instructions separately for two instantiations of the list stringification function.  One instantiation calls directly into an int stringification function to stringify elements and the other into a boolean stringification function.
 
+This obviates the need for a virtual table associated with values: since the correct version of the function that knows the element types are ints directly calls int stringification, the int values do not need to point to a table that relates the abstract stringification operation to the int stringification function.
+
+Monomorphization has downsides though: it can lead to large code sizes.  And some Temper targets (cough JavaScript) are shipped as source over the web so translated code size needs to be kept small.
+
+There's another way to do trait-based dispatch though: reifying the groups of generic operations as needed as values.  This could be thought of as passing a virtual table around but separately from the values that would normally point to it, but as shown below, it lowers nicely to existing mechanisms: interfaces, classes, and statics.  It also, unlike splitting objects from vtables, only affects generic operations that need to do generic dispatch on traits.
+
+----
+
+Another nice property of traits is that they allow for well-typed, contingent behaviour.  For example, Java's approach to list stringification assumes that all values support stringification, but with Rust traits, you can specify that a List (Rust vector) is stringifiable when its element type is stringifiable.
+
+Java's `java.lang.Object` type supports a few blessed generic operations: stringifying, equivalence testing, hashing, and async locking/signalling.  It does not support blessing an additional generic operation like comparison meaning there's no way to write a generic list comparison operator in Java that doesn't do potentially unsafe casts at runtime (to java.util.Comparable) or take another reifying input (java.util.Comparator).
+
+Temper needs to allow for flexible type connections, which is much easier when most types do not inherit type requirements from a catchall abstract super-type like `java.lang.Object`.
+
+Temper has extension functions and operations, functions that can be used as if they were methods but which are not defined by the type's author as part of the type.
+This means you can define a function like `List.toString` separately from the List class and outside the scope of its `<T>` type parameter with a type parameter that has additional bounds.
+
+```ts
+@operation("toString")
+let listToString<T supports Stringification<T>>(
+  ls: List<T>,
+  // elementStringifier reifies the element trait
+  elementStringifier: Stringification<T> supports T,
+): String {
+  ...
+}
+```
+
+It is a goal of this proposal to allow generic operations that benefit from trait-like dispatch and well-typed contingent behaviour via extensions.
 
 
 ## Proposal
@@ -169,29 +204,57 @@ let delegatedTo<U supports Foo>(u: U, y: Foo supports U): Void {
 }
 ```
 
-See open questions when the type binding is a class or interface type with type actuals that might need to be passed as supporters to the `static supporter` method for the class or interface type definition.
+### Nesting supports requirements
 
+Some use cases might require supporters to delegate to other supporters.
+For example, an unpacker might depend on the type unpacked, and might
+delegate unpacking a field whose type depends on a generic parameter to an
+unpacker for that type.
+
+```ts
+meta interface Unpacker<T> {
+  unpackFromBytes(offsetBefore: Int32, blob: Blob): UnpackedAndOffsetAfter<T>;
+}
+```
+
+Unpacking a List might require unpacking elements, so a supporter for a `List<Foo>` might benefit from being passed a supporter for `Foo`.
+
+TODO
 
 ## Rationale
 
+TODO: why this is better than alternatives.
+RTTI won't work.  Many languages don't make important distinctions at runtime (int vs boolean examples above), and/or erase type parameters, or there's no instance to check the RTTI of (see unpackign example above).
 
 ## Compatibility
 
+TODO: Will require changes to std and core which might break existing code.
+
+TODO: Generic operations that do `==` or `<` or stringification might change but probably not a source of frequent breakage.
 
 ## Implementation
 
-
+TODO: Static checks on supports clauses.  Generate suport classes.  Changing optionality to allow for either `null` passing or auto-forwarding of supporters.
 
 ## Testing and examples
 
+TODO: need checks for the case where a callee needs a supporter but there is none in scope.
 
+TODO: need check for the case where there is a supporter in scope but it is not marked with what it supports.
+
+TODO: need check for the case where a class supports two meta interfaces and has two type parameters each used by one and there are three calls that need to create supporters with supporting delegates and one needs to forward a supporter that delegates to the first type parameter's actual binding, another that delegates to the second's, and another that delegates to both.
 
 ## Documentation
 
+TODO: A new section on supports clauses and pointers to it from existing class/interface docs.  Documentation for core meta interfaces like Stringification, Equatable
 
 ## Effect on Backends
 
+TODO: Low backend requirements since it lowers to just classes and interfaces that we already have translation paths for.
+
 ## Open Issues
+
+Do we even need to mark interfaces used in supports clauses with a `meta` keyword or should we just allow any interface type in a supports clause?
 
 Can we have the `static supporter` method take supporters for type parameters that have support requirements and auto-wire those too?
 
