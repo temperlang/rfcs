@@ -2,7 +2,7 @@
 
 Author(s): Mike S.
 
-Last updated: 2026-11-18
+Last updated: 2026-11-23
 
 Status: Draft
 
@@ -219,7 +219,67 @@ meta interface Unpacker<T> {
 
 Unpacking a List might require unpacking elements, so a supporter for a `List<Foo>` might benefit from being passed a supporter for `Foo`.
 
-TODO
+Here's a type with two type parameters, each with its own supports clause.
+
+```ts
+class C<T supports Stringification<T>, U supports Comparison<U>>
+    supports Stringification<C<T, U>> & Comparison<C<T, U>> {
+  public t: T; // Stringifying a C stringifies its t
+  public u: U; // Comparing two Cs compares their u's
+  ...
+}
+```
+
+Stringifying a `C` needs a stringifier for whatever `T` binds to, and comparing two `C`s needs a comparator for whatever `U` binds to.
+That's reasonable and straightforward.
+
+The problem is that no one static supporter method can return a supporter that extends both meta interfaces.
+That supporter has to delegate to supporters for `T` and `U`, so it needs both as inputs.
+But a context that only stringifies may have threaded through a stringifier for `T` and no comparator for `U`, or vice versa.
+
+### Supporters and intersection types
+
+Reifying supports clauses would be a lot easier if there were a translatable way to write a type that is the intersection of interface types.
+Most nominal type systems don't allow that.
+Java has intersection types internally in its type inference engine, but every type that you can mention in Java source, by writing characters that specify it, is a class type, an interface type, a primitive type, or `void`.
+There's no way to say "a value of abstract type *A* that is also of abstract type *B*, so you can use all the API elements of both."
+
+Supports clauses are basically intersections.
+An input like `elementStringifier: Stringification<T> supports T` says that at runtime the value is effectively the intersection of the interfaces in `<T>`'s supports clauses.
+They're meta interfaces, but when reifying, the distinction between meta interfaces and interfaces doesn't matter: the value can be used as any of them.
+That works because there is a single name to hang the hat on: the type parameter that has the supports clauses.
+
+Synthesized supporter methods for a generic type have no such name.
+So we explode out the combinations of delegate supporters a caller might have on hand.
+For `C` above, there are three supporter classes:
+
+- one that `extends Stringification<C<T, U>>` and takes a `Stringification<T>` delegate,
+- one that `extends Comparison<C<T, U>>` and takes a `Comparison<U>` delegate,
+- and one that extends both and takes both delegates.
+
+Each has a corresponding static supporter method.
+These classes are cheap: no state beyond their delegates, just behavior.
+Naming them is annoying, but in practice, the explosion probably doesn't lead to a huge number of types.
+
+To generate supporters for a type declaration:
+
+1. Filter its type parameters down to those with supports clauses.
+   The others need corresponding type parameters on the supporter methods, but no corresponding inputs.
+2. For each combination of filtered type parameters, generate a supporter class and a supporter method that takes delegate supporters for that combination.
+   The supporter extends those of the type's meta interfaces whose requirements the delegates satisfy.
+
+When generating a call to a supporter method, the compiler picks the method for the combination of delegates the call needs, as in the third case under *Testing and examples*.
+
+It would be nice to keep supporter classes close to the vest; they feel like implementation details, and exporting them blows up the namespace of whatever exports `C`.
+Intersection types would allow that, but we don't have them.
+The overexport is probably not a big problem though: the supporters only need to be visible to code that can mention `C`.
+
+Supporter method names need to not collide and need to be stable across builds.
+Kotlin's approach to optional parameters, generating overloads, doesn't help since overloads don't have distinct names.
+Instead, mangle the supporter name with the indices of the type parameters it expects delegate supporters for, e.g. `supporter_0` and `supporter_1` for the single delegate cases above and `supporter_0_1` for both.
+There's a basic presumption that additive changes don't break things.
+Type parameters are always kind of awkward there, but this is stable as long as type parameters aren't deleted.
+Adding one at the end keeps existing names; inserting one before others shifts their indices like a deletion would.
 
 ## Rationale
 
@@ -257,7 +317,9 @@ TODO: Low backend requirements since it lowers to just classes and interfaces th
 Do we even need to mark interfaces used in supports clauses with a `meta` keyword or should we just allow any interface type in a supports clause?
 
 Can we have the `static supporter` method take supporters for type parameters that have support requirements and auto-wire those too?
+See *Supporters and intersection types* above for one way: a supporter method per combination of delegate supporters.
 
 Do we need to be able to give names to groups of meta interfaces?
 `meta interface EquivalenceAndToString<T> extends Equivalence<T> & ToString<T>`
 That would allow `static supporter` to receive a single argument at most that supports all of a type parameters's supports requirements.  Is that helpful?
+A named group is a way to give an intersection a name, which might also give some synthesized supporters a type to return besides an exploded-out supporter class.
