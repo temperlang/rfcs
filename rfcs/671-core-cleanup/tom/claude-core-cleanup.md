@@ -32,6 +32,16 @@ t701 (easiest to test after the split).
 
 ## Naming core: `core.Whatever`
 
+**Decided (2026-11-20):** neither `core` nor `builtins` is a name by
+default, and `builtins.X` is gone. Core's declarations stay in scope
+unqualified; code that wants to qualify one imports core as a namespace
+under any name, `let core = import("core"); core.String`, or by
+destructuring, `let { String as CoreString } = import("core")`. Module
+namespaces work for any module, `let rx = import("std/regex")`
+(below). The compiler names core by resolved symbols, never by a name
+in source, so a user's own `core` or `builtins` never conflicts. The
+notes below are the discussion that led here.
+
 Tom's direction (t707): the qualified name says where a declaration
 lives.
 

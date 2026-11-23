@@ -32,6 +32,31 @@ leak locks or handles. Either way, code shouldn't rely on cleanup after
 a panic. Worth exploring with a shared test program that records which
 backends run it.
 
+## Loop steps are exit actions too
+
+Added 2026-11-23. A `for` loop's step (`for (init; cond; step)`) must
+run on every way to the next iteration: the end of the body and each
+`continue`. That is the same problem as `finally`, an action that runs
+on certain exits from a block, so one design should serve both.
+
+- **Today** the new compiler copies the step before each `continue`
+  (linear: one copy per `continue` site), the same strategy as Java
+  compilers copying a `finally` body, with the same size concerns.
+- **Native shapes first:** backends with a C-style `for` whose
+  `continue` runs the update (JS, Java, C#, C++) can emit
+  `for (init; cond; step)` directly; backends with native `finally`
+  emit it.
+- **One shared lowering elsewhere,** used for both loop steps and
+  cleanup where a backend lacks the native shape (Python and Lua have
+  no C-style `for`; Rust has no `finally`): a labeled block whose
+  `break` reaches the step or cleanup, or the step or cleanup as a
+  local subroutine called at each exit ("as if a subroutine", above),
+  rather than copying.
+- **In the intermediate form,** a loop could keep its step as part of
+  the loop, and a cleanup its body, and each backend chooses: native,
+  shared lowering, or copy, by profile, as other optional lowerings
+  are chosen.
+
 ## From earlier design notes
 
 Added by Claude, 2026-11-19, from the team's earlier design notes.

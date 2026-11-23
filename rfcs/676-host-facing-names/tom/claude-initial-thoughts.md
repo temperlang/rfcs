@@ -104,6 +104,36 @@ or an interactive pass that records choices. Whatever is chosen, the
 names chosen are API and should be recorded with the library, in
 temper.keep ([#677](../../677-temper-keep/tom/claude-initial-thoughts.md)).
 
+## Sealed interfaces and final classes
+
+Added 2026-11-21. Inside Temper, a sealed interface's implementations are
+known, so `when` can be exhaustive, and classes can't be subclassed. No
+backend carries either guarantee to host code today, so a host can add an
+implementation that Temper's exhaustive code never expected, or subclass a
+class Temper treats as final:
+
+| Backend | Sealed interface today | Classes today | Could enforce |
+|---|---|---|---|
+| C++ | `struct` with pure virtuals | open | little, for an interface |
+| C# | `public interface` | `public class` (open) | an `internal` member on the interface (C# 8+); `sealed class` |
+| Java | plain `interface` | `final class` | `sealed … permits` on Java 17+ |
+| JS | open class | open | a runtime check of `new.target` |
+| Lua | open type | open | a runtime check |
+| Python | open ABC | open | `__init_subclass__` rejecting unknown subclasses (runtime) |
+| Rust | `pub trait` with public supertraits | structs (final) | the sealed-trait pattern: a private supertrait |
+
+Suggestions:
+
+- Enforce at compile time where the host language can (Rust, C#, Java
+  17+); add cheap runtime checks or document the gap elsewhere.
+- **Rust enums:** Kotlin Temper's Rust backend generated an `enum` for a
+  sealed interface, giving Rust users exhaustive `match`; the new
+  compiler doesn't yet. Restore it, but only for sealed interfaces that
+  are exhaustive. A sealed interface marked non-exhaustive (sealed for
+  extension, but `when` keeps a default; a possible decorator) must keep
+  a trait or `#[non_exhaustive]`, and likewise avoid exhaustive switch
+  shapes in other languages.
+
 ## Related
 
 - [#677](../../677-temper-keep/tom/claude-initial-thoughts.md): temper.keep,
