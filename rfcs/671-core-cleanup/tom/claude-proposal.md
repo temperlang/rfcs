@@ -12,7 +12,7 @@ Discussion at https://github.com/temperlang/temper/issues/671.
 not a decision. It turns the notes in this folder
 ([core cleanup](claude-core-cleanup.md) and
 [moving `Deque` and `DenseBitVector`](claude-deque-bitvector-to-std.md))
-and the choices Tom made between 2026-11-18 and 2026-11-23 into one
+and the choices Tom made between 2026-11-18 and 2026-11-24 into one
 proposal. The Temper compiler's `core-extension-methods` branch
 implements all of it, so the examples here compile on that branch; where
 the proposal departs from an earlier note, as in renaming the moved
@@ -35,8 +35,10 @@ and an instance member can't share a name. Users' private constructors
 are enforced per class. Modules can be imported as namespaces
 (`let rx = import("std/regex")`), which replaces `builtins.X`. Core
 loses its `Null` type, its representation-only fields, and two
-collections, which move to std as `Queue` and `BitVector`. Core and std
-are reserved names, recognized only from the compiler's own sources.
+collections, which move to std as `Queue` and `BitVector`. An index out
+of bounds of a list, a string, or those collections panics on every
+backend with one message. Core and std are reserved names, recognized
+only from the compiler's own sources.
 
 ## Background
 
@@ -220,8 +222,16 @@ invariantly: a `ListBuilder<Int32>` isn't a `ListBuilder<AnyValue>`.
 `@out` and `@in`, deprecated in the release notes, are kept on core's
 few declarations and not yet honored otherwise.
 
+**Folded calls keep their type arguments.** A call of constants is
+folded to its value before it's checked, so it's typed from its
+arguments: `let n: Int = id<Int>("a")` is "Cannot assign to Int32 from
+String". Its explicit type arguments still bind the type parameters no
+parameter mentions, so `mk<Int>()` for `mk<T>(): List<T>` is a
+`List<Int32>`, as the value's type would show.
+
 **Kotlin Temper:** checked bounds at calls only; it compared
-unannotated parameters invariantly too.
+unannotated parameters invariantly too. It folded calls of constants
+before checking them as well.
 
 ### 6. Module namespaces; no `builtins`
 
@@ -335,9 +345,16 @@ still call some backends' constructors (open issue).
   compiler a bare null is the nullable bottom type, so joins need no
   special case, and hover shows the type the null's place wants.
   Programs that otherwise type-check behave the same.
+- **Null alone has no members and is no condition.** `null.isEmpty` is
+  "No member isEmpty in null"; `if (null)`, `while (null)`, and
+  `null && b` are "Expected value of type Boolean not null"; and
+  `null + 1` matches no signature of `+`. A join with a value, as
+  `if (c) { 1 } else { null }`, has that value's type, made nullable.
 
 **Kotlin Temper:** core was the prelude, so all of these were nameable,
-including `Null`, which typed `let a = null;`.
+including `Null`, which typed `let a = null;`. It refused members and
+conditions on null alone too, with messages naming no type ("No type
+for subject of .isEmpty") or `Empty?`.
 
 ### 13. `Deque` and `DenseBitVector` move to std as `Queue` and `BitVector`
 
@@ -356,8 +373,10 @@ let { Queue, BitVector } = import("std/collections");
   rule, `is` and `as` can't target them.
 - Each has a pure Temper body, the interpreter's only implementation.
 - Every backend now agrees at the edges, as the body says: `get` at a
-  negative index is `false`, `set` at one panics, and a negative
-  capacity is none.
+  negative index is `false`, `set` at one panics (setting `false`
+  too), `removeFirst` on an empty queue panics, and a negative capacity
+  is none. Both panics are a list's out-of-bounds panic, with its
+  message (item 19).
 - A missing import is a clean error naming it: "Deque has not been
   declared; it's std's Queue now: add
   `let { Queue } = import("std/collections");`". It's keyed on the
@@ -413,8 +432,9 @@ goes from about 3 ms to 10 to 15 ms, and a mix of core calls runs
 several times slower, which matters most for the REPL and the
 playground. So this branch keeps the natives and checks them against
 the bodies. Running core's bodies again, as Kotlin did, remains open
-(see Open issues), for example once core's settle is cached or
-precomputed.
+(see Open issues), for example once core loads from a cached, binary
+form of its compiled intermediate representation instead of being
+settled each run.
 
 **Kotlin Temper:** ran core's bodies in the interpreter, so there were
 no separate natives to check for those members.
@@ -428,7 +448,7 @@ and backends disagreed or lacked an implementation:
 | --- | --- |
 | `Int32`, `Int64` `succ()`, `pred()` | `n + 1` and `n - 1`, wrapping as `+` and `-` do on each backend |
 | `Int32.signum` | `-1`, `0`, or `1`, at the extremes too |
-| `listed.reduceFromIndex(initial, index, f)` | past the end gives `initial`; a negative index fails as `listed[index]` does |
+| `listed.reduceFromIndex(initial, index, f)` | past the end gives `initial`; a negative index panics as `listed[index]` does (item 19) |
 | `Float64.near(other, relTol, absTol)` | as Python's `math.isclose`, except that it's true whenever `==` is, so NaN is near NaN; an infinity is near only itself; never within a NaN margin |
 
 A shared test program checks each on the interpreter and all seven
@@ -447,6 +467,45 @@ checks this on every backend, C++ under AddressSanitizer.
 **Kotlin Temper:** its runtimes deadlocked (Rust), read freed memory
 (C++), froze the input (JavaScript `filter`), or lost or kept values
 depending on the backend.
+
+### 19. Out of bounds panics everywhere, with one message
+
+Reading or setting a list out of bounds (`ls[i]`, `set`, and `add` or
+`addAll` at an index), `removeLast` on an empty builder, `reduce` on an
+empty list, and reading a string at or past its end panic on the
+interpreter and every backend, as core's docs already said. So do std's
+`Queue.removeFirst` when empty and `BitVector.set` at a negative index.
+All give one message:
+
+```
+index 3 out of bounds for length 3
+```
+
+- A bit vector has no length, every index from 0 up being in bounds,
+  so it reports length 0: "index -1 out of bounds for length 0". An
+  empty queue's `removeFirst` is "index 0 out of bounds for length 0".
+- A string's index and length are in the backend's own units: UTF-8
+  bytes on Rust, C++, Lua, and the interpreter; UTF-16 code units on
+  JavaScript, Java, and C#; and code points on Python. Only an ASCII
+  string's message reads the same everywhere.
+- A panic isn't a bubble, so `orelse` doesn't catch it, except on
+  JavaScript and Lua for now (open issue). Code handling indices of
+  uncertain origin checks first, or uses `getOr`, `hasIndex`, or
+  `isEmpty`.
+- Each runtime panics through one shared helper, and the checks stay
+  cheap on hot paths: C# reads through an inlined helper with one
+  unsigned comparison, and Python tries the subscript first, which costs
+  nothing on success from Python 3.11. Python's `removeLast` is a
+  runtime call rather than a bare `.pop()`, about 60 ns more, the price
+  of a panic `orelse` can't catch.
+
+Tests pin each backend's whole panic message.
+
+**Kotlin Temper:** core's docs said these panic, but its runtimes raised
+host exceptions or bubbled, which `orelse` could catch (Python's
+`IndexError`, C++'s and Lua's bubbles), JavaScript and Lua let `set` at
+a negative index pass silently, and `Queue`'s and `BitVector`'s edges
+differed by backend.
 
 ## Rationale
 
@@ -493,6 +552,17 @@ to every typing rule and backend. Taking null's type from its place
 gives the same results for every program that type-checks, and the one
 new error (`let a = null;`) asks for what a reader needed anyway.
 
+**Out of bounds is a panic, with one message.** An index out of bounds
+is a programming error, not an expected failure, and core declares
+`get` and its kin without `throws Bubble`, so a bubble there was an
+undeclared failure that code could come to rely on, on some backends
+only. A panic everywhere makes such bugs fail the same way on every
+backend, and one message, in Java's wording, lets tests pin them and
+users search for them. `getOr`, `hasIndex`, and `isEmpty` cover code
+that expects a miss. The bit vector reports length 0 rather than a
+second message shape, and string messages keep each backend's units
+rather than paying to convert indices on a path that should stay fast.
+
 **Moving the collections, with new names.** Core should hold what the
 language needs; a queue and a bit set are library types. Renaming at
 the move costs nothing extra, since every user changes the import
@@ -521,8 +591,10 @@ assurance where it matters.
 ## Compatibility
 
 Temper libraries are all beta, and the switch to the new compiler is
-the planned point for breaking changes. Each break is a compile-time
-error with a message that says what to do.
+the planned point for breaking changes. Each break but one is a
+compile-time error with a message that says what to do; the exception,
+out-of-bounds panics, shows at run time, with a message naming the
+index and length.
 
 | Change | Code that breaks | Migration |
 | --- | --- | --- |
@@ -540,6 +612,7 @@ error with a message that says what to do.
 | `core`, `std` reserved | a library named `temper-core` or `std` | rename the library |
 | Builtin classes' implied constructors | `new Int32()`, `new Empty()`, and the like | literals or core's functions (`empty()`) |
 | Callbacks that change a builder during `sort` | comparisons that add or remove values | don't; it panics now |
+| Out of bounds panics (run time) | `ls[i] orelse fallback` and the like for lists and strings; `set` at a negative index on JavaScript or Lua; `removeFirst` on an empty `Queue`; host code catching an `IndexError` or the like | `ls.getOr(i, fallback)`, or check `length`, `hasIndex`, or `isEmpty` first |
 
 **Library changes after merge.** Of the public libraries surveyed,
 Hrefine and Kelpto need source changes, both for private constructors:
@@ -558,7 +631,11 @@ Temper is being replaced, libraries change once, at the switch.
 noted in item 2: Java and C# callers that reached the generic list and
 map helpers see free functions, as they already were in the runtimes.
 The moved collections keep their host types, and the runtimes' own
-types for them are renamed (as Python's `temper_core.BitVector`).
+types for them are renamed (as Python's `temper_core.BitVector`). An
+index out of bounds now reaches host callers as each backend's panic
+(Python a `BaseException`, Java an `AssertionError`, C#
+`Environment.FailFast`, C++ the runtime's `panic()`, and Rust
+`panic!()`), where some could catch a host exception before.
 
 ## Implementation
 
@@ -578,6 +655,12 @@ All of it is implemented on the Temper compiler's
 6. Connected types and the connected rule, private constructors, sealed
    `MapKey`, member names; one type-resolution path.
 7. `Queue` and `BitVector` in `std/collections`; `Null` removed.
+8. Out-of-bounds panics with one message on every backend, std's
+   collections included; null alone refused as a subject or condition;
+   folded calls' type arguments bound. Python's output now types
+   generic functions whose result alone names a type parameter for
+   pyright strict and mypy, with annotations or `cast()` rather than
+   subscripting a class at run time, which was about six times slower.
 
 Steps were checked by comparing the surveyed libraries' generated code
 before and after on all seven backends, so changes in output are only
@@ -594,7 +677,10 @@ sources, replacing hand-kept copies.
   interpreter ran core's Temper bodies; the new compiler uses checked
   natives (item 16) for speed. Returning to the bodies would make core's
   text the single source in the interpreter again; it needs core's
-  settle to be cheap (cached or precomputed) first.
+  settle to be cheap first, for example by loading core from a cached,
+  binary form of its compiled intermediate representation (tmpl) rather
+  than settling it each run. The checked natives are fine for now, and
+  may stay fine later.
 - **Sealed but not exhaustive.** `MapKey` is sealed so users can't
   extend it, but a `when` over it can't name its cases. A general marker
   for sealed interfaces that aren't exhaustive (which would also let
@@ -615,6 +701,12 @@ sources, replacing hand-kept copies.
   enforcing sealedness and finality at the host boundary, in the
   host-facing code work
   ([#676](https://github.com/temperlang/temper/issues/676)).
+- **`orelse` catches panics on JavaScript and Lua.** Their runtimes'
+  panic is their bubble, so there `orelse` still catches an index out of
+  bounds, and `panic()` itself, which it catches on no other backend.
+  This waits for the error-handling work, which can give each a panic
+  that `orelse` passes over (Lua rethrowing what isn't a bubble, and
+  JavaScript throwing a `Panic` subclass that `orelse` rethrows).
 - **Callbacks that change what they walk.** Beyond `sort`, which values
   a `map` or `forEach` callback sees when it changes its builder is
   open: the interpreter, Rust, and C++ walk a snapshot; Python and Java
