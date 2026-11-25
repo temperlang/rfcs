@@ -56,8 +56,9 @@ among the three layouts people already write.
 
 One space goes around operators, after commas, semicolons, and colons
 in types and object literals, and inside `{ }`; none goes inside `( )`
-and `[ ]`, or between a called name and `(`. Runs of spaces and tabs
-become one.
+and `[ ]`, or between a called name and `(`, except after `if`,
+`while`, `for`, `when`, `catch`, and `fn`, which take one (`if (ok)`,
+but `f(ok)`), whatever they name. Runs of spaces and tabs become one.
 
 ```temper
 let x:Int=f( a ,b )+1;          // before
