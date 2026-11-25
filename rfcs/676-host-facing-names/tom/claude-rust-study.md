@@ -629,6 +629,34 @@ less a hello world's 363 KB: Ordable 139 KB, Chromarite 291 KB, Hrefine
 537 KB, Wherewith 1,012 KB, and kelpto-md 1,126 KB. Reasonable for what
 they do.
 
+## 6. `no_std`
+
+Added 2026-11-25, not measured. Embedded and minimal-wasm users expect
+a library that does no I/O to build without `std` (`#![no_std]` with
+`alloc`). Temper's pure-computation libraries (Ordable, Chromarite,
+most of Kelpto, Hrefine's parsing) could, behind a default `std`
+feature of `temper-core` and of each library, if the runtime makes
+these substitutions:
+
+| Needs | With `std` | Without `std` (`alloc` only) |
+|---|---|---|
+| `Arc`, `String`, `Vec`, `Box` | `std` re-exports | `alloc` |
+| `Error` trait | `std::error::Error` | `core::error::Error` (Rust 1.81; the crates' 1.85 floor covers it) |
+| Maps | `indexmap` with `RandomState` | `indexmap` without `std` and a fixed-seed hasher, which loses protection from hash flooding: documented |
+| Float math (`sqrt`, `sin`, `powf`) | `f64` methods | the `libm` crate |
+| Locks (builders, fields; [§2](#2-locks-and-shared-state)) | `std::sync` | a spin lock or `critical-section`; or a single-threaded build with `RefCell` that isn't `Send`/`Sync` |
+| Module statics (`OnceLock`) | `std::sync::OnceLock` | a spin `Once` or `critical-section` |
+| Backtraces | optional today | not available |
+| Console output | `println!` today (the `log` facade is proposed anyway) | the `log` facade, which needs no `std` |
+| Networking, time, async executors | as today | not available: libraries using them require `std` |
+
+Questions for the RFC: whether `no_std` is per library (decided by
+what the library uses, checked by building without `std` in CI) or
+offered only for libraries that ask; whether the lock substitute is a
+spin lock (portable, wasteful under contention) or a single-threaded
+mode (simpler, not `Send`); and the new dependencies (`libm`, a lock
+crate, a hasher), which would be optional and off with `std`.
+
 ## Recommendations
 
 **Quick wins** (none breaking):
