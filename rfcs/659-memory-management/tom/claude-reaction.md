@@ -153,6 +153,9 @@ Suggestions from the trials:
 1. Treat a `var` assigned only before its object escapes as part of
    construction (issue #7's `late`), so write-once fields count as
    immutable edges. That was the only source of noise.
+   MVS: If it's `var` it could be reassigned?  Is this a `var`
+   property or a `var` internal to the constructor.
+   If it is assigned once, isn't the simpler solution to not make it `var`?
 2. Infer or default `forbids Owner` for function-typed fields reached by a
    mutable edge, so errors land on the user's closure that captures the
    owner, not on every implementation.
@@ -167,16 +170,21 @@ Suggestions from the trials:
    six of seven bounds.
 6. **Implied bounds:** callers shouldn't restate a callee's `forbids`
    bound; the generic library wrote one long bound six times.
+   MVS: Do you have a pointer to source code?
 7. **Erased targets:** let `forbids SomeGeneric` mean every instantiation,
    so authors don't need marker interfaces.
+   MVS: I don't know how to make sense of this.
 8. **Bounds shouldn't expose private fields:** the bound that type-checked
    named a private `ListBuilder` field's element type, an implementation
    detail in a public signature. An owner bound could cover builders the
    owner never lets out.
+   MVS: Do you have an example?  I understand the concern about
+   implementation details, but not specifically what happened.
 9. **Public setters:** with only private visibility, frameworks must expose
    setters that let users close loops the library never would. Say so,
    and document the pattern of stateless strategies with state passed
    along immutably.
+   MVS: I need more detail on this.
 10. **Open questions to settle:** whether a sealed interface with an
     exported, unsealed subinterface is open; whether `@imu` interfaces
     count as closed; and where `forbids` goes relative to `extends` in a
@@ -287,6 +295,12 @@ Background only; nothing here is decided.
   outside must hold the function strongly for it to be called at all.
   That avoids the cycle that closure conversion would otherwise create,
   and isn't yet in the "Implicit cycles via closure conversion" section.
+  MVS: I am skeptical of the claim that "something
+  outside must hold the function strongly for it to be called at all."
+  In the case of co-recursive nested functions, couldn't only one of
+  them be called in which case each of them weakly referring to the
+  other could lead to the non-reachable partner not being available
+  when the reachable partner needs it.
 - **Closure records as a builtin** let backends with real closures
   rebuild them instead of emitting record objects.
 - **Young and mature variants.** One idea paired each type with a

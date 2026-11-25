@@ -1113,6 +1113,12 @@ let outer(wantEven: Boolean, i: Int32): fn (Int32): Boolean {
 }
 ```
 
+Note that since `f` is returned here, `isEven` and `isOdd` do
+not fall in the scoped function set proposed in
+[RFC 693](../693-escaping-fns) for which we could ignore this
+if we knew that backends could sever the function/record relationship
+at the end of the scope.
+
 JavaScript has a proper cycle-scanning garbage collector, but here's the
 JS equivalent with [closure conversion] done to show which problems can
 be avoided and which cannot.
@@ -1212,8 +1218,12 @@ often it happens does not matter.
  }
 ```
 
-Changing binding named function declarations on demand leads to this object graph,
-which lacks cycles.
+Changing binding named function declarations on demand leads to this
+object graph, which lacks cycles.  (The cost of creating a bound
+function on demand is low.  Python does it for every method call; it's
+typically a pair of a pointer to the runtime's function definition
+record and the closure record, so a short-lived two size\_t
+allocation.)
 
 ```mermaid
 stateDiagram-v2
@@ -1293,6 +1303,8 @@ Two things this example leaves open:
   bound method like `this.onEvent`, or a lambda that uses `this`, in a
   property of `this` is a cycle.  Modeling them as ad-hoc classes with
   `this` as a captured property lets the same checks catch it.
+
+We must also avoid using synthesized terms like `ClosureRecord#123` or `BoundFunction#124` in error messages, and instead store enough information so that those can be replaced with "Capture for f at file.temper.md:123".
 
 [closure conversion]: https://matt.might.net/articles/closure-conversion/
 
@@ -1911,14 +1923,16 @@ Backends that assume the runtime provides a scanning garbage collector
 can just leave all deallocation decisions to that garbage collector.
 It is a goal of this approach that backends for the majority of modern
 languages which fall in this category to be able to do nothing re
-deallocation semantics.
+deallocation semantics, though we do need to enforce translatability
+for all languages even when only building translations for
+scanning-GC-using languages for the health of the Temper language community.
 
 Backends for runtimes that do not provide either scanning or reference
 counting garbage collection may have to implement reference counting
 using manual techniques in library code.
-TmpLTranslator does not currently, but could support those backends by
-allowing them to opt-into having increment/decrement instructions
-inserted in TmpL.
+The TmpL translator does not currently, but could support those
+backends by allowing them to opt-into having increment/decrement
+instructions inserted in TmpL.
 
 ## Open Issues
 
