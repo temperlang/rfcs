@@ -4,7 +4,7 @@
 
 Author(s): draft by Claude Code (Claude Opus 5.5), for Tom P. and the team
 
-Last updated: 2026-11-24
+Last updated: 2026-11-25
 
 Discussion at https://github.com/temperlang/temper/issues/681.
 
@@ -69,9 +69,25 @@ let p = {x:1, y :2};            // before
 let p = { x: 1, y: 2 };         // after
 ```
 
+Each operator's spacing is declared in the parser's operator table:
+around an infix operator, after a prefix one, inside brackets. Followers
+space as themselves (the `,` in `extends A, B`), and an object literal's
+`:` as a type's. Space before `<` always stays as written, as it decides
+whether `<` may be an angle bracket.
+
+| Spacing | Operators |
+|---|---|
+| One space around, or inside | `=>`, `->`, `=`, `+=`, `-=`, `*=`, `/=`, `%=`, `&=`, `^=`, `\|=`, `&&=`, `\|\|=`, `<<=`, `>>=`, `>>>=`, `??`, `\|\|`, `&&`, `==`, `!=`, `===`, `!==`, `=~`, `!~`, `<`, `<=`, `>`, `>=`, `\|`, `^`, `&` (infix), `<<`, `>>`, `>>>`, `+` (infix), `-` (infix), `*` (infix), `/`, `%`, `~` (infix), `**`, `{ }`, `\{ }` |
+| None around, after, or inside | `@`, `< >`, `++` (prefix), `--` (prefix), `+` (prefix), `-` (prefix), `!` (prefix), `~` (prefix), `&` (prefix), `*` (prefix), `...`, `.`, `?.`, `( )`, `[ ]`, `\`, `\( )`, `${ }` |
+| None before, one after | `;`, `,`, `:` (type) |
+| As written (a run of spaces and tabs becomes one) | `;;;`, `;;`, `:` (marker), `given`, `return`, `throw`, `yield`, `of`, `:` (label), `case`, `orelse`, `extends`, `implements`, `forbids`, `supports`, `throws`, `in`, `instanceof`, `is`, `as`, `::`, `await`, `++` (postfix), `--` (postfix), `!` (postfix), `?`, `..`, `\u{ }`, `new` |
+
 No space goes just inside a string's `${ }`, as in Kotlin, Python's
 f-strings, and JavaScript's template literals; one over several lines
-keeps its line breaks.
+keeps its line breaks. Quasi-quotes space, indent, and lay out lists as
+their plain brackets do (`\(a + b)`, `\{ f(x) }`). A string's `\u{ }`
+is the string's own text, where a space would be part of a code point
+(an error), so it stays exactly as written.
 
 ```temper
 "hi, ${ name }, ${ f({ a: 1 }) }"   // before
@@ -343,6 +359,11 @@ temper fmt --check --ignorefile .fmtignore
   follows at two spaces. Making the parenthesis rule structural keeps
   it to one sentence and treats user functions with trailing blocks
   like built-in control flow.
+- **Spacing from the operator table.** Each operator declares its
+  spacing where the parser declares the operator, so a new operator
+  gets spaced without a formatter change, and the page's table can't
+  drift from the code. Words and operators whose spacing carries
+  meaning or style no rule settles stay as written, in one list.
 - **Tight interpolation** (`${x}`) matches the languages Temper users
   come from.
 - **Safety over completeness.** `fmt` compares tokens, comments, and
@@ -407,5 +428,10 @@ and the safety and fuzz tests described above.
   should come from core's literate sources and be formatted there, with
   `// fmt: off` where hand alignment matters, rather than formatted as
   copies.
+- **Spaces inside `\u{ }`.** In a string, `\u{ }` runs are the
+  string's own text, and a space inside one is an error today, so
+  `fmt` leaves them exactly as written. Allowing spaces there (say,
+  after the commas in `\u{48, 69}`) would be a language change;
+  it's parked.
 - **Import ordering** isn't touched, since a later change could make
   order significant.
