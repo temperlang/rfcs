@@ -331,6 +331,35 @@ release-only steps (signing, publishing) sit in a release profile.
 Mostly additive. Ranges need a runtime compatibility promise within a
 minor version. Package coordinates (`groupId`, NuGet prefixes) are #676.
 
+**Host versions to support** belong here too. For Lua, the studies
+covered 5.1, 5.4, and LuaJIT; **Lua 5.5** is out now and should join
+them: it reserves `global` (a name the backend doesn't yet avoid, so
+generated code can fail to parse), and its other changes need a look
+against the runtime and the tests' framework (LuaUnit 3.5 is the
+current release). The same question applies to every backend: which
+host versions each promises, stated in the docs and tested in CI.
+
+### Logging
+
+**Fix:** a library never writes to stdout unconditionally. What it logs
+(`console.log`, `getConsole(name)`) goes through the host's standard
+logging facility where one exists, or through a sink the host can
+replace where none does, with no heavy dependencies.
+
+| Backend | Today | Proposed |
+|---|---|---|
+| Python | `logging.getLogger(name)`, `INFO` | as is |
+| Java | `java.util.logging` | as is (no dependency; SLF4J users bridge with `jul-to-slf4j`; `System.Logger` needs Java 9, above the Java 8 floor) |
+| C# | `Microsoft.Extensions.Logging` via `Logging.Init(ILoggerFactory)` | `…Logging.Abstractions` only, and setup on a member that can't collide with a user's `Logging` ([C# §3](claude-csharp-study.md#module-classes)) |
+| Rust | `println!` | the `log` facade (`log::info!`), so the host picks the logger |
+| JS | `console.log` | a documented, settable sink per library, `console` by default |
+| C++ | a `std::function` sink, `std::cout` by default | the sink documented and settable; stderr by default |
+| Lua | `temper.log`, which prints | a documented, settable sink, `print` by default; optionally a LuaLogging adapter |
+
+Open question: should `console.log` in a library default to logging at
+`INFO` (as Python does) or to silence, with a program's `main` keeping
+today's printing?
+
 ### Runtime names in public APIs
 
 **Fix:** users never import or name the runtime (#676's principle 3).
@@ -454,6 +483,29 @@ Each a bounded change with its own tests:
 | C++ revamp | new | Private and `const` state, `detail` and out-of-header internals, `List` distinct from `ListBuilder`, a `Map` type, library aliases, version-adaptive `optional`/`expected`, packaging; outline in [C++ study](claude-cpp-study.md#outline-for-a-c-backend-revamp-rfc) |
 | Rust-idiomatic variant | new | Thread model (one lock per object, or single-threaded `Rc`), plain traits users implement, `&str`/`Arc<str>`, slices, `impl Fn` callbacks, `usize` indexes, no inherent `to_string`, as one opt-in variant ([Rust 23](claude-rust-study.md#recommendations)) |
 | Collection semantics | #671, or new | Callback mutation contract, the defensive-copy rule, `List` versus `ListBuilder` in every host, map iteration order, and Lua maps as plain tables |
+
+## Shared decisions, per-backend proposals, and PRs
+
+Much of this is common to every backend, and is best decided once:
+the cross-backend patterns above (generated-name collisions as errors,
+runtime memory safety and callback mutation, failure messages and
+panics, equality, hashing, and printing, defensive copies, docs and
+editor types, packaging metadata and supported host versions, logging,
+and runtime names in public APIs). What remains is each host's own
+idioms: C++'s immutability and CMake packaging, C#'s nullable reference
+types, Rust's ownership in signatures, Lua's packaging, and so on.
+
+So a suggested shape:
+
+1. **#676 proper** states the principles and the shared decisions.
+2. **One appendix per backend** proposes that host's idioms, building on
+   the shared decisions (the per-backend studies are their starting
+   points).
+3. **PRs follow where the fix lives:** a themed PR across all backends
+   when the fix is in shared code (tmpl or the frontend, as for the
+   name-collision check), and one PR per backend (or a few themed ones)
+   applying the shared decisions plus its appendix when the fix is in
+   that backend. Each PR is bounded and themed, with its own tests.
 
 ## What #676 should decide, and what goes elsewhere
 
