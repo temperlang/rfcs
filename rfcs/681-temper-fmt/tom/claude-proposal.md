@@ -202,6 +202,24 @@ f(
     lines is tab-indented.
   - A `/** … */` with a star gutter has its `*`s one column past the `/`;
     without a gutter, `*` bullets move with the rest.
+
+    ```temper
+        /**
+      * Adds one.
+         *   - wraps at the top
+      */
+    let inc(n: Int): Int { n + 1 }
+    ```
+
+    becomes
+
+    ```temper
+    /**
+     * Adds one.
+     *   - wraps at the top
+     */
+    let inc(n: Int): Int { n + 1 }
+    ```
 - **Strings.** A multi-quoted string's lines move with its first line,
   except tab-indented lines.
 - **Prose in `.temper.md`:** only Temper code blocks change.

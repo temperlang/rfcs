@@ -147,6 +147,15 @@ can't slip past.
 4. **Private constructors are enforced, per class** (and classes nested
    in it), through aliases and object literals too. Core follows it:
    `doneResult()` and `empty()` make their values inside their classes.
+
+   ```temper
+   class Token {
+     private constructor() {}
+     public static make(): Token { new Token() }
+   }
+   let a = new Token(); // error: Token is not a concrete type with a public constructor
+   let b = Token.make(); // OK
+   ```
 5. **Sealed and private where core means it:**
    - `MapKey` is sealed: only `Int32` and `String` are keys.
    - `DoneResult`'s constructor is private; `doneResult()` makes one.
@@ -176,6 +185,14 @@ sealed only in a comment; `DoneResult` publicly constructible.
    - Core's names stay in scope unqualified.
    - Code shadowing a core name reaches core's through
      `let core = import("core");` and `core.String`.
+
+     ```temper
+     let core = import("core");
+     class String {
+       public text: core.String;
+       public constructor(text: core.String) { this.text = text; }
+     }
+     ```
    - Neither `core` nor `builtins` is predefined, so users may use them.
    - The compiler names core by resolved symbols, never source names.
 3. **One path resolves a name to a type,** through aliases, imports, and
@@ -209,6 +226,11 @@ so aliases slipped past some.
    - `null` takes the nullable type its place wants (`let n: Int? = null`,
      or the other side's type in `x == null`).
    - `let a = null;` needs a type. `Null` is free for users.
+
+     ```temper
+     let a = null;          // error: Declare a nullable type for a: null alone has none
+     let a: String? = null; // OK
+     ```
 7. **Null alone has no members and is no condition:** `null.isEmpty`,
    `if (null)`, `null && b`, and `null + 1` are errors. `if (c) { 1 } else
    { null }` is `Int?`.
@@ -251,6 +273,12 @@ Was: in core, unmarked, with backends disagreeing at the edges.
      units, or Python code points).
    - `orelse` doesn't catch it (except on JavaScript and Lua for now).
      Use `getOr`, `hasIndex`, or `isEmpty` for expected misses.
+
+     ```temper
+     let ls = [1, 2, 3];
+     ls[3];          // panics: index 3 out of bounds for length 3
+     ls.getOr(3, 0); // 0
+     ```
    - Cheap on hot paths: one shared helper per runtime; C# one unsigned
      compare, inlined; Python tries the subscript first.
 2. **Members settled on every backend:**
