@@ -2,63 +2,56 @@
 
 # Proposal: `temper fmt`
 
-Author(s): draft by Claude Code (Claude Opus 5.5), for Tom P. and the team
+Author(s): Tom P., drafted with Claude Code (Claude Opus 5.5)
 
-Last updated: 2026-11-25
+Last updated: 2026-11-26
+
+Status: Draft
 
 Discussion at https://github.com/temperlang/temper/issues/681.
-
-**This is a draft written by Claude for Tom and the team to react to,**
-not a decision. It follows the [initial thoughts](claude-initial-thoughts.md)
-in this folder and the choices Tom made while reviewing trial
-reformats between 2026-11-20 and 2026-11-24. The Temper compiler's
-`temper-fmt` branch implements all of it. The rules below are the same
-as that branch's user page, `docs/tools/fmt.md`, which stays the
-reference once merged; this proposal adds why, and what was left out.
+Implemented in [#692](https://github.com/temperlang/temper/pull/692).
+The user reference is `docs/tools/fmt.md` there; the rules below match it.
 
 ## Abstract
 
-`temper fmt` lays out Temper code in one standard style, from the
-command line and from the language server, on save by default in VS
-Code. It has no options and no line width: it sets spacing and
-indentation and keeps the author's line breaks, except in bracketed
-lists, whose layout the author picks with two signals: a line break
-after the open bracket, and a trailing comma. It never changes what
-code means, and checks that it didn't before writing anything.
+`temper fmt` lays out Temper code in one standard style:
+
+- **No options and no line width.** It sets spacing and indentation and
+  keeps the author's line breaks.
+- **Lists are the exception:** the author picks their layout with two
+  signals, a line break after the open bracket and a trailing comma.
+- **Safe:** it never changes what code means, and checks that before
+  writing anything.
+- **Everywhere:** the command line, CI (`--check`), and the language
+  server, on save by default in VS Code.
 
 ## Background
 
-A formatter with almost no options ends style debates for an
-ecosystem, keeps diffs to what changed, and makes code written by
-people and by AI look the same. Go's `gofmt`, Rust's `rustfmt`, and
-Python's Black showed this. Temper has a particular reason to want it:
-its libraries are read by people from many languages, and generated
-code in seven backends already has a consistent layout, so the source
-should too.
-
-Formatters split into two families:
-
-- **Width-driven** (Black, Prettier, rustfmt): pick line breaks to fit
-  a width. Lines are rewritten whenever a name's length changes, and
-  the width needs exceptions where it's wrong (data tables, "magic"
-  trailing commas, opt-out comments).
-- **Layout-keeping** (gofmt): keep the author's line breaks and fix
-  spacing and indentation. Diffs stay small; long lines are the
-  author's to fix.
-
-This proposal is layout-keeping, with one idea borrowed from the other
-family: in lists, the author's line break and trailing comma choose
-among the three layouts people already write.
+- A formatter with almost no options ends style debates, keeps diffs to
+  real changes, and makes code by people and by AI look alike (`gofmt`,
+  `rustfmt`, Black).
+- Temper libraries are read by people from many languages, and the
+  generated code in seven backends is already consistently laid out.
+- Formatters come in two families:
+  - **Width-driven** (Black, Prettier, rustfmt): break lines to fit a
+    width. Lines churn when names change length, and the width needs
+    exceptions (data tables, magic trailing commas, opt-outs).
+  - **Layout-keeping** (`gofmt`): keep line breaks, fix spacing and
+    indentation. Small diffs; long lines are the author's to fix.
+- This proposal is layout-keeping, borrowing one idea from the other
+  family: list layout chosen by the author's line break and trailing
+  comma.
 
 ## Proposal
 
 ### Spacing
 
-One space goes around operators, after commas, semicolons, and colons
-in types and object literals, and inside `{ }`; none goes inside `( )`
-and `[ ]`, or between a called name and `(`, except after `if`,
-`while`, `for`, `when`, `catch`, and `fn`, which take one (`if (ok)`,
-but `f(ok)`), whatever they name. Runs of spaces and tabs become one.
+- **One space** around operators, after `,` `;` and type or property
+  `:`, and inside `{ }`.
+- **No space** inside `( )` and `[ ]`, or between a called name and `(`.
+- **Except** after `if`, `while`, `for`, `when`, `catch`, and `fn`,
+  which take one: `if (ok)`, but `f(ok)`.
+- Runs of spaces and tabs become one.
 
 ```temper
 let x:Int=f( a ,b )+1;          // before
@@ -69,51 +62,41 @@ let p = {x:1, y :2};            // before
 let p = { x: 1, y: 2 };         // after
 ```
 
-Each operator's spacing is declared in the parser's operator table:
-around an infix operator, after a prefix one, inside brackets. Followers
-space as themselves (the `,` in `extends A, B`), and an object literal's
-`:` as a type's. Space before `<` always stays as written, as it decides
-whether `<` may be an angle bracket.
+- **Each operator's spacing lives in the parser's operator table,** next
+  to the operator:
 
-| Spacing | Operators |
-|---|---|
-| One space around, or inside | `=>`, `->`, `=`, `+=`, `-=`, `*=`, `/=`, `%=`, `&=`, `^=`, `\|=`, `&&=`, `\|\|=`, `<<=`, `>>=`, `>>>=`, `??`, `\|\|`, `&&`, `==`, `!=`, `===`, `!==`, `=~`, `!~`, `<`, `<=`, `>`, `>=`, `\|`, `^`, `&` (infix), `<<`, `>>`, `>>>`, `+` (infix), `-` (infix), `*` (infix), `/`, `%`, `~` (infix), `**`, `{ }`, `\{ }` |
-| None around, after, or inside | `@`, `< >`, `++` (prefix), `--` (prefix), `+` (prefix), `-` (prefix), `!` (prefix), `~` (prefix), `&` (prefix), `*` (prefix), `...`, `.`, `?.`, `( )`, `[ ]`, `\`, `\( )`, `${ }` |
-| None before, one after | `;`, `,`, `:` (type) |
-| As written (a run of spaces and tabs becomes one) | `;;;`, `;;`, `:` (marker), `given`, `return`, `throw`, `yield`, `of`, `:` (label), `case`, `orelse`, `extends`, `implements`, `forbids`, `supports`, `throws`, `in`, `instanceof`, `is`, `as`, `::`, `await`, `++` (postfix), `--` (postfix), `!` (postfix), `?`, `..`, `\u{ }`, `new` |
+  | Spacing | Operators |
+  |---|---|
+  | One space around, or inside | `=>`, `->`, `=`, `+=`, `-=`, `*=`, `/=`, `%=`, `&=`, `^=`, `\|=`, `&&=`, `\|\|=`, `<<=`, `>>=`, `>>>=`, `??`, `\|\|`, `&&`, `==`, `!=`, `===`, `!==`, `=~`, `!~`, `<`, `<=`, `>`, `>=`, `\|`, `^`, `&` (infix), `<<`, `>>`, `>>>`, `+` (infix), `-` (infix), `*` (infix), `/`, `%`, `~` (infix), `**`, `{ }`, `\{ }` |
+  | None around, after, or inside | `@`, `< >`, `++` (prefix), `--` (prefix), `+` (prefix), `-` (prefix), `!` (prefix), `~` (prefix), `&` (prefix), `*` (prefix), `...`, `.`, `?.`, `( )`, `[ ]`, `\`, `\( )`, `${ }` |
+  | None before, one after | `;`, `,`, `:` (type) |
+  | As written (a run becomes one space) | `;;;`, `;;`, `:` (marker), `given`, `return`, `throw`, `yield`, `of`, `:` (label), `case`, `orelse`, `extends`, `implements`, `forbids`, `supports`, `throws`, `in`, `instanceof`, `is`, `as`, `::`, `await`, `++` (postfix), `--` (postfix), `!` (postfix), `?`, `..`, `\u{ }`, `new` |
 
-No space goes just inside a string's `${ }`, as in Kotlin, Python's
-f-strings, and JavaScript's template literals; one over several lines
-keeps its line breaks. Quasi-quotes space, indent, and lay out lists as
-their plain brackets do (`\(a + b)`, `\{ f(x) }`). A string's `\u{ }`
-is the string's own text, where a space would be part of a code point
-(an error), so it stays exactly as written.
+- Followers space as themselves (the `,` in `extends A, B`); an object
+  literal's `:` spaces as a type's.
+- **Space before `<` stays as written,** since it decides whether `<` is
+  an angle bracket.
+- **Interpolation is tight:** `${name}`, as in Kotlin, Python f-strings,
+  and JavaScript. One spanning lines keeps its line breaks.
+- **Quasi-quotes** space and lay out as their plain brackets do:
+  `\(a + b)`, `\{ f(x) }`.
+- **`\u{ }` in a string stays exactly as written:** it's string text, and
+  a space there would be an error.
 
 ```temper
 "hi, ${ name }, ${ f({ a: 1 }) }"   // before
 "hi, ${name}, ${f({ a: 1 })}"       // after
 ```
 
-### Indentation and continuations
+### Indentation
 
-Each bracket level indents two spaces.
-
-```temper
-if (ok) {
-go();       // before
-}
-if (ok) {
-  go();     // after
-}
-```
-
-A line that continues a statement indents two spaces from the
-statement's first line. One that starts a statement doesn't, as a
-`{ x }` block on the line after a whole call `f(a)` does (the line break
-ends the call, so the block isn't its argument), or the statement on the
-line after a label (`outer:`). A line starting with `;`, `;;`, or `,`,
-as after a multi-quoted string, lines up with the statement or item it
-ends, as a close bracket lines up with its open bracket's line.
+- **Each bracket level indents two spaces.**
+- **A continuation line indents two** from its statement's first line.
+- **A line that starts a statement doesn't:** a `{ x }` block after a
+  whole call `f(a)` (the line break ends the call), or a statement after
+  a label (`outer:`).
+- **A line starting with `;`, `;;`, or `,`** lines up with what it ends,
+  as a close bracket lines up with its open bracket's line.
 
 ```temper
 let ready = loaded &&
@@ -126,20 +109,18 @@ outer:
 for (;;) { f() }         // after
 ```
 
-Two kinds of continuation line indent four spaces instead, to stand
-apart from what follows:
-
-- In a header (a class's, interface's, function's, or function
-  literal's, before the `{` of its body), from the line the header
-  starts on. A comma between supertypes (`extends A,` then `B` on the
-  next line) continues the header too.
-- In parentheses whose contents start on the `(` line, as a
-  condition's do, from that line. With a line break right after the
-  `(`, the contents start a line of their own, and their continuations
-  indent two from it, as above.
-
-Brackets opened on such a line indent their contents from it, but a
-header's body indents from the header's first line.
+- **Four spaces** for two kinds of continuation, to stand apart from the
+  body that follows:
+  - **Headers** (class, interface, function, function literal, before
+    the body's `{`), from the header's first line, including a comma
+    between supertypes.
+  - **Parentheses whose contents start on the `(` line,** as a
+    condition's do. With a break right after `(`, contents start their
+    own line and continue at two.
+- Brackets opened on such a line indent from it; a header's body indents
+  from the header's first line.
+- **Structural, not keyed on `if` or `while`:** control flow is ordinary
+  calls with trailing blocks in Temper, so the rule applies to every call.
 
 ```temper
 let parse(text: String): Int
@@ -150,10 +131,6 @@ let parse(text: String): Int
     throws Bubble {      // after
   0
 }
-run(fn (x: Int): Int
-    throws Bubble {      // after, in brackets too
-  x
-});
 if (ready &&
   checked) {             // before
   go();
@@ -170,40 +147,25 @@ if (
 }
 ```
 
-The parenthesis rule is structural, not keyed on `if` or `while`:
-control flow in Temper is ordinary calls with trailing blocks, so the
-rule applies to every call alike.
+### Blank lines and line endings
 
-### Blank lines
-
-Blank lines stay as you wrote them, but never more than one in a row
-(at a `.temper.md` code block's start and end too), and none at the
-start of a file. Trailing spaces go, after comments too, and a file
-ends with one line break, unless it has nothing but space: then it's
-empty. A file's line breaks stay its own: in a file
-with CRLF line breaks, the ones `fmt` adds are CRLF too.
-
-```temper
-let a = 1;
-
-
-let b = 2;   // before: two blank lines
-
-let a = 1;
-
-let b = 2;   // after: one
-```
+- Blank lines stay, but never more than one in a row, and none at a
+  file's start (or a `.temper.md` code block's start and end).
+- Trailing spaces go, after comments too.
+- A file ends with one line break; a file of only space becomes empty.
+- Line endings stay the file's own: in a CRLF file, added breaks are CRLF.
 
 ### Lists
 
-Lists are arguments, parameters, list and object literals, and type
-arguments. Grouping parentheses, as in `(a + b)`, are lists too, of one
-item, as is an index in brackets, as in `items[i]`. Your line breaks and trailing comma choose their layout:
+- **Lists:** arguments, parameters, list and object literals, type
+  arguments, grouping parentheses `(a + b)`, and indices `items[i]`.
+- **The author's signals choose the layout:**
 
-- No line break after the open bracket: all on one line.
-- A line break after the open bracket: the items together on one line
-  of their own.
-- A trailing comma: one item per line.
+  | You write | Layout |
+  |---|---|
+  | no break after the open bracket | all on one line |
+  | a break after the open bracket | items together on a line of their own |
+  | a trailing comma | one item per line |
 
 ```temper
 f(a,
@@ -225,49 +187,51 @@ f(
 );           // after
 ```
 
-`fmt` never adds or removes a comma, so to put a list back on one line,
-delete its trailing comma. An item may span lines; the next item starts
-on the line it ends.
-
-```temper
-foo(fn {
-  body();
-},
-  b);        // before
-foo(fn {
-  body();
-}, b);       // after
-```
-
-A list with a comment between items, only literals (a table of data), or
-a multi-quoted string as an item keeps its line breaks.
+- **`fmt` never adds or removes a comma:** to rejoin a list, delete its
+  trailing comma.
+- **An item may span lines;** the next item starts where it ends.
+- **Kept as written:** a list with a comment between items, a list of
+  only literals (a data table), or one holding a multi-quoted string.
 
 ### What it never changes
 
 - Line breaks outside lists.
-- Comments' text, apart from trailing spaces. A comment on its own line
-  indents like the code around it, its lines moving together, unless
-  that would take one left of the margin, or one of its lines is
-  indented with tabs (moving would mix tabs and spaces): then it stays
-  where it is. A doc comment over several lines, `/** ... */`, with a
-  star gutter (every line after the first that isn't blank starts with
-  `*`, the closing `*/` too) has its `*` lines one column past the `/`,
-  with what follows each `*` as written. In one without a gutter, lines
-  starting with `*`, such as bullets, move with the rest.
-- Strings. A multi-quoted string's lines move with the line it starts
-  on, but lines indented with tabs stay as written.
-- Prose in `.temper.md` files: only Temper code blocks change.
+- **Comments' text**, apart from trailing spaces.
+  - A comment on its own line indents like the code around it, its lines
+    moving together, unless that would cross the margin or one of its
+    lines is tab-indented.
+  - A `/** … */` with a star gutter has its `*`s one column past the `/`;
+    without a gutter, `*` bullets move with the rest.
+
+    ```temper
+        /**
+      * Adds one.
+         *   - wraps at the top
+      */
+    let inc(n: Int): Int { n + 1 }
+    ```
+
+    becomes
+
+    ```temper
+    /**
+     * Adds one.
+     *   - wraps at the top
+     */
+    let inc(n: Int): Int { n + 1 }
+    ```
+- **Strings.** A multi-quoted string's lines move with its first line,
+  except tab-indented lines.
+- **Prose in `.temper.md`:** only Temper code blocks change.
 
 ### Turning it off
 
-Lines between a `// fmt: off` and a `// fmt: on`, each a comment on a
-line of its own, stay exactly as written, as for a table aligned in
-columns; the two comments indent like any other. Without a `// fmt: on`,
-the region ends where the brackets around it close (the end of its
-block), or at the end of the file or, in `.temper.md`, of its code
-block. Only those exact comments count: `//fmt: off` and
-`/* fmt: off */` don't, and a `// fmt: on` with no region to end is an
-ordinary comment.
+- `// fmt: off` … `// fmt: on`, each on its own line, keeps everything
+  between exactly as written (Black's and ruff's spelling).
+- Without `// fmt: on`, the region ends where its enclosing brackets
+  close, or at the end of the file or code block.
+- Only those exact comments count (`//fmt: off` and `/* fmt: off */`
+  don't); a stray `// fmt: on` is an ordinary comment.
 
 ```temper
 // fmt: off
@@ -278,45 +242,28 @@ let sizes = [
 // fmt: on
 ```
 
-This is Black's and ruff's spelling with Temper's comment.
+### Safety
 
-### What it refuses
+- **Refuses, leaving the file as written:**
+  - code that doesn't parse (with its error);
+  - a carriage return without a line feed;
+  - any result whose tokens, comments, or parse tree would differ.
+- **One file's problem doesn't stop the rest:** it's reported, and
+  formatting goes on.
+- **Whole or nothing:** each file is written to a new file beside it,
+  with its permissions, then swapped in. Hard-linked files, and files in
+  directories that can't take a new file, are written in place. A
+  read-only file is an error.
 
-Code that doesn't parse is left as written, with an error, as is a
-file with a carriage return not followed by a line feed (a line break to
-some editors but not to Temper; `fmt` takes `\n` and `\r\n`). `fmt`
-also checks its own work: if formatting would change a file's tokens,
-comments, or parse tree, it leaves the file alone and says so. A bug
-that stops formatting a file costs only that file: `fmt` reports it and
-goes on.
+### What it skips
 
-Each file is written whole or not at all: the formatted text goes to a
-new file beside it, with its permissions, which then replaces it. A
-file with other hard links is written in place instead, so they all
-see the change, as is one in a directory where no file can be added. A
-read-only file is an error.
-
-### What it leaves out
-
-Under a directory, `fmt` skips `temper.out`, `temper.keep`, hidden
-directories, and what `.gitignore` and `.temperignore` files list, as
-`build` does. It skips symbolic links too, to files as to directories,
-so a link in a checkout can't make it write outside; a link named on
-the command line formats the file it links to.
-
-To keep more as written, such as a golden test's input or code that
-doesn't parse on purpose, list it in a file of gitignore patterns and
-name it with `--ignorefile`. A directory named that it lists is skipped
-too (but not its own directory, where its patterns start); a file named
-on the command line is formatted all the same. For a check in CI, with
-this `.fmtignore`:
-
-```gitignore
-# Golden inputs, kept as written
-tests/inputs/
-# Code that doesn't parse, on purpose
-/examples/errors.temper.md
-```
+- Under a directory: `temper.out`, `temper.keep`, hidden directories, and
+  what `.gitignore` and `.temperignore` list, as `build` does.
+- **Symbolic links,** so a link can't make it write outside the tree; a
+  link named on the command line formats its target.
+- **`--ignorefile FILE`:** gitignore patterns for more to keep as written
+  (golden inputs, code that fails to parse on purpose). Files named on
+  the command line are formatted anyway.
 
 ```sh
 temper fmt --check --ignorefile .fmtignore
@@ -324,114 +271,120 @@ temper fmt --check --ignorefile .fmtignore
 
 ### Tools
 
-- **`temper fmt [--check] [--ignorefile FILE] [PATH]...`** formats the
-  files named, or under the directories named (the current one by
-  default), skipping what `build` skips and symbolic links, as above,
-  and rewriting only files that change, each whole or not at all.
-  `--check` changes nothing, lists the files that need formatting, and
-  exits with 1 if any do, for CI.
-- **The language server** formats with the same code, a whole document
-  or the lines of a range, so the editor and the command never
-  disagree. The VS Code extension formats on save by default; to turn
-  that off, set the standard `editor.formatOnSave` to `false` for
-  `[temper]` (and `[temper-markdown]`, for `.temper.md` files). In
-  Restricted Mode, for a workspace you haven't trusted, the extension
-  doesn't run, so neither does formatting.
-- **When it refuses a file** in an editor, it leaves it as written and
-  says why, except for code that doesn't parse, whose syntax error
-  already shows as a diagnostic: saving mid-edit shouldn't pop up a
-  message the squiggle already gives.
+- **`temper fmt [--check] [--ignorefile FILE] [PATH]...`**
+  - Formats the files named, or under the directories named (default:
+    the current one).
+  - Rewrites only files that change.
+  - `--check` changes nothing, lists files needing formatting, and exits
+    1 if any do (for CI).
+- **Language server:** the same code formats a whole document or a range,
+  so editor and command never disagree.
+- **VS Code:** formats on save by default. Turn it off with
+  `editor.formatOnSave: false` for `[temper]` and `[temper-markdown]`.
+  Untrusted (Restricted Mode) workspaces don't run the extension.
+- **Refusals in the editor** are shown, except a syntax error, which
+  the diagnostics already show.
 
 ## Rationale
 
-- **No width.** A width rewrites lines whenever names change length,
-  and needs exceptions where it's wrong. Keeping line breaks means a
-  formatted file's diff shows only what the author changed. The cost:
-  long lines stay long until the author breaks them, which is the
-  author's call.
-- **The author picks list layouts,** with two signals people already
-  use (a break after the bracket, a trailing comma), so `fmt` makes
-  existing habits consistent instead of imposing new ones. A trailing
-  comma's "one per line" meaning matches Black's magic trailing comma
-  and rustfmt's handling.
-- **Four-space continuations in headers and conditions** keep a
-  continued signature or condition visually apart from the body that
-  follows at two spaces. Making the parenthesis rule structural keeps
-  it to one sentence and treats user functions with trailing blocks
-  like built-in control flow.
-- **Spacing from the operator table.** Each operator declares its
-  spacing where the parser declares the operator, so a new operator
-  gets spaced without a formatter change, and the page's table can't
-  drift from the code. Words and operators whose spacing carries
-  meaning or style no rule settles stay as written, in one list.
-- **Tight interpolation** (`${x}`) matches the languages Temper users
-  come from.
-- **Safety over completeness.** `fmt` compares tokens, comments, and
-  the parse tree before writing, and refuses rather than risk a wrong
-  rewrite. Tests check the same properties independently of `fmt`'s
-  own check, over every Temper file in the repository and over
-  randomly mutated inputs, with a new random seed nightly.
-- **Speed.** Formatting runs in time linear in the input and works from
-  one file's parse alone, with no typing or imports, so formatting on
-  save is instant: the standard library's files format in tens of
-  milliseconds, process start included.
+- **No width:** a width churns lines when names change and needs
+  exceptions. Kept line breaks mean diffs show only the author's changes.
+  Cost: long lines stay until the author breaks them.
+- **Author-chosen list layouts:** two signals people already use, so
+  `fmt` makes habits consistent instead of imposing new ones. The
+  trailing comma matches Black's magic trailing comma and rustfmt.
+- **Four-space continuations** keep a continued header or condition
+  apart from its two-space body.
+- **Spacing in the operator table:** a new operator is spaced with no
+  formatter change, and the docs' table can't drift.
+- **Tight interpolation** matches the languages users come from.
+- **Safety over completeness:** refuse rather than risk a wrong rewrite.
+- **Speed:** linear time, one file's parse only (no typing or imports),
+  so format-on-save is instant; std formats in tens of milliseconds,
+  process start included.
 
-### Measured impact
+**Measured impact:** over the compiler's repository and six libraries
+(about 93,000 lines of Temper), under 1% of lines change. The largest
+groups:
 
-Over the compiler's repository and six libraries (about 93,000 lines
-of Temper), adopting these rules changes under 1% of lines. The biggest
-groups: lists written one item per line without a trailing comma, which
-now hug; lists with a trailing comma written several items per line,
-which now go one per line; and continuation lines in conditions and
-headers moving from two spaces to four.
+- lists one item per line without a trailing comma, which now hug;
+- lists with a trailing comma and several items per line, which now go
+  one per line;
+- continuations in conditions and headers moving from two to four spaces.
 
-### Alternatives considered
+**Alternatives considered:**
 
-- **A width-driven layout engine** (Wadler/Prettier-style documents).
-  Tried in an early version with a 100-column width; dropped for the
-  author's choices, since it rewrote far more lines and would have to
-  respect semicolon insertion at every break.
-- **Keying four-space continuations on `if`, `while`, and `for`.**
-  Dropped: those are ordinary calls in Temper, so a structural rule
-  is simpler and consistent.
-- **Reprinting from the syntax tree.** Loses comments and layout the
-  tree doesn't keep; working on the parse's tokens avoids that.
-- **Options** (indent width, line width). None: every option splits an
-  ecosystem's style.
+- **Width-driven layout** (Wadler/Prettier documents): tried with 100
+  columns; it rewrote far more lines and had to respect semicolon
+  insertion at every break.
+- **Four spaces keyed on `if`, `while`, `for`:** those are ordinary calls
+  in Temper; the structural rule is simpler.
+- **Reprinting from the syntax tree:** loses comments and layout the
+  tree doesn't keep.
+- **Options** (indent, width): every option splits an ecosystem's style.
+
+### Answers to review questions (Mike)
+
+| Question | Answer |
+|---|---|
+| Honor `.editorconfig`, even in an ancestor? | No: there are no options for it to set. Line endings already follow the file. |
+| Long-line wrapping? | No (see "No width"); a width-driven engine was tried and dropped. |
+| `<` spacing and lexing? | Space before `<` always stays as written. |
+| Re-lex to check for no changes? | Yes, and more: tokens, comments, and parse tree are compared before writing. |
+| A mode that fails when formatting isn't a no-op? | `--check`, used in this repository's CI. |
+| Format only a diff's changed lines? | Not on the command line. The language server formats ranges. Open issue below. |
 
 ## Compatibility
 
-`fmt` changes no language rules and no generated code. Adopting it is a
-one-time formatting commit per repository; the compiler's repository
-formats its Temper sources, docs' examples, and tests, and checks them
-in CI. Libraries can opt in the same way. Formatter output may change
-between Temper versions as rules are refined, as with every formatter;
-`--check` in CI shows when.
+- No language rules or generated code change.
+- Adopting it is one formatting commit per repository. The compiler's
+  repository formats its Temper sources, docs' examples, and tests, and
+  checks them in CI (`.git-blame-ignore-revs` can hide that commit from
+  blame).
+- Output may change between Temper versions as rules are refined, as
+  with any formatter; `--check` in CI shows when.
 
 ## Implementation
 
-On the compiler's `temper-fmt` branch: the formatter in the syntax
-crate, the `fmt` command, language-server formatting with on-save in
-VS Code, a CI check over the repository with an ignore file, a script
-that formats the docs' Temper examples, golden tests for every rule,
-and the safety and fuzz tests described above.
+Done on [#692](https://github.com/temperlang/temper/pull/692):
+
+- The formatter in the syntax crate, working on the parse's tokens.
+- `temper fmt` with `--check` and `--ignorefile`.
+- Language-server document and range formatting; format on save in VS
+  Code.
+- The repository formatted, with a CI check and an ignore file.
+- A script that formats the docs' Temper examples.
+
+## Testing
+
+- **Golden tests** for every rule.
+- **Safety properties checked independently of `fmt`'s own check:**
+  tokens, comments, and parse tree unchanged, and formatting is
+  idempotent, over every Temper file in the repository.
+- **Fuzzing:** randomly mutated inputs, with a new seed nightly.
+- **Speed:** a test that formatting time grows linearly.
+- **Editor:** language-server formatting tests, and VS Code tests for
+  format on save.
+
+## Documentation
+
+- `docs/tools/fmt.md`: the user reference (rules, examples, and the
+  operator spacing table, rendered from the parser's and checked by a
+  test).
+- Editor docs and the VS Code README: format on save and how to turn it
+  off.
+- Release notes: not yet; #692 should add an entry.
 
 ## Open issues
 
-- **Markdown prose** in `.temper.md` files is left exactly as written.
-  Formatting it (rewrapping, list markers, emphasis) is a Markdown
-  formatter's job; whether `fmt` should call one is left out of this
-  proposal.
-- **Doc-comment framing** beyond lining up the `*` column (one-line
-  versus multi-line form, adding or removing stars) is left out.
-- **Generated reference docs.** Examples in the docs' reference pages
-  should come from core's literate sources and be formatted there, with
-  `// fmt: off` where hand alignment matters, rather than formatted as
-  copies.
-- **Spaces inside `\u{ }`.** In a string, `\u{ }` runs are the
-  string's own text, and a space inside one is an error today, so
-  `fmt` leaves them exactly as written. Allowing spaces there (say,
-  after the commas in `\u{48, 69}`) would be a language change;
-  it's parked.
-- **Import ordering** isn't touched, since a later change could make
-  order significant.
+- **Formatting only changed lines** (Mike): a `--diff` mode for PRs.
+  Needs care where one change implies another (adding brackets).
+- **Markdown prose** in `.temper.md` stays as written; whether `fmt`
+  should call a Markdown formatter is open.
+- **Doc-comment framing** beyond lining up `*`s (one-line vs multi-line,
+  adding or removing stars).
+- **Generated reference docs:** examples should come from core's literate
+  sources and be formatted there.
+- **Spaces inside `\u{ }`** (as `\u{48, 69}`) would be a language change;
+  parked.
+- **Import ordering** isn't touched, since order could become significant.

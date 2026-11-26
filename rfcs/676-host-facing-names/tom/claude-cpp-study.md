@@ -185,6 +185,16 @@ never a writable shared vector.
 | E. Copy a `List` argument the library stores (constructors and setters only) | No aliasing of the caller's vector, as `Window` shows | A copy per stored list, even when the caller never changes it |
 | F. Statics and module values: private slots, accessors only | Nothing outside the init writes them | Template bodies in headers read slots directly today, so they need an accessor or an internal header (section 2) |
 
+Whatever hides the fields should keep a way for the library's own
+code to copy an object and set a few fields: object spread
+([#694](https://github.com/temperlang/temper/issues/694)) can then
+translate `{ ...old, size: 3 }` on a class whose constructor only stores
+its parameters as a copy plus one assignment, rather than a call naming
+every field. With B, that's a private copy constructor and field writes
+reached through the same `friend` or passkey the library already needs
+for cross-class access; const fields would rule it out, which is one
+more reason for B's private data over `const` members.
+
 **Recommendation:** B, C, D, and F together, in the revamp RFC
 (they're breaking, and changing signatures once is better than four
 times). E is a judgment call: Temper's own docs say a `Listed` argument
