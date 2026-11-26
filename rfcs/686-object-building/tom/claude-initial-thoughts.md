@@ -94,3 +94,55 @@ them ("resugaring"), so generated code looks hand-written where it can.
 3. Punning.
 4. Patterns in `when`, after the flat-options and failures work settle
    what patterns must handle.
+
+## Deferred from object spread (#694), 2026-11-26
+
+[#694](https://github.com/temperlang/temper/issues/694) adds spread in a
+deliberately narrow form: `{ ...old, a: e }`, one spread, written first,
+and only for `@data` classes (every constructor parameter a public
+property and nothing else, no custom constructor, no default but
+`null`; `var` properties allowed unless `@imu`; methods allowed). The
+broader options it set aside belong here, with the rest of object
+building, since they can only loosen #694's rules (code valid under
+#694 stays valid):
+
+- **Structural spread** (the "option 2" discussed for #694): any source
+  whose public properties are all constructor parameters of the target
+  may be spread, so a spread is a property bag feeding named arguments,
+  as object literals already are; this allows spreading across classes
+  (a DTO into a domain class) and classes without `@data`.
+- **Several spreads,** later ones winning, with only each property's
+  final provider read; and spreads after explicit properties.
+- **Loosening `@data`:** custom constructors (validation), private
+  properties (spreads only inside the class), defaults other than
+  `null` (which then interact with null meaning "use the default").
+- **Native host data shapes** for `@data` classes (C# and Java records,
+  Python dataclasses, Rust structs with visible fields and derived
+  traits), with value equality, copying, and printing; reconcile with
+  `@auto("==")` and `@imu`.
+- **Native copying across modules** in Rust (fields visible to the
+  crate) and on other backends as their class shapes allow.
+
+### Host data shapes: settings that keep host code working
+
+If `@data` classes later get native host data shapes, each must keep
+today's host-visible behavior, so adopting them breaks no host code:
+
+- **`@data` doesn't imply `==`.** Temper doesn't guarantee every type has
+  `==` (function values, non-`Equatable` interfaces), so equality stays
+  `@auto("==")`'s, added explicitly.
+- **Python:** `@dataclass(eq=False, repr=False, slots=True)`.
+  `eq=True` (the default) would switch `==` from identity to value
+  equality and make instances unhashable unless frozen, breaking hosts
+  that key dictionaries or sets by them; with `@auto("==")`, its own
+  `__eq__` and `__hash__` stay. `repr=False` keeps today's printing.
+  `frozen=True` would change the exception on writes; leave it out. What
+  this adds (`dataclasses.fields`, `asdict`, `replace`, `match` patterns)
+  is additive.
+- **JS:** public data properties instead of private fields and getters,
+  so a native copy can be `Object.assign(Object.create(proto), old,
+  changes)`. To keep a later switch back to accessors compatible, a
+  property that isn't `var` must be non-writable from the start
+  (`Object.defineProperty` with `writable: false`, or `Object.freeze` for
+  `@imu` classes), so no host code can come to rely on assigning it;
+  reads work the same either way. JSDoc `@readonly` tells TypeScript.

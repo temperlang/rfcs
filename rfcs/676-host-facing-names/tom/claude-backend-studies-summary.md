@@ -484,6 +484,23 @@ Each a bounded change with its own tests:
 | Rust-idiomatic variant | new | Thread model (one lock per object, or single-threaded `Rc`), plain traits users implement, `&str`/`Arc<str>`, slices, `impl Fn` callbacks, `usize` indexes, no inherent `to_string`, as one opt-in variant ([Rust 23](claude-rust-study.md#recommendations)) |
 | Collection semantics | #671, or new | Callback mutation contract, the defensive-copy rule, `List` versus `ListBuilder` in every host, map iteration order, and Lua maps as plain tables |
 
+### Construction that stays compatible
+
+Adding a constructor parameter breaks host callers wherever construction
+is positional and the host has no named or default arguments (Java,
+Rust, C++, JS without the props form, Lua). Temper itself already builds
+objects by name, through object literals (property bags). A policy to
+consider: exported classes expose **named construction only** (the
+existing builders for Java and Rust, JS's `static new(props)`, keyword
+arguments where the host has them), with a positional constructor only
+when a class asks for one. Builders already exist for public
+constructors with two or more parameters, so this mostly removes an
+entry point rather than adding code. Rust has no overloading; its usual
+tools are builders, `impl Into<Option<T>>` parameters, and struct
+literals with `..Default::default()` (which needs a `Default`, so it
+fits only classes whose properties all have defaults). Watch generated
+size: no new code per class beyond today's builders.
+
 ## Shared decisions, per-backend proposals, and PRs
 
 Much of this is common to every backend, and is best decided once:
