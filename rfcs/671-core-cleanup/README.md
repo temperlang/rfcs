@@ -9,12 +9,16 @@ Status: Draft
 Discussion at https://github.com/temperlang/temper/issues/671.
 Implemented in [#688](https://github.com/temperlang/temper/pull/688).
 
+This document includes both handwritten text and content from
+[a draft by Claude Code](tom/claude-proposal.md). All of it has been reviewed
+and manually selected (or written) by humans.
+
 ## Abstract
 
 Core becomes an ordinary Temper library that follows its own rules:
 
-- **Readable:** literate Markdown by topic, every declaration documented,
-  examples run as tests.
+- **Readable:** literate Markdown by topic, every declaration documented
+  and shown on hover, examples run as tests.
 - **Honest:** what core declares is all it enables. No implied
   constructors, special-cased names, or hidden exemptions.
 - **Nameable:** modules import as namespaces (`let rx = import("std/regex")`),
@@ -27,13 +31,15 @@ Core becomes an ordinary Temper library that follows its own rules:
 
 ## Background
 
-Kotlin Temper's core was one 1,750-line file, which in Kotlin Temper (which I'll
-call KTemper) supplied a number of function definitions for the interpreter as
-well as some type definitions and signatures. It was complicated. Tempest only
-ever read for signatures, while the interpreter and backends implemented members
-natively. It carried bootstrapping workarounds, some of which only mattered in
-KTemper, while some also mattered in Tempest. And some of these side effects
-might also only have affected Tempest if KTemper manually worked around some:
+Kotlin Temper (which I'll call KTemper) kept core in one 1,750-line file,
+which supplied a number of function definitions for KTemper's interpreter
+as well as type definitions and signatures. It was complicated. Tempest,
+the Rust compiler replacing KTemper
+([RFC 657](../657-tempest/README.md)), only ever read it for signatures,
+while its interpreter and backends implemented members natively. Core
+carried bootstrapping workarounds, some of which mattered only in KTemper,
+and some in Tempest too. Some might have affected only Tempest, where
+KTemper worked around them by hand:
 
 - `builtins.Int` prefixes (71 of them), because core declared classes
   named like the builtins.
@@ -45,17 +51,17 @@ might also only have affected Tempest if KTemper manually worked around some:
 - Unchecked Temper bodies that could drift from the natives.
 - Host types not marked `@connected`, so `is`/`as` checks on them
   translated wrongly (JavaScript: `x is StringIndex` became `x >= 0`).
-- Undocumented builtins: macros and values showed `?` on hover. (Specific to
-  Tempest. I haven't freshly reviewed what KTemper language server could even do
-  here.)
+- Undocumented builtins: macros and values showed `?` on hover in
+  Tempest. (KTemper's language server showed no docs on hover at all,
+  only a declaration's kind, name, and type.)
 - Backends disagreeing at the edges (indices out of bounds, `near`,
   `signum`, builders changed by their own callbacks).
 
-Various plans to clean core up before predate the switch to Tempest, and if we
-want to clean up in ways that make breaking changes, sooner is better than
-later. And because a variety of cleanups are needed, this RFC is sort of a grab
-bag of bug fixes, layout improvements, and actual semantic changes and/or new
-features. At least old written issue is addressed here:
+Plans to clean up core predate the switch to Tempest, and for cleanups that
+make breaking changes, sooner is better than later. Because a variety of
+cleanups are needed, this RFC is sort of a grab bag of bug fixes, layout
+improvements, and actual semantic changes or new features. At least one old
+written issue is addressed here:
 [#30](https://github.com/temperlang/temper/issues/30) (move `Deque` and
 `DenseBitVector` out of core).
 
@@ -72,16 +78,16 @@ Work here touches six broadly defined areas.
      `orelse`, `await`, …) get bodiless `@connected` declarations, so
      hover, signature help, REPL `help(…)`, and go-to-definition work.
    - Not declared: operators (wait for
-     [RFC 670](../../670-type-associated-operators/README.md)) and jumps
+     [RFC 670](../670-type-associated-operators/README.md)) and jumps
      (`return`, `break`, `continue`), which are syntax.
 3. **The prose doc rule,** for any `.temper.md` file:
    - A `/** … */` before a declaration documents it.
    - Otherwise the doc starts at the first top-level paragraph whose
-     first word is the declared name, and runs to the declaration. This matches
-     Mike's earlier work on this topic. This effort doesn't seek to perfect
-     handling of documentation, as that might be better addressed in RFC 689 or
-     others, but this at least fixes some regression is supporting Markdown doc
-     comments again.
+     first word is the declared name, and runs to the declaration. This
+     matches Mike's earlier work on the topic. This effort doesn't seek to
+     perfect doc handling, which [RFC 689](../689-doc-fragments/README.md)
+     or others might better address, but it at least fixes a regression,
+     supporting Markdown doc comments again.
    - Kept: paragraphs, lists, block quotes, example code, link
      definitions. Dropped: HTML blocks. A heading or thematic break ends
      it. The brief is the naming paragraph, and an example follows:
@@ -97,46 +103,50 @@ Work here touches six broadly defined areas.
 4. **Examples are tests.** Core's and std's examples run in CI, each
    `// ✅ value` compared with the result. Blocks that can't run as part
    of their file are `temper inert`, and still checked when marked ✅ or ❌.
-   This was previously done in KTemper, but that was lost in the transition to
-   Tempest. Full testing of all docs might still be out of scope of this RFC,
-   but core and std themselves get their immediate docs tested.
+   KTemper ran docs' examples through its REPL as it generated the docs,
+   filling in their results. Tempest's CI already checked the examples in
+   `docs/` (`compat/check_doc_examples.py`), and this work extends that check
+   to core's and std's literate sources. Richer checks (logged output, error
+   messages) are left to [RFC 689](../689-doc-fragments/README.md).
 5. **Generic list and map methods become extensions** (`listedMap`,
    `listedReduceFrom`, `listedReduceFromIndex`, `mappedToListWith`,
-   `mappedToListBuilderWith`), as this was a language decision that we hadn't
-   yet enforced in core. But core should follow the same rules as the rest of
-   the language whenever possible, and some implementations, such as be-rust
-   already had to use external functions to implement these methods, which isn't
-   compatible with claimed dynamic dispatch. A sealed type in core could cheat
-   somewhat, but it shouldn't.
+   `mappedToListBuilderWith`). No generic interface methods was a language
+   decision we hadn't yet enforced in core. But core should follow the same
+   rules as the rest of the language whenever possible, and some backends,
+   such as be-rust, already had to implement these methods as external
+   functions, which isn't compatible with claimed dynamic dispatch. A sealed
+   type in core could cheat somewhat, but it shouldn't.
    - Calls read the same: `xs.map { … }`, `xs.map<Int> { … }`.
    - Core keeps the rule that interface methods aren't generic; a test
      checks it.
-   - `x.name<T>(…)` takes either all of an extension's type arguments or
-     only those the receiver doesn't name.
+   - For a library's extension, `x.name<T>(…)` takes either all of its
+     type arguments or only those the receiver doesn't name. Core's take
+     only the latter for now (see Open issues).
 6. **No representation-only fields.** `content`, `Problem`'s, and
    `PromiseBuilder`'s `_promise` are gone; bodies read `this`. The
-   fields-initialized exemption is gone. Tempest doesn't make use of these prior
-   KTemper bootstrapping mechanisms.
+   fields-initialized exemption is gone. Tempest doesn't use these KTemper
+   bootstrapping mechanisms.
 7. **Interpreter natives checked against core's bodies.** The interpreter
    keeps native Rust for speed; a test runs core's Temper bodies instead
-   on shared inputs (135 cases) and lists any body not run, with a reason.
-   Again, KTemper used these in the interpreter, but Tempest hasn't. Under this
-   proposal, it still doesn't, beyond the testing for compatibility. It keeps
-   the Rust implementations for speed reasons, including startup speed. Future
-   efforts may seek to use the Temper definitions directly, but that is out of
-   scope for this RFC.
+   on shared inputs and lists any body not run, with a reason. KTemper's
+   interpreter ran these bodies, but Tempest's hasn't, and under this
+   proposal it still doesn't, beyond the testing for compatibility. It
+   keeps the Rust implementations for speed, including startup speed.
+   Future efforts may use the Temper definitions directly, but that is out
+   of scope for this RFC.
 8. **`core` and `std` are reserved:** only the built-in text or the
    compiler checkout's `lib/core` (for editors) gets core's privileges.
-   Building another library named `temper-core` or `std` is an error. I haven't
-   reviewed if this was enforced by KTemper.
+   Building another library named `temper-core` or `std` is an error.
+   KTemper didn't enforce this: it built a library named `std`, and one
+   named `temper-core` collided with the runtime's own output.
 
 ### B. What core declares is all it enables
 
 The frontend reads core's declarations instead of keeping lists of names.
 Every check is on the type a name denotes (C.3), so aliases and imports
 can't slip past. Some of these rules were already enforced in KTemper, some
-hadn't survived the port to Tempest, and some might be new here to either. In
-any case, the goal for this RFC is to be consistent.
+hadn't survived the port to Tempest, and some are new to both. In any case,
+the goal for this RFC is to be consistent.
 
 | Capability | Rule |
 | --- | --- |
@@ -147,7 +157,9 @@ any case, the goal for this RFC is to be consistent.
 | Type arguments | any type but `Void`, within the bound |
 
 1. **A test checks every builtin type against every capability,** by
-   every way of naming it, and fails when a type lacks a row. (tom to claude: What is a row here?)
+   every way of naming it. Its table has one entry per builtin type,
+   giving the expected result for each capability, and the test fails
+   when a type core declares has no entry.
 2. **Every host-supplied type is `@connected`:** adds `Pair`, `Listed`,
    `Mapped`, `SafeGenerator`, `Console`, and std's `Queue` and
    `BitVector`. A test scans each backend's sources and fails on any
@@ -168,17 +180,24 @@ any case, the goal for this RFC is to be consistent.
 
 4. **Private constructors are enforced, per class** (and classes nested
    in it), through aliases and object literals too. Core follows it:
-   `doneResult()` and `empty()` make their values inside their classes. Some
-   core types (such as `DoneResult`, tom to claude: others???) that should have hidden their constructors still suggested default
-   public constructors by their type definition in Temper source, which wasn't
-   necessarily honored for core types in KTemper. Tempest seeks to actually
-   follow the definitions in core where provided.
+   `doneResult()` and `empty()` make their values inside their classes.
+   - Core classes that declared no constructor implied a public one by
+     their Temper definition, though they should have hidden it:
+     `Boolean`, `DoneResult`, `Float64`, `Int32`, `Int64`, `List`,
+     `Promise`, and `String`.
+   - Others declared a private constructor that nothing enforced:
+     `Empty`, `NoStringIndex`, `StringIndex`, and `Null`.
+   - KTemper accepted `new` for these, as `new Int32()` (JavaScript's
+     `new Number()`), `new String()`, and `new Empty()` or
+     `new DoneResult<Int>()` (both failing at run time). Tempest follows
+     the definitions in core where provided.
 5. **Sealed and private where core means it:**
-   - `MapKey` is sealed: only `Int32` and `String` are keys. It had been sealed only in a comment.
+   - `MapKey` is sealed: only `Int32` and `String` are keys. It had been
+     sealed only in a comment.
    - `DoneResult`'s constructor is private; `doneResult()` makes one.
 6. **Nameable again:** `Console`, `getConsole(name)`, and `Equatable<T>`
-   (sealed; usable as a bound). Some ability to name these had been lost in the
-   Tempest implementation.
+   (sealed; usable as a bound). Tempest had lost some ability to name
+   these.
 
 ### C. Naming core: namespaces, no `builtins`
 
@@ -198,8 +217,8 @@ any case, the goal for this RFC is to be consistent.
 2. **`builtins.X` and the reserved word `builtins` are gone.**
    - Core's names stay in scope unqualified.
    - Code shadowing a core name reaches core's through
-     `let core = import("core");` and `core.String`. This is enabled by the
-     namespace imports mentioned above, so `core` needs no special handling.
+     `let core = import("core");` and `core.String`. The namespace
+     imports above enable this, so `core` needs no special handling.
 
      ```temper
      let core = import("core");
@@ -212,38 +231,40 @@ any case, the goal for this RFC is to be consistent.
    - The compiler names core by resolved symbols, never source names.
 3. **One path resolves a name to a type,** through aliases, imports, and
    namespaces. Every rule sees a type the same however it's named:
-   `let M = Map; M<Boolean, Int>` is refused as `Map<Boolean, Int>` is. I
-   haven't reviewed if this was a hole in KTemper or not. Another key goal of
-   this RFC is that all semantic tightening, whether or not the issues existed
-   in KTemper, is to ensure that all fixes, improvements, and refinements are
-   fully tested to avoid further regression.
+   `let M = Map; M<Boolean, Int>` is refused as `Map<Boolean, Int>` is.
+   KTemper's holes here were in the rules themselves rather than aliases:
+   it accepted `Map<Boolean, Int>` and `new Int32()` whether named directly
+   or through an alias. Another key goal of this RFC is that all semantic
+   tightening, whether or not the issues existed in KTemper, is fully
+   tested to avoid further regression.
 
 ### D. Typing holes closed
 
 1. **`Void` is never a value:** only a return type. Errors for `Void`
    parameters, locals, fields, `List<Void>`, `Void?`, `Void` bounds, and a
    `Void` result where a value is wanted. We implemented this long ago in
-   KTemper. Holes in this regard found their way into Tempest, some of which may
-   or may not have existed in KTemper, but we need to fill the hole in any case.
-   This fits in the theme of core cleanup because we want to make the core
-   library reliable.
+   KTemper. Holes in it found their way into Tempest, some of which may or
+   may not have existed in KTemper, but we need to fill them in any case.
+   This fits the theme of core cleanup because we want the core library to
+   be reliable.
 2. **Type arguments fit their bounds everywhere:** calls, annotations,
    other types' arguments, supertypes.
    - Map keys must be a `MapKey` of themselves: `Map<Boolean, Int>` and
      `Map<AnyValue, Int>` are errors.
    - Unmarked type parameters are invariant: a `ListBuilder<Int32>` isn't
      a `ListBuilder<AnyValue>`. (`@out`/`@in` remain on a few core
-     declarations here; a follow-up is planned for removing variance entirely.)
+     declarations here; a follow-up is planned to remove variance
+     entirely.)
 3. **Folded calls keep their type arguments:** `mk<Int>()` for
    `mk<T>(): List<T>` is a `List<Int32>`; `let n: Int = id<Int>("a")` is
    an error.
 4. **Type parameters can't be made or extended:** "Cannot instantiate
    type parameter T", "Cannot extend type parameter T". This is because some
-   backends erase generics. I haven't reviewed if there were holes in this in
-   KTemper.
+   backends erase generics. KTemper had holes here: `new T()` gave only
+   "Malformed type reference", and `extends T` crashed the compiler.
 5. **A static and an instance member can't share a name** (inherited
-   included; an interface's statics aren't inherited). I believe we enforced
-   against this in KTemper, but it might not have found its way to Tempest.
+   included; an interface's statics aren't inherited). KTemper didn't
+   check this (its Java output renamed the static), nor did Tempest.
 6. **No `Null` type.**
    - `null` takes the nullable type its place wants (`let n: Int? = null`,
      or the other side's type in `x == null`).
@@ -258,8 +279,8 @@ any case, the goal for this RFC is to be consistent.
      ```
 7. **Null alone has no members and is no condition:** `null.isEmpty`,
    `if (null)`, `null && b`, and `null + 1` are errors. `if (c) { 1 } else
-   { null }` is `Int?`. Some effort is planned for improved error messages
-   across null misuse, but this RFC document doesn't details specifics.
+   { null }` is `Int?`. Some effort is planned to improve error messages
+   across null misuse, but this RFC doesn't detail specifics.
 
 ### E. `Deque` and `DenseBitVector` move to std as `Queue` and `BitVector`
 
@@ -288,16 +309,20 @@ let { Queue, BitVector } = import("std/collections");
    `index 3 out of bounds for length 3`.
    - Covers `ls[i]`, `set`, `add`/`addAll` at an index, `removeLast` and
      `reduce` when empty, string reads at or past the end, and std's
-     `Queue.removeFirst` and `BitVector.set`. Typically, this is ensuring that
+     `Queue.removeFirst` and `BitVector.set`. Mostly, this ensures that
      behavior documented in core is actually followed across backends.
-   - A bit vector reports length 0; an empty queue "index 0 … length 0". (tom to claude: is this new???)
-   - String indices are in each backend's units (UTF-8 bytes, UTF-16
-     units, or Python code points). (tom to claude: This was already the case in KTemper. do we need to mention it here?)
-   - `orelse` isn't intended to catch it, and we at least intend to survey
-     exceptions in behavior under this work. For example, exceptions on
-     JavaScript and Lua for now. In RFC 164, we expect to finish ironing out
-     inconsistencies across backends. To avoid panics for expected misses, use
-     `getOr`, `hasIndex`, or `isEmpty`.
+   - New with this work, since backends differed here before:
+     `BitVector.set` at a negative index reports length 0, as a bit vector
+     has no length, and `removeFirst` on an empty queue reports index 0 and
+     length 0.
+   - String indices and lengths in the message are in each backend's
+     units (UTF-8 bytes, UTF-16 units, or Python code points), as in
+     KTemper, so only an ASCII string's message is the same everywhere.
+   - `orelse` isn't intended to catch it, and this work at least surveys
+     the exceptions, which are JavaScript and Lua for now.
+     [RFC 164](../164-exceptions/README.md) should finish ironing out
+     inconsistencies across backends. To avoid panics for expected misses,
+     use `getOr`, `hasIndex`, or `isEmpty`.
 
      ```temper
      let ls = [1, 2, 3];
@@ -306,8 +331,11 @@ let { Queue, BitVector } = import("std/collections");
      ```
    - Cheap on hot paths: one shared helper per runtime; C# one unsigned
      compare, inlined; Python tries the subscript first.
-2. **Members settled on every backend:**
-   (tom to claude? were these defined in ktemper? just missing in some backends or implemented wrong?)
+2. **Members settled on every backend.** KTemper's core defined each of
+   these with a Temper body, but backends missed or differed on some: on
+   JavaScript, `signum` was undefined and `reduceFromIndex` wasn't a
+   function (on Python too), and on JavaScript and Lua, `near` said an
+   infinity wasn't near itself.
 
    | Member | Semantics |
    | --- | --- |
@@ -323,8 +351,8 @@ let { Queue, BitVector } = import("std/collections");
      can't deadlock or read freed memory; Rust and C++ walk a snapshot.
    - A `sort` comparison that adds or removes values panics; every
      backend sorts a copy.
-   - In the past, issues included Rust
-     deadlocks, C++ use-after-free, and JavaScript freezing `filter`'s input.
+   - In the past, issues included Rust deadlocks, C++ use-after-free, and
+     JavaScript freezing `filter`'s input.
 4. **Python types generic results cheaply:** a function whose result
    alone names a type parameter is annotated or `cast()`, passing pyright
    strict and mypy, instead of subscripting a class at run time (about
@@ -339,8 +367,8 @@ let { Queue, BitVector } = import("std/collections");
   fail when core and the compiler disagree.
 - **Kotlin's connected rule, as a rule:** one general rule covers users'
   connected types too and fixes wrong generated code, rather than marking
-  types one by one. The need for ad hoc handling in Tempest was because KTemper
-  didn't always recognize or follow all the definitions in Temper code for core.
+  types one by one. Tempest needed ad hoc handling because KTemper didn't
+  always recognize or follow all of core's definitions in Temper code.
 - **Strict now, looser later:** each tightening refuses code already
   unportable or wrong somewhere. Loosening later breaks nothing;
   tightening after 1.0 would.
@@ -352,8 +380,8 @@ let { Queue, BitVector } = import("std/collections");
   taking null's type from its place changes no type-checking program.
 - **Out of bounds as a panic:** it's a programming error, and core never
   declared these as failing. One message (Java's wording) lets tests pin
-  it and users search for it. Again, work in this RFC is mostly about better
-  following and enforcement of defitions in core.
+  it and users search for it. Again, work in this RFC is mostly about
+  better following and enforcing definitions in core.
 - **Collections to std, renamed:** core holds what the language needs.
 - **Natives checked, not replaced by bodies:** running core's bodies costs
   every REPL and playground run a core settle (about 3 ms → 10–15 ms per
@@ -361,17 +389,18 @@ let { Queue, BitVector } = import("std/collections");
 
 **Alternatives considered:**
 
-- Rename `builtins` as `core`, but that retains a special case and a reserved
-  word for which a general feature could provide.
-- Shorter alternatives to `std/collections` such as `std/collect` or `std/util`,
-  but the full name "collections" seemed more clearer. Name decisions could
-  possibly be reconsideered in the future, but we need to settle by 1.0.
+- Rename `builtins` as `core`, but that retains a special case and a
+  reserved word where a general feature could provide.
+- Shorter alternatives to `std/collections`, such as `std/collect` or
+  `std/util`, but the full name "collections" seemed clearer. Names could
+  be reconsidered in the future, but we need to settle them by 1.0.
 
 ## Compatibility
 
-Ideally, and in most cases below, any incompatibilities are compile-time errors.
-And in many cases, these aren't actual compatibility changes so much as they're
-stronger enforcement and consistency with definitions and documentation.
+Ideally, and in most cases below, any incompatibilities are compile-time
+errors. And in many cases, these aren't actual compatibility changes so
+much as stronger enforcement and consistency with definitions and
+documentation.
 
 | Change | Breaks | Migration |
 | --- | --- | --- |
@@ -405,9 +434,9 @@ stronger enforcement and consistency with definitions and documentation.
   - Out of bounds reaches hosts as each backend's panic (Python
     `BaseException`, Java `AssertionError`, C# `Environment.FailFast`,
     C++ `panic()`, Rust `panic!()`), where some could catch a host
-    exception before. And for many backends, host code still can catch panics as
-    exceptions, but the intent is to remove this ability for Temper code itself,
-    so consistent semantics are present in Temper.
+    exception before. On many backends, host code can still catch panics
+    as exceptions, but the intent is to remove this ability from Temper
+    code itself, so Temper's semantics are consistent.
 
 ## Implementation
 
@@ -432,10 +461,8 @@ order:
 
 After merge:
 
-- Hrefine's and Kelpto's private-constructor changes. Probably a full survey
-  again of others.
-- Language reference pages generated from core's and std's literate
-  sources, replacing hand-kept copies. (tom to claude: this is just about improved automation of a portion of the docs? is this really after merge or just a change to how to site is built automatically?)
+- Hrefine's and Kelpto's private-constructor changes, and probably a fresh
+  survey of other libraries.
 
 ## Testing
 
@@ -443,7 +470,7 @@ After merge:
   way of naming it.
 - **Connected scan:** each backend's sources against core's and std's
   `@connected` marks.
-- **Core bodies vs natives:** 135 shared cases, both ways. (tom to claude: is this a fresh number? is it needed?)
+- **Core bodies vs natives:** shared cases, run both ways.
 - **Doc examples:** every marked example in core, std, and `docs/` runs
   in CI as marked; known exceptions are listed in
   `docs/inconsistencies.md`.
@@ -451,7 +478,7 @@ After merge:
   numbers, callback changes (C++ under AddressSanitizer), bit vectors,
   queues, out-of-bounds panics with each backend's whole message pinned.
 - **Settle cases** for each typing rule, and LSP/REPL cases for hover and
-  `help(…)` on core's declarations. (tom to claude: should we mention earlier the intent to improve core visibility in LSP?)
+  `help(…)` on core's declarations.
 - **Library output:** surveyed libraries' generated code compared before
   and after on all seven backends at each step.
 
@@ -465,7 +492,9 @@ After merge:
 - **Contributor docs:** the prose doc rule; what `temper inert` means and
   when inert examples are checked.
 - **Later:** generate `docs/language/builtins.md` and `types.md` from
-  core, or retire them.
+  core's and std's literate sources, as KTemper's docs build partly did,
+  replacing hand-kept copies, or retire them. This is docs automation
+  only, with no language change.
 
 ## Open issues
 
@@ -474,10 +503,17 @@ After merge:
 - **Sealed but not exhaustive:** `when` over `MapKey` can't name its
   cases; a general marker (useful for evolving libraries and enums, see
   [#50](https://github.com/temperlang/temper/issues/50)) is undecided.
-- **Parse core once** into an index that the compiler and tools query,
-  instead of several text scanners. (tom to claude: do we reparse it today for every case?)
-- **Users' connected classes:** connecting an interface isn't reported
-  yet; a policy for `@mayDowncastTo(true)` is needed. (tom to claude: what policy is lacking?)
+- **One index of core:** core isn't reparsed per compile, but typing,
+  docs, hover, and the interpreter's bodies harness each scan its text on
+  their own (once per process). One parsed index that the compiler and
+  tools query could replace them.
+- **Users' connected classes:**
+  - Connecting an interface isn't reported yet.
+  - `@mayDowncastTo` on a user's type needs a policy. KTemper honors it
+    unchecked, taking the user's word that every backend can tell the
+    host type apart. Tempest reads it only from core, so a user's
+    `@mayDowncastTo(true)` is ignored and the connected rule refuses the
+    check.
 - **Private constructors on the host side:** C# emits them public and
   Java package-private (belongs with
   [#676](https://github.com/temperlang/temper/issues/676)).
@@ -487,37 +523,50 @@ After merge:
   differ (snapshot vs live). Belongs with an iterables RFC, alongside
   `forEach` on `Mapped` but not `Listed`.
 - **Core decorators** are still matched by name, in their own namespace;
-  they should become ordinary core declarations. This also needs and RFC which can also provide a path for user-defined decorators.
-- **Runtimes restating core's bodies** (`near`, `reduceFromIndex`,
-  `sorted`'s copy, seven times each): could drop `@connected` once
-  backends translate core's bodies. (tom to claude: really???)
+  they should become ordinary core declarations. This also needs an RFC,
+  which can also provide a path for user-defined decorators.
+- **Runtimes restating core's bodies** (`near` and `reduceFromIndex`,
+  seven times each): those without a host speed-up could drop
+  `@connected` and translate from core's bodies, once tmpl translates
+  core's bodies at all. It doesn't yet, and KTemper's unconnected
+  `reduceFromIndex` failed at run time on JavaScript and Python.
+  (`sorted` keeps host sorts for speed and stability.)
 - **Core's extensions by name:** `listedMap(xs) { … }` and
-  `xs.map<Int, String>` aren't callable yet. (tom to claude: why not???)
+  `xs.map<Int, String>` aren't callable yet. Core is built in rather than
+  loaded as a library, and typing reads its extensions as members of
+  their types (`Listed.map<O>`), so `listedMap` isn't a name in scope, and
+  the member takes only the type arguments the receiver doesn't name.
 - **Not translated yet:** an `Equatable` bound; user classes extending
-  `Console`, `Generator`, or other builtin interfaces; a `Console` value on
-  JavaScript, Lua, and Rust; some core values as `AnyValue` on Rust and
-  C++. (tom to claude: really??? did these holes exist in ktemper? i ended needing some special handling of Rquatable in be-rust in ktemper, but i guess you got around it?)
-- **Erased type arguments in checks** from covariant supertypes. But as mentioned,
-  an effort is underway to fully excise variance annotations from Temper, per earlier team decisions.
-- **`Type` at run time:** `x is Type` is allowed but untested on backends. Defining
-  consistent semantics for the runtime meaning of Type would be good but is outside the scope of this effort.
-  `Type` values are still supported here for type aliases.
+  `Console`, `Generator`, or other builtin interfaces; a `Console` value
+  on JavaScript, Lua, and Rust; some core values as `AnyValue` on Rust
+  and C++. Where checked, these worked in KTemper: on JavaScript, an
+  `Equatable` bound, a class extending `Console`, and a `Console` value
+  (and its Rust backend mapped an `Equatable` bound to `PartialEq`), so
+  they're Tempest regressions still to fix.
+- **Erased type arguments in checks** from covariant supertypes. But as
+  mentioned, an effort is underway to remove variance annotations from
+  Temper entirely, per earlier team decisions.
+- **`Type` at run time:** `x is Type` is allowed but untested on
+  backends. Consistent semantics for what a `Type` means at run time
+  would be good but are outside the scope of this effort. `Type` values
+  are still supported here for type aliases.
 - **How macros name core:** future user-space macros need a name for
-  `core` or names in it that user definitions don't shadow. One possibility is non-syntactic reference to core or
-  its members.
-- **Where moved runtime code lives** between core and std across backends. We've
-  been inconsistent in the past, and it's still out of scope for this already large RFC.
+  `core`, or for names in it, that user definitions don't shadow. One
+  possibility is a non-syntactic reference to core or its members.
+- **Where moved runtime code lives** between core and std across
+  backends. We've been inconsistent in the past, and it's still out of
+  scope for this already large RFC.
 - **Operators and function types in core** wait for
-  [RFC 670](../../670-type-associated-operators/README.md) and
-  [RFC 667](../../667-fun-types/README.md).
+  [RFC 670](../670-type-associated-operators/README.md) and
+  [RFC 667](../667-fun-types/README.md).
 
 ## Evidence
 
 In this folder:
 
-- [claude-core-cleanup.md](claude-core-cleanup.md): the cleanup items and
+- [claude-core-cleanup.md](tom/claude-core-cleanup.md): the cleanup items and
   the discussion that led to namespaces.
-- [claude-deque-bitvector-to-std.md](claude-deque-bitvector-to-std.md):
+- [claude-deque-bitvector-to-std.md](tom/claude-deque-bitvector-to-std.md):
   host types by backend, the connected rule, and the move.
 
 In the compiler: the release notes and `notes/` (core's capabilities,
