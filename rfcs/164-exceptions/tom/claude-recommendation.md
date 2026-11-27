@@ -107,7 +107,7 @@ so does option 0, by having no failures for generic code to carry:
 | `map` with a fallible `f` | a list of results; stopping at the first failure needs a separate std function | stops at the first failure; collecting every outcome stores failure objects | `f` returns `R?` or a library result, which `map` collects; stopping early is a loop or a separate function |
 | Async, generators, caches | ordinary value rules | promises hold failures, and `try await` rethrows; caches store failure objects | promises can't be broken; async work resolves to a domain type (std/net's own status type) |
 | Exception backends | held results wherever one may be held, including adapters where a throwing function meets generic code | no held results; today's lowering | nothing to lower but panics |
-| Host APIs | a result type wherever an exported API holds results | no result types | `null`, `Boolean`, or each library's result types; no host exceptions unless a [decorated-result variant](claude-option-no-failures.md#a-variant-decorated-result-classes) generates them |
+| Host APIs | a result type wherever an exported API holds results | no result types | `null`, `Boolean`, or each library's result types; no host exceptions |
 | Reading code | any value may be a result | no value is a result | failure is `null` or a library's own type |
 | Where reasons go | the failure type | the failure type | a field or result type per library; 12 of 289 declarations need one ([audit](claude-option-no-failures-audit.md)) |
 

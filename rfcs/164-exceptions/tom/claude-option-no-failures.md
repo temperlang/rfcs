@@ -151,34 +151,13 @@ record problems in the `InterchangeContext` they already take; parsing
 returns a std `JsonParseResult`. Number parsing, regex, and dates need
 only `T?` (and a `Date.of` factory).
 
-## A variant: decorated result classes
+## Not proposed: errors at the host boundary
 
-**Suggestion** (from discussion with Tom), labeled as one variant
-among several: keep option 0's language, and add one decoration that
-marks a library's own result or problem class as a failure, so
-backends can generate each host's idiom from it.
-
-```temper
-// HYPOTHETICAL: the decoration and its contract are invented here.
-@failure export class SqlProblem(public text: String, public word: Int) {}
-
-@failureReport  // `value` null means failed; `problems` say why
-export class SelectCheck(public value: Select?, public problems: List<SqlProblem>) {}
-
-export let checkSelect(sql: String): SelectCheck { … }
-```
-
-Backends would generate a throwing convenience beside the check form:
-`parse_select(sql)` raising `SelectError` carrying the problems, with a
-real message, in Python; `WherewithException` subclasses in Java and
-C#; an `Error` subclass in JS; `Result<Select, Vec<SqlProblem>>` in
-Rust; `(Select, error)` in Go. Temper code still sees only the result
-class and `??`. It keeps the language minimal, gives host users standard
-error handling, and gives libraries one shared convention instead of
-one each, avoiding plain option 0's silent nulls in exception hosts.
-Costs: a contract the compiler must recognize, most of the proposal's
-host-mapping work (types, messages, names, `temper.keep`), and no
-propagation sugar inside Temper.
+Option 0 shouldn't generate host exceptions or results from Temper's
+result classes (Tom, 2026-11-27). That would bring back most of what
+declared errors need: a contract the compiler recognizes, per-host
+error types, messages, and names. Under option 0, host APIs return the
+same result classes, nullables, and panics that Temper code sees.
 
 ## Collect, don't stop
 
@@ -188,9 +167,7 @@ problems, rather than stopping at the first one. Hrefine's validation
 log, Kelpto's HTML errors (HTML parsing never fails), Argmas's error
 values, and Wherewith's lexer, which stores problems as values, already
 do. Error-tolerant formats need it, and tools (editors, linters,
-form validators) want every diagnostic at once. A generated host
-exception would carry the whole list, as pydantic's `ValidationError`
-does. Operations with one way to fail (number parsing, decoding one
+form validators) want every diagnostic at once. Operations with one way to fail (number parsing, decoding one
 value) lose little with `T?`.
 
 ## As a first phase
@@ -204,15 +181,12 @@ move libraries to `T?` and result values, and see whether they miss
 declared failures. If they do, add the proposal's design later, which
 is additive in the language. The libraries' host APIs would change
 twice (exception, then `null`, then a declared failure), which their
-beta status allows. The decorated-result variant fits the same path,
-as a smaller second step than the full proposal.
+beta status allows.
 
 ## Open questions
 
 - Whether `throws Bubble` is removed or kept, deprecated, as the
   no-detail failure during a transition.
-- Whether the decorated-result variant is worth its compiler contract,
-  and which shapes it recognizes (a check class, a sealed result).
 - Whether `Mapped.get` panics, and how `has` is implemented on each
   backend.
 - How connected async APIs report failure without broken promises, and

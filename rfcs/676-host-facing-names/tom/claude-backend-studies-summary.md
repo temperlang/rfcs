@@ -501,6 +501,16 @@ literals with `..Default::default()` (which needs a `Default`, so it
 fits only classes whose properties all have defaults). Watch generated
 size: no new code per class beyond today's builders.
 
+**Optional parameters in Rust.** Temper lowers a parameter's default to
+`coalesce(param, default)` in the callee, so `null` means "use the
+default". Rust can take such a parameter as `impl Into<Option<T>>`, so
+host callers write `f(1, 5)` or `f(1, None)` rather than `Some(5)`; the
+callee converts once and coalesces as now. That fits Temper's rule
+exactly, adds no code per call, and is a common Rust idiom. Builders
+stay the tool for construction with many optional properties. Cost:
+`impl Into<…>` makes a function generic, so it can't be called through
+`dyn` traits; trait methods keep plain `Option<T>`.
+
 ## Shared decisions, per-backend proposals, and PRs
 
 Much of this is common to every backend, and is best decided once:

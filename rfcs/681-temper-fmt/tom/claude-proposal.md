@@ -42,16 +42,28 @@ The user reference is `docs/tools/fmt.md` there; the rules below match it.
   family: list layout chosen by the author's line break and trailing
   comma.
 
-## Proposal
+## Specification
+
+Each rule names its golden cases in the compiler's
+`crates/temper-syntax/tests/fmt/` (`rules`, `fmt`, `lines`, `lists`,
+`comments`, `edges`), by file.
+
+### Meaning
+
+- **S1. Meaning never changes.** Tokens, comments, and the parse tree
+  are the same after formatting, and formatting again changes nothing.
+  If either would fail, the file is left as written and reported. Code
+  that doesn't parse is left as written. *Tests:* `fmt.rs` (every
+  repository file, mutated inputs, formatting twice).
 
 ### Spacing
 
-- **One space** around operators, after `,` `;` and type or property
-  `:`, and inside `{ }`.
-- **No space** inside `( )` and `[ ]`, or between a called name and `(`.
-- **Except** after `if`, `while`, `for`, `when`, `catch`, and `fn`,
-  which take one: `if (ok)`, but `f(ok)`.
-- Runs of spaces and tabs become one.
+- **S2. Spacing comes from the operator table.** One space around an
+  infix operator, none after a prefix one, one inside `{ }` and none
+  inside `( )` and `[ ]`; one after `,`, `;`, and a type or property
+  `:`; none between a called name and `(`, except after `if`, `while`,
+  `for`, `when`, `catch`, and `fn`. Other tokens keep their spacing, a
+  run of spaces and tabs becoming one. *Tests:* `rules`, `fmt`.
 
 ```temper
 let x:Int=f( a ,b )+1;          // before
@@ -62,41 +74,30 @@ let p = {x:1, y :2};            // before
 let p = { x: 1, y: 2 };         // after
 ```
 
-- **Each operator's spacing lives in the parser's operator table,** next
-  to the operator:
+| Spacing | Operators |
+|---|---|
+| One space around, or inside | `=>`, `->`, `=`, `+=`, `-=`, `*=`, `/=`, `%=`, `&=`, `^=`, `\|=`, `&&=`, `\|\|=`, `<<=`, `>>=`, `>>>=`, `??`, `\|\|`, `&&`, `==`, `!=`, `===`, `!==`, `=~`, `!~`, `<`, `<=`, `>`, `>=`, `\|`, `^`, `&` (infix), `<<`, `>>`, `>>>`, `+` (infix), `-` (infix), `*` (infix), `/`, `%`, `~` (infix), `**`, `{ }`, `\{ }` |
+| None around, after, or inside | `@`, `< >`, `++` (prefix), `--` (prefix), `+` (prefix), `-` (prefix), `!` (prefix), `~` (prefix), `&` (prefix), `*` (prefix), `...`, `.`, `?.`, `( )`, `[ ]`, `\`, `\( )`, `${ }` |
+| None before, one after | `;`, `,`, `:` (type) |
+| As written (a run becomes one space) | `;;;`, `;;`, `:` (marker), `given`, `return`, `throw`, `yield`, `of`, `:` (label), `case`, `orelse`, `extends`, `implements`, `forbids`, `supports`, `throws`, `in`, `instanceof`, `is`, `as`, `::`, `await`, `++` (postfix), `--` (postfix), `!` (postfix), `?`, `..`, `\u{ }`, `new` |
 
-  | Spacing | Operators |
-  |---|---|
-  | One space around, or inside | `=>`, `->`, `=`, `+=`, `-=`, `*=`, `/=`, `%=`, `&=`, `^=`, `\|=`, `&&=`, `\|\|=`, `<<=`, `>>=`, `>>>=`, `??`, `\|\|`, `&&`, `==`, `!=`, `===`, `!==`, `=~`, `!~`, `<`, `<=`, `>`, `>=`, `\|`, `^`, `&` (infix), `<<`, `>>`, `>>>`, `+` (infix), `-` (infix), `*` (infix), `/`, `%`, `~` (infix), `**`, `{ }`, `\{ }` |
-  | None around, after, or inside | `@`, `< >`, `++` (prefix), `--` (prefix), `+` (prefix), `-` (prefix), `!` (prefix), `~` (prefix), `&` (prefix), `*` (prefix), `...`, `.`, `?.`, `( )`, `[ ]`, `\`, `\( )`, `${ }` |
-  | None before, one after | `;`, `,`, `:` (type) |
-  | As written (a run becomes one space) | `;;;`, `;;`, `:` (marker), `given`, `return`, `throw`, `yield`, `of`, `:` (label), `case`, `orelse`, `extends`, `implements`, `forbids`, `supports`, `throws`, `in`, `instanceof`, `is`, `as`, `::`, `await`, `++` (postfix), `--` (postfix), `!` (postfix), `?`, `..`, `\u{ }`, `new` |
-
-- Followers space as themselves (the `,` in `extends A, B`); an object
-  literal's `:` spaces as a type's.
-- **Space before `<` stays as written,** since it decides whether `<` is
-  an angle bracket.
-- **Interpolation is tight:** `${name}`, as in Kotlin, Python f-strings,
-  and JavaScript. One spanning lines keeps its line breaks.
-- **Quasi-quotes** space and lay out as their plain brackets do:
-  `\(a + b)`, `\{ f(x) }`.
-- **`\u{ }` in a string stays exactly as written:** it's string text, and
-  a space there would be an error.
+- **S3. Interpolation is tight:** `${name}`, with no space just inside
+  `${ }`. Quasi-quotes space as their plain brackets. *Tests:* `fmt`.
 
 ```temper
 "hi, ${ name }, ${ f({ a: 1 }) }"   // before
 "hi, ${name}, ${f({ a: 1 })}"       // after
 ```
 
-### Indentation
+### Lines
 
-- **Each bracket level indents two spaces.**
-- **A continuation line indents two** from its statement's first line.
-- **A line that starts a statement doesn't:** a `{ x }` block after a
-  whole call `f(a)` (the line break ends the call), or a statement after
-  a label (`outer:`).
-- **A line starting with `;`, `;;`, or `,`** lines up with what it ends,
-  as a close bracket lines up with its open bracket's line.
+- **S4. Line breaks are the author's,** except inside lists (S7). Blank
+  lines stay, but at most one in a row, and none at the start of a file
+  or at a code block's edges. *Tests:* `lines`, `fmt`, `rules`.
+- **S5. Indentation:** two spaces per bracket level, and two for a line
+  continuing its statement. A line that starts a statement, or one
+  starting with `;`, `;;`, or `,`, doesn't continue. *Tests:* `fmt`,
+  `lines`.
 
 ```temper
 let ready = loaded &&
@@ -109,18 +110,10 @@ outer:
 for (;;) { f() }         // after
 ```
 
-- **Four spaces** for two kinds of continuation, to stand apart from the
-  body that follows:
-  - **Headers** (class, interface, function, function literal, before
-    the body's `{`), from the header's first line, including a comma
-    between supertypes.
-  - **Parentheses whose contents start on the `(` line,** as a
-    condition's do. With a break right after `(`, contents start their
-    own line and continue at two.
-- Brackets opened on such a line indent from it; a header's body indents
-  from the header's first line.
-- **Structural, not keyed on `if` or `while`:** control flow is ordinary
-  calls with trailing blocks in Temper, so the rule applies to every call.
+- **S6. Four spaces** for a continued header (before a body's `{`) and
+  inside parentheses whose contents start on the `(` line. The rule is
+  structural: the same for every call with a trailing block. *Tests:*
+  `lines`.
 
 ```temper
 let parse(text: String): Int
@@ -147,25 +140,19 @@ if (
 }
 ```
 
-### Blank lines and line endings
-
-- Blank lines stay, but never more than one in a row, and none at a
-  file's start (or a `.temper.md` code block's start and end).
-- Trailing spaces go, after comments too.
-- A file ends with one line break; a file of only space becomes empty.
-- Line endings stay the file's own: in a CRLF file, added breaks are CRLF.
-
 ### Lists
 
-- **Lists:** arguments, parameters, list and object literals, type
-  arguments, grouping parentheses `(a + b)`, and indices `items[i]`.
-- **The author's signals choose the layout:**
+- **S7. The author picks a list's layout** (arguments, parameters, list
+  and object literals, type arguments, grouping parentheses, indices):
 
   | You write | Layout |
   |---|---|
   | no break after the open bracket | all on one line |
   | a break after the open bracket | items together on a line of their own |
   | a trailing comma | one item per line |
+
+  `fmt` never adds or removes a comma. An item may span lines; the next
+  starts where it ends. *Tests:* `lists`.
 
 ```temper
 f(a,
@@ -187,51 +174,37 @@ f(
 );           // after
 ```
 
-- **`fmt` never adds or removes a comma:** to rejoin a list, delete its
-  trailing comma.
-- **An item may span lines;** the next item starts where it ends.
-- **Kept as written:** a list with a comment between items, a list of
-  only literals (a data table), or one holding a multi-quoted string.
+### What stays as written
 
-### What it never changes
+- **S8. Text:** comments' text, strings (including `\u{ }` runs), and
+  prose in `.temper.md` files. Only trailing spaces go, and a file ends
+  with one line break. *Tests:* `fmt`, `rules`, `comments`.
+- **S9. Comments move with the code:** a comment on its own line indents
+  like the code after it, its lines together; a doc comment's star
+  gutter lines up one column past the `/`. *Tests:* `comments`.
 
-- Line breaks outside lists.
-- **Comments' text**, apart from trailing spaces.
-  - A comment on its own line indents like the code around it, its lines
-    moving together, unless that would cross the margin or one of its
-    lines is tab-indented.
-  - A `/** … */` with a star gutter has its `*`s one column past the `/`;
-    without a gutter, `*` bullets move with the rest.
-
-    ```temper
-        /**
-      * Adds one.
-         *   - wraps at the top
-      */
-    let inc(n: Int): Int { n + 1 }
-    ```
-
-    becomes
-
-    ```temper
+```temper
     /**
-     * Adds one.
+  * Adds one.
      *   - wraps at the top
-     */
-    let inc(n: Int): Int { n + 1 }
-    ```
-- **Strings.** A multi-quoted string's lines move with its first line,
-  except tab-indented lines.
-- **Prose in `.temper.md`:** only Temper code blocks change.
+  */
+let inc(n: Int): Int { n + 1 }
+```
 
-### Turning it off
+becomes
 
-- `// fmt: off` … `// fmt: on`, each on its own line, keeps everything
-  between exactly as written (Black's and ruff's spelling).
-- Without `// fmt: on`, the region ends where its enclosing brackets
-  close, or at the end of the file or code block.
-- Only those exact comments count (`//fmt: off` and `/* fmt: off */`
-  don't); a stray `// fmt: on` is an ordinary comment.
+```temper
+/**
+ * Adds one.
+ *   - wraps at the top
+ */
+let inc(n: Int): Int { n + 1 }
+```
+
+- **S10. `// fmt: off` … `// fmt: on`** keeps lines exactly as written.
+  Without `// fmt: on`, the region ends where its enclosing brackets
+  close, or at the end of the file or code block. *Tests:* `comments`,
+  `rules`.
 
 ```temper
 // fmt: off
@@ -242,48 +215,56 @@ let sizes = [
 // fmt: on
 ```
 
-### Safety
-
-- **Refuses, leaving the file as written:**
-  - code that doesn't parse (with its error);
-  - a carriage return without a line feed;
-  - any result whose tokens, comments, or parse tree would differ.
-- **One file's problem doesn't stop the rest:** it's reported, and
-  formatting goes on.
-- **Whole or nothing:** each file is written to a new file beside it,
-  with its permissions, then swapped in. Hard-linked files, and files in
-  directories that can't take a new file, are written in place. A
-  read-only file is an error.
-
-### What it skips
-
-- Under a directory: `temper.out`, `temper.keep`, hidden directories, and
-  what `.gitignore` and `.temperignore` list, as `build` does.
-- **Symbolic links,** so a link can't make it write outside the tree; a
-  link named on the command line formats its target.
-- **`--ignorefile FILE`:** gitignore patterns for more to keep as written
-  (golden inputs, code that fails to parse on purpose). Files named on
-  the command line are formatted anyway.
-
-```sh
-temper fmt --check --ignorefile .fmtignore
-```
-
 ### Tools
 
-- **`temper fmt [--check] [--ignorefile FILE] [PATH]...`**
-  - Formats the files named, or under the directories named (default:
-    the current one).
-  - Rewrites only files that change.
-  - `--check` changes nothing, lists files needing formatting, and exits
-    1 if any do (for CI).
-- **Language server:** the same code formats a whole document or a range,
-  so editor and command never disagree.
-- **VS Code:** formats on save by default. Turn it off with
-  `editor.formatOnSave: false` for `[temper]` and `[temper-markdown]`.
-  Untrusted (Restricted Mode) workspaces don't run the extension.
-- **Refusals in the editor** are shown, except a syntax error, which
-  the diagnostics already show.
+- **S11. The same everywhere:** `temper fmt [PATH]...` formats files and
+  directories; `--check` changes nothing and exits 1 if anything needs
+  formatting; the language server formats documents and ranges with the
+  same code, and VS Code formats on save by default. *Tests:* LSP tests,
+  VS Code suite.
+
+## Implementation notes
+
+Worked out while building it, on
+[#692](https://github.com/temperlang/temper/pull/692).
+
+- **Tokens laid out by the tree (S1, S2, S5–S7):** the formatter
+  rewrites only the space between the parse's tokens, so comments and
+  layout survive, and reads the parse tree for structure: which
+  operators are infix, where lists, headers, and statements begin and
+  end. It never reprints code from the tree. It runs in linear time on
+  one file's parse, with no typing or imports, so format on save is
+  instant.
+- **Exceptions to the rules,** each forced by a case:
+  - **S2:** about 30 tokens keep their spacing as written: word operators
+    (`orelse`, `is`, `as`, `extends`, …), postfix operators, `new`, and
+    others no rule settles yet. Space before `<` always stays, since it
+    decides whether `<` is an angle bracket.
+  - **S7:** a list keeps its line breaks when it has a comment between
+    items, holds only literals (a data table), or holds a multi-quoted
+    string.
+  - **S9:** a comment stays where it is when moving it would cross the
+    margin or mix tabs and spaces. A multi-quoted string's tab-indented
+    lines stay too.
+- **Line endings:** a CRLF file stays CRLF. A carriage return without a
+  line feed is refused, since editors and Temper disagree on it.
+- **Writing files:** each is written whole or not at all, to a new file
+  beside it with its permissions, then swapped in. Hard-linked files, and
+  directories that can't take a new file, are written in place. A
+  read-only file is an error. One file's problem doesn't stop the rest.
+- **What directories skip:** `temper.out`, `temper.keep`, hidden
+  directories, what `.gitignore` and `.temperignore` list, and symbolic
+  links, so a link can't make `fmt` write outside. `--ignorefile FILE`
+  adds gitignore patterns; files named on the command line are formatted
+  anyway.
+- **Editors:** refusals are shown, except syntax errors, which
+  diagnostics already show. Untrusted workspaces don't run the
+  extension. Format on save is turned off with VS Code's own
+  `editor.formatOnSave`.
+- **The operator table** lives with the parser's operators, and the docs'
+  table is rendered from it, so neither drifts.
+- **Adoption:** the repository was formatted in one commit, with a CI
+  check, an ignore file, and a script that formats the docs' examples.
 
 ## Rationale
 
@@ -344,17 +325,6 @@ groups:
 - Output may change between Temper versions as rules are refined, as
   with any formatter; `--check` in CI shows when.
 
-## Implementation
-
-Done on [#692](https://github.com/temperlang/temper/pull/692):
-
-- The formatter in the syntax crate, working on the parse's tokens.
-- `temper fmt` with `--check` and `--ignorefile`.
-- Language-server document and range formatting; format on save in VS
-  Code.
-- The repository formatted, with a CI check and an ignore file.
-- A script that formats the docs' Temper examples.
-
 ## Testing
 
 - **Golden tests** for every rule.
@@ -377,6 +347,12 @@ Done on [#692](https://github.com/temperlang/temper/pull/692):
 
 ## Open issues
 
+- **The rules' exceptions** (Implementation notes), worth deciding before
+  1.0, since changing formatter output later churns everyone's diffs:
+  - the tokens whose spacing stays as written: which could get a rule;
+  - lists of only literals keeping their line breaks: a heuristic, where
+    `// fmt: off` already covers data tables;
+  - comments that don't move: whether tab-indented ones could.
 - **Formatting only changed lines** (Mike): a `--diff` mode for PRs.
   Needs care where one change implies another (adding brackets).
 - **Markdown prose** in `.temper.md` stays as written; whether `fmt`
